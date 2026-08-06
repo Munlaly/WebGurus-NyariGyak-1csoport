@@ -29,3 +29,4 @@ Thumbs.db
 # Adatbazis
 *.sqlite
 *.sqlite3
+.env.before_lerd
