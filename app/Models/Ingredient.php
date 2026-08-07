@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserSettings extends Model
+class Ingredient extends Model
 {
     protected $fillable = [
-        'user_id',
-        'settings',
+        'category_id',
+        'name',
+        'base_unit',
     ];
 }
