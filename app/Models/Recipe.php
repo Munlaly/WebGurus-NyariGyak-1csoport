@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserSettings extends Model
+class Recipe extends Model
 {
     protected $fillable = [
         'user_id',
-        'settings',
+        'name',
+        'instructions',
+        'prep_time_minutes',
+        'is_public',
     ];
 }
