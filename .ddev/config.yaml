@@ -1,21 +1,26 @@
 name: Projekt
 type: laravel
 docroot: public
-php_version: "8.4"
+php_version: '8.4'
 webserver_type: nginx-fpm
 xdebug_enabled: false
 additional_hostnames: []
 additional_fqdns:
   - webgurus-nyarigyak-1csoport.test
 database:
-    type: mariadb
-    version: "11.8"
+  type: mariadb
+  version: '11.8'
 use_dns_when_possible: true
-composer_version: "2"
+composer_version: '2'
 web_environment: []
-nodejs_version: "24"
+nodejs_version: '24'
 corepack_enable: false
 disable_settings_management: true
+web_extra_exposed_ports:
+  - name: vite
+    container_port: 5173
+    http_port: 5172
+    https_port: 5173
 
 # Key features of DDEV's config.yaml:
 
