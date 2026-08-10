@@ -43,6 +43,7 @@ class FetchSpoonacularData extends Command
             'addRecipeInformation' => 'true',
             'instructionsRequired' => 'true',
             'fillIngredients' => 'true',
+            'addRecipeNutrition' => 'true',
         ]);
 
         if($response->failed()) {
@@ -62,6 +63,28 @@ class FetchSpoonacularData extends Command
         $saveCount = 0;
 
         foreach($recipes as $recipeData) {
+            $mappedTypes = [];
+            $apiTypes = $recipeData['dishTypes'] ?? [];
+            
+            foreach ($apiTypes as $type) {
+                $type = strtolower($type);
+                
+                if (in_array($type, ['breakfast', 'brunch', 'morning meal'])) {
+                    $mappedTypes[] = 'breakfast';
+                }
+                if (in_array($type, ['main course', 'main dish', 'dinner', 'lunch'])) {
+                    $mappedTypes[] = 'lunch';
+                    $mappedTypes[] = 'dinner';
+                }
+            }
+            
+            $mappedTypes = array_unique($mappedTypes);
+            if (empty($mappedTypes)) {
+                continue; 
+            }
+            
+            $finalMealTypes = array_values($mappedTypes);
+
             $exist = Recipe::where('name', $recipeData['title'])->exists();
             $instructionsText = null;
             if(!empty($recipeData['analyzedInstructions'])) {
@@ -76,10 +99,30 @@ class FetchSpoonacularData extends Command
                 $instructionsText = implode("\n", $stepDescriptions);
             }
 
+            $macros = [
+                'calories' => null,
+                'protein' => null,
+                'fat' => null,
+                'carbs' => null,
+            ];
+
+            if(!empty($recipeData['nutrition']['nutrients'])) {
+                foreach($recipeData['nutrition']['nutrients'] as $nutrient) {
+                    match($nutrient['name']) {
+                        'Calories' => $macros['calories'] = $nutrient['amount'],
+                        'Protein' => $macros['protein'] = $nutrient['amount'],
+                        'Fat' => $macros['fat'] = $nutrient['amount'],
+                        'Carbohydrates' => $macros['carbs'] = $nutrient['amount'],
+                        default => null,
+                    };
+                }
+            }
+
             $finalInstructions = $instructionsText
                 ?? $recipeData["instructions"]
                 ?? $recipeData["summary"]
                 ?? 'No instructions provided';
+                
 
             if(!$exist) {
                 // Saving to DB
@@ -94,12 +137,15 @@ class FetchSpoonacularData extends Command
                     'title' => $recipeData['title'],
                     'prep_time' => $recipeData['readyInMinutes'] ?? null,
                     'servings' => $recipeData['servings'] ?? null,
+                    'macros' => $macros,
                     'diets' => $recipeData['diets'] ?? null,
                     'instructions' => $finalInstructions,
+                    'meal_types' => $finalMealTypes,
                     'ingredients' => array_map(fn($ingr) => [
-                            'name' => $ingr['name'] ?? null,
+                            'name' => $ingr['nameClean'] ?? null,
                             'amount' => $ingr['amount'] ?? null,
                             'unit' => $ingr['unit'] ?? null,
+                            'aisle' => $ingr['aisle'] ?? 'Uncategorized',
                     ], $recipeData['extendedIngredients'] ?? []),
                 ];
                 $saveCount++;
