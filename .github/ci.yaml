@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ['main']
+    branches: ['**']
   pull_request:
     branches: ['main']
 
@@ -44,15 +44,19 @@ jobs:
       - name: Install NPM Dependencies
         run: npm ci
 
+      - name: Build Frontend Assets
+        run: npm run build
+
       - name: Run JS Lint
         run: npm run lint
 
-      - name: Run PHP Lint (Syntax Check)
-        run: find app config database routes tests -name "*.php" -print0 | xargs -0 -n 1 php -l
+      - name: Run PHPStan (Static Analysis)
+        run: vendor/bin/phpstan analyse --error-format=github
 
       - name: Run Pest Tests
         run: vendor/bin/pest
         env:
           APP_ENV: testing
+          APP_KEY: base64:fG12345678901234567890123456789012345678901=
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
