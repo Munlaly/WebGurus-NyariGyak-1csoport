@@ -12,5 +12,6 @@ class Recipe extends Model
         'instructions',
         'prep_time_minutes',
         'is_public',
+        'image',
     ];
 }
