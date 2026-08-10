@@ -31,3 +31,8 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 .env.before_lerd
+
+# Nuxt UI & Auto-generated Types
+components.d.ts
+auto-imports.d.ts
+.nuxt/
