@@ -22,12 +22,15 @@ class RecipeSeeder extends Seeder {
         $uncategorized = Category::where('name', 'Uncategorized')->first();
 
         foreach($recipeData as $data) {
+            $rawImage = $data['image'] ?? null;
+            $cleanImage = $rawImage ? str_replace(['\\/', '\\'], ['', ''], $rawImage) : null;
             $recipe = Recipe::firstOrCreate(
                 ['name' => $data['title']],
                 [
                     'user_id' => null,
                     'instructions' => $data['instructions'],
                     'prep_time_minutes' => $data['prep_time'],
+                    'image' => $cleanImage,
                     'is_public' => true,
                 ]
             );
@@ -92,7 +95,6 @@ class RecipeSeeder extends Seeder {
             'savory snacks', 'sweet snacks', 'cheese', 'health foods', 
             'nutt butters', 'jams, and honey', 'canned and jarred'
         ];
-
         if(in_array($aisle, $weightAisles)) {
             return 'g';
         }
