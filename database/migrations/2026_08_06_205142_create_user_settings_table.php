@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
 
-            $table->json('goal')->nullable();
-            $table->json('meal_plan_preferences')->nullable();
+            $table->json('goals')->nullable();
+            $table->json('meal_plan_preference')->nullable();
             $table->json('household_size')->nullable();
-            $table->json('prep_time_prefference')->nullable();
+            $table->json('prep_time_preference')->nullable();
             $table->enum('budget_or_comfort', ['budget_first', 'comfort_first'])->default('comfort_first');
             $table->timestamps();
         });
