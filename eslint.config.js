@@ -14,6 +14,13 @@ export default [
 
   // 4. Custom team overrides
   {
+    languageOptions: {
+      // globals for inertia
+      globals: {
+        route: 'readonly',
+        $page: 'readonly',
+      },
+    },
     rules: {
       'no-unused-vars': 'error',
       'no-console': 'off',
