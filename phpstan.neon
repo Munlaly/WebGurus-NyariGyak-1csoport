@@ -8,5 +8,4 @@ parameters:
         - database/
         - routes/
 
-    level: 5 
-    checkMissingIterableValueType: false   
+    level: 5    
