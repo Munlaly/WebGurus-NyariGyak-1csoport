@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('instructions')->nullable();
             $table->integer('prep_time_minutes')->nullable();
             $table->boolean('is_public')->default(false);
+            $table->string('image')->nullable();
             $table->timestamps();
 
             $table->index('user_id', 'idx_recipes_user');

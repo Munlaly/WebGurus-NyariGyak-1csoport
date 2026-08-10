@@ -1,0 +1,33 @@
+what is your goal:
+ - lose weight
+ - gain weight(bulking)
+ - build muscle
+ - trying to eat healthy on a day to day basis
+ - inspiration for my fridge
+
+meal plan preferences:
+* multi select field:
+ - omnivore
+ - vegetarian
+ - vegan
+ - gluten free
+ - dairy free
+ - keto/low-carb
+ - nut free
+
+foods that i dont like:
+ - multi-select field
+ - maybe different categories and in them subcategories to choose the no-no ingredients
+
+daily calorie goal:
+ - type field (only number value)
+
+for how many people do you usually cook for:
+ - just for myself (1 person)
+ - me and my partner (2 people)
+ - for the entire family (3-5 people)
+
+how much time do you useually have for meal prep:
+ - lightning fast: under 20 minutes
+ - normal pace: 30-45 minutes
+ - leisurely/weekend: over 1 hour
