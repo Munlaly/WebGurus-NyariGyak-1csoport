@@ -57,7 +57,7 @@ class RecipeSeeder extends Seeder {
                         ['name' => $ingredientName],
                         [
                             'category_id' => $categoryId,
-                            'base_unit' => $this->mapUnit($ingData['unit']),
+                            'base_unit' => $this->mapUnit($ingData['unit'], $ingData['aisle'] ?? 'Uncategorized'),
                         ]
                     );
 
@@ -76,14 +76,33 @@ class RecipeSeeder extends Seeder {
         $this->command->info('Recipes and Ingredients seeded succesfully');
     }
 
-    private function mapUnit($unit) {
+    private function mapUnit($unit, $aisle) {
         $unit = strtolower(trim($unit));
+        $aisle = strtolower(trim($aisle));
 
-        if(in_array($unit, ['cup', 'cups', 'tbsp', 'tsp', 'tablespoon', 'teaspoon', 'ml', 'l', 'fluid ounce'])) {
+        if(in_array($unit, ['ml', 'l', 'fluid ounce', 'fl oz'])) {
             return 'ml';
         }
-        if (in_array($unit, ['g', 'gram', 'grams', 'oz', 'ounce', 'ounces', 'lb', 'pound', 'pounds'])) {
+        if (in_array($unit, ['g', 'gram', 'grams', 'oz', 'ounce', 'ounces', 'lb', 'lbs', 'pound', 'pounds'])) {
             return 'g';
+        }
+
+        $weightAisles = [
+            'meat', 'seafood', 'pasta and rice', 'baking', 'cereal', 
+            'savory snacks', 'sweet snacks', 'cheese', 'health foods', 
+            'nutt butters', 'jams, and honey', 'canned and jarred'
+        ];
+
+        if(in_array($aisle, $weightAisles)) {
+            return 'g';
+        }
+
+        $volumeAisles = [
+            'oil', 'vinegar, salad and dressing', 'beverages', 
+            'alcoholic beverages', 'milk, eggs, other dairy', 'condiments'
+        ];
+        if(in_array($aisle, $volumeAisles)) {
+            return 'ml';
         }
 
         return 'db';

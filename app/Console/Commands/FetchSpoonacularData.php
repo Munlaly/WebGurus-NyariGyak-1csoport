@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Recipe;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 ##[Signature('app:fetch-spoonacular-data')]
 ##[Description('Command description')]
@@ -32,8 +33,8 @@ class FetchSpoonacularData extends Command
             return Command::FAILURE;    
         }
 
-        $offset = Recipe::whereNull('user_id')->count();
-        $this->info("Current database count: {$offset}. Fetching the next {$limit} recipes...");
+        $offset = Cache::get('spoonacular_fetch_offset', 0);
+        $this->info("Current API offset: {$offset}. Fetching the next {$limit} recipes...");
 
         // Fetch from API
         $response = Http::get("https://api.spoonacular.com/recipes/complexSearch", [
@@ -75,6 +76,9 @@ class FetchSpoonacularData extends Command
                 if (in_array($type, ['main course', 'main dish', 'dinner', 'lunch'])) {
                     $mappedTypes[] = 'lunch';
                     $mappedTypes[] = 'dinner';
+                }
+                if(in_array($type, ['snack', 'appetizer', 'fingerfood', 'starter'])) {
+                    $mappedTypes[] = 'snack';
                 }
             }
             
@@ -159,6 +163,7 @@ class FetchSpoonacularData extends Command
         } else {
             $this->info('No new data added');
         }
+        Cache::put('spoonacular_fetch_offset', $offset + $limit);
         return Command::SUCCESS;
     }
 
