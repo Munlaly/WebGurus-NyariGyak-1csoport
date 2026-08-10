@@ -130,11 +130,15 @@ class FetchSpoonacularData extends Command
 
             if(!$exist) {
                 // Saving to DB
+                $rawImage = $recipeData['image'] ?? null;
+                $cleanImage = $rawImage ? str_replace(['\\/', '\\'], ['', ''], $rawImage) : null;
+                
                 Recipe::create([
                     'user_id' => null, // no user for system generated recipes
                     'name' => $recipeData['title'],
                     'instructions' => $finalInstructions,
                     'prep_time_minutes' => $recipeData['readyInMinutes'] ?? null,
+                    'image' => $cleanImage,
                     'is_public' => true, // public by default
                 ]);
                 $newRecipes[] = [
@@ -145,6 +149,7 @@ class FetchSpoonacularData extends Command
                     'diets' => $recipeData['diets'] ?? null,
                     'instructions' => $finalInstructions,
                     'meal_types' => $finalMealTypes,
+                    'image' => $cleanImage,
                     'ingredients' => array_map(fn($ingr) => [
                             'name' => $ingr['nameClean'] ?? null,
                             'amount' => $ingr['amount'] ?? null,
