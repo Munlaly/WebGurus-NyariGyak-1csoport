@@ -24,6 +24,12 @@ class RecipeSeeder extends Seeder {
         foreach($recipeData as $data) {
             $rawImage = $data['image'] ?? null;
             $cleanImage = $rawImage ? str_replace(['\\/', '\\'], ['', ''], $rawImage) : null;
+
+            $calories = $data['macros']['calories'] ?? null;
+            $fat = $data['macros']['fat'] ?? null;
+            $carbs = $data['macros']['carbs'] ?? null;
+            $protein = $data['macros']['protein'] ?? null;
+
             $recipe = Recipe::firstOrCreate(
                 ['name' => $data['title']],
                 [
@@ -32,6 +38,10 @@ class RecipeSeeder extends Seeder {
                     'prep_time_minutes' => $data['prep_time'],
                     'image' => $cleanImage,
                     'is_public' => true,
+                    'calories' => (int) round($calories),
+                    'protein'=> $protein,
+                    'fat' => $fat,
+                    'carbs'=> $carbs,
                 ]
             );
 

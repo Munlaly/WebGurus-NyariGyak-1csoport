@@ -13,4 +13,8 @@ class MealPlan extends Model
         'meal_type',
         'status',
     ];
+
+    protected $casts = [
+        'scheduled_date' => 'date',
+    ];
 }
