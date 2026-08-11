@@ -47,6 +47,12 @@ jobs:
       - name: Build Frontend Assets
         run: npm run build
 
+      - name: Silence Phantom Vite Warnings
+        run: |
+          mkdir -p public/build/.vite
+          echo "{}" > public/build/.vite/manifest.json
+          echo "{}" > public/build/manifest.json
+
       - name: Run JS Lint
         run: npm run lint
 
