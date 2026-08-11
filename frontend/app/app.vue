@@ -19,10 +19,10 @@
       </div>
     </div>
 
-    <!-- STEPS 1 to 4: GENERIC QUIZ QUESTIONS (Goals, Diets, Household, Prep Time) -->
-    <div v-else-if="currentStep >= 1 && currentStep <= 4" class="w-full flex flex-col justify-center items-center p-8">
+    <!-- STEPS 1 to 5: GENERIC QUIZ QUESTIONS (Goals, Diets, Household, Prep Time, Budget) -->
+    <div v-else-if="currentStep >= 1 && currentStep <= 5" class="w-full flex flex-col justify-center items-center p-8">
       <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm">
-        <h2 class="text-xl font-bold text-[#006e2f] mb-2">Step {{ currentStep }} of 5</h2>
+        <h2 class="text-xl font-bold text-[#006e2f] mb-2">Step {{ currentStep }} of 7</h2>
         
         <!-- Dynamic Question Title -->
         <h1 class="text-2xl font-bold mb-6">
@@ -53,10 +53,38 @@
       </div>
     </div>
 
-    <!-- STEP 5: DISLIKED INGREDIENTS (Category Cards) -->
-    <div v-else-if="currentStep === 5" class="w-full flex flex-col justify-center items-center p-8">
+    <!-- STEP 6: DAILY CALORIE TARGET -->
+    <div v-else-if="currentStep === 6" class="w-full flex flex-col justify-center items-center p-8">
       <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm">
-        <h2 class="text-xl font-bold text-[#006e2f] mb-2">Step 5 of 5</h2>
+        <h2 class="text-xl font-bold text-[#006e2f] mb-2">Step 6 of 7</h2>
+        
+        <h1 class="text-2xl font-bold mb-2">What is your daily calorie target?</h1>
+        <p class="text-[#3d4a3d] mb-6 text-sm">If you aren't sure, 2000 is a standard average.</p>
+
+        <!-- Number input for calories -->
+        <div class="flex flex-col gap-3 mb-8">
+          <input type="number" 
+                 v-model="quizData.daily_calorie_target" 
+                 placeholder="e.g. 2000" 
+                 class="w-full bg-[#f3f4f5] border-none rounded-xl px-4 py-4 font-bold text-lg outline-none focus:ring-2 focus:ring-[#006e2f]" />
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between">
+          <button @click="prevStep" class="px-6 py-2 rounded-xl bg-[#edeeef] font-bold hover:bg-[#e1e3e4]">
+            Previous
+          </button>
+          <button @click="nextStep" class="px-6 py-2 rounded-xl bg-[#006e2f] text-white font-bold hover:opacity-90">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7: DISLIKED INGREDIENTS (Category Cards) -->
+    <div v-else-if="currentStep === 7" class="w-full flex flex-col justify-center items-center p-8">
+      <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm">
+        <h2 class="text-xl font-bold text-[#006e2f] mb-2">Step 7 of 7</h2>
         <h1 class="text-2xl font-bold mb-6">Any ingredients that you are allergic to or dislike? (Optional)</h1>
 
         <!-- View 1: Category Cards Grid -->
@@ -119,8 +147,8 @@
       </div>
     </div>
 
-    <!-- STEP 6: FINAL REGISTRATION SCREEN -->
-    <div v-else-if="currentStep === 6" class="min-h-screen flex w-full">
+    <!-- STEP 8: FINAL REGISTRATION SCREEN -->
+    <div v-else-if="currentStep === 8" class="min-h-screen flex w-full">
       <!-- Left Side: Form Area -->
       <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 bg-white overflow-y-auto">
         <div class="max-w-md w-full">
@@ -196,14 +224,14 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 
-const currentStep = ref(0) // 0 = Welcome, 1-4 = Quiz steps, 5 = Ingredients, 6 = Registration
+const currentStep = ref(0) // 0 = Welcome, 1-5 = Generic, 6 = Calories, 7 = Ingredients, 8 = Registration
 
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
-// State for the Category view in Step 5
+// State for the Category view in Step 7
 const selectedCategory = ref(null)
 
 // Dummy data for the categories (You will fetch this from Laravel later)
@@ -215,14 +243,21 @@ const dummyCategories = ref([
 ])
 
 // Quiz reactive store
+const savedProgress = JSON.parse(localStorage.getItem('zeroWasteQuiz')) || {}
 const quizData = reactive({
-  goals: [],
-  meal_plan_preferences: [],
-  household_size: '',
-  prep_time_preference: '',
-  disliked_ingredients: [],
-  custom_dislike: []
+  goals: savedProgress.goals || [],
+  meal_plan_preferences: savedProgress.meal_plan_preferences || [],
+  household_size: savedProgress.household_size || '',
+  prep_time_preference: savedProgress.prep_time_preference || '',
+  budget_or_comfort: savedProgress.budget_or_comfort || '', 
+  daily_calorie_target: savedProgress.daily_calorie_target || 2000, 
+  disliked_ingredients: savedProgress.disliked_ingredients || [],
+  custom_dislikes: savedProgress.custom_dislikes || [] 
 })
+
+watch(quizData, (newState) => {
+  localStorage.setItem('zeroWasteQuiz', JSON.stringify(newState))
+}, { deep: true })
 
 const currentCustomInput = ref()
 const showCustomInput = ref(false)
@@ -236,20 +271,19 @@ const form = reactive({
 })
 
 function nextStep() {
-  // Only validate Steps 1 through 4
-  if (currentStep.value >= 1 && currentStep.value <= 4) {
+  // Validate Steps 1 through 5 (Step 6 is a number input so it falls back on the default value)
+  if (currentStep.value >= 1 && currentStep.value <= 5) {
     const currentKey = getCurrentKey(currentStep.value)
     const answer = quizData[currentKey]
 
-    // Only require an answer if it's a single-choice (radio button / circle) question
     if (!isMultiSelect(currentStep.value) && !answer) {
       alert('Please select an option before continuing.')
-      return // Stop the function, don't go to the next step
+      return 
     }
   }
 
-  // Clear the selected category view if they leave Step 5
-  if (currentStep.value === 5) {
+  // Clear the selected category view if they leave Step 7
+  if (currentStep.value === 7) {
     selectedCategory.value = null;
   }
 
@@ -258,8 +292,8 @@ function nextStep() {
 
 function prevStep() {
   if (currentStep.value > 0) currentStep.value--
-  // Also clear selected category if they navigate backwards from or within step 5
-  if (currentStep.value === 5) selectedCategory.value = null;
+  // Clear selected category if they navigate backwards from or within step 7
+  if (currentStep.value === 7) selectedCategory.value = null;
 }
 
 // Configuration helper functions
@@ -269,6 +303,7 @@ function getQuestionTitle(step) {
     case 2: return 'What are your meal plan preferences?'
     case 3: return 'How many people do you usually cook for?'
     case 4: return 'How much time do you usually have for meal prep?'
+    case 5: return 'What is your shopping priority?'
     default: return ''
   }
 }
@@ -279,13 +314,14 @@ function getCurrentKey(step) {
     case 2: return 'meal_plan_preferences'
     case 3: return 'household_size'
     case 4: return 'prep_time_preference'
+    case 5: return 'budget_or_comfort'
     default: return ''
   }
 }
 
-// Only Steps 1, 2, and 5 use checkboxes. (Steps 3 and 4 use circles and are required).
+// Only Steps 1 and 2 use generic checkboxes. (Step 7 handles its own custom checkboxes).
 function isMultiSelect(step) {
-  return step === 1 || step === 2 || step === 5 
+  return step === 1 || step === 2 
 }
 
 function getQuestionOptions(step) {
@@ -294,28 +330,21 @@ function getQuestionOptions(step) {
     case 2: return ['Omnivore', 'Vegetarian', 'Vegan', 'Gluten Free', 'Dairy Free', 'Keto/Low-Carb', 'Nut Free']
     case 3: return ['Just for myself (1 person)', 'Me and my partner (2 people)', 'For the entire family (3-5 people)']
     case 4: return ['Lightning fast: under 20 minutes', 'Normal pace: 30-45 minutes', 'Leisurely/weekend: over 1 hour']
+    case 5: return ['Budget-friendly (Save money)', 'Convenience & Comfort (Save time)']
     default: return []
   }
 }
 
 function addCustomIngredient(event) {
-  // Prevent form submission if they press enter
   event.preventDefault(); 
-  
   const rawInput = currentCustomInput.value.trim();
-  
   if (rawInput) {
-    // Optional: If they pasted a comma-separated list, split it anyway just to be safe
     const newTags = rawInput.split(',').map(tag => tag.trim()).filter(tag => tag);
-    
-    // Add unique tags to the array
     newTags.forEach(tag => {
       if (!quizData.custom_dislikes.includes(tag)) {
         quizData.custom_dislikes.push(tag);
       }
     });
-    
-    // Clear the input field for the next word
     currentCustomInput.value = '';
   }
 }
@@ -330,39 +359,66 @@ async function submitRegistration() {
     return;
   }
 
+  // payload 1: 
+
   const payload = {
     username: form.username,
     email: form.email,
     password: form.password,
     password_confirmation: form.password_confirmation,
-    goals: quizData.goals,
-    meal_plan_preferences: quizData.meal_plan_preferences,
-    household_size: quizData.household_size,
-    prep_time_preference: quizData.prep_time_preference,
-    disliked_ingredients: quizData.disliked_ingredients,
-    daily_calorie_target: 2000 
   }
-
+    
   try {
-    const response = await fetch('/api/register-quiz', {
+    const authResponse = await fetch('/api/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(authResponse)
     })
 
-    const data = await response.json()
+    const authData = await authResponse.json()
 
-    if (response.ok) {
-      alert(data.message) 
+    if(!authResponse.ok) {
+      alert('Error registering account. Please check your details.')
+      return;
+    }
+
+    const token = authData.token();
+    
+    // payload 2
+    const mappedBudgetSetting = quizData.budget_or_comfort === 'Budget-friendly (Save money)' ? 'budget_first' : 'comfort_first';
+  
+    const settingsPayload = {
+      goals: quizData.goals,
+      meal_plan_preferences: quizData.meal_plan_preferences,
+      household_size: quizData.household_size,
+      prep_time_preference: quizData.prep_time_preference,
+      budget_or_comfort: mappedBudgetSetting,
+      daily_calorie_target: quizData.daily_calorie_target,
+      disliked_ingredients: quizData.disliked_ingredients,
+      custom_dislikes: quizData.custom_dislikes
+    }
+
+    const settingResponse = await fetch('api/user-settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(settingsPayload)
+    })
+
+    if(settingResponse.ok) {
+      alert('Account and prefferences succesfully saved!')
       window.location.href = '/dashboard'
     } else {
-      alert('Error registering. Please check fields.')
+      alert('Account created, but there was an error saving your preferences.')
     }
-  } catch (error) {
-    console.error('Submission failed:', error)
+  } catch(error) {
+    console.error('Submission failed: ', error)
   }
 }
 </script>
