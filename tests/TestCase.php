@@ -12,4 +12,5 @@ abstract class TestCase extends BaseTestCase
         
         // Hard-bind the Vite mock before the HTTP kernel handles the request
         $this->withoutVite();
+    }
 }
