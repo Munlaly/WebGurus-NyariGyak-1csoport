@@ -19,7 +19,11 @@ export default defineConfig({
     }),
     tailwindcss(),
     vue(),
-    ui(),
+    ui({
+      autoImport: {
+        imports: ['vue'],
+      },
+    }),
   ],
   server: {
     host: '0.0.0.0',
