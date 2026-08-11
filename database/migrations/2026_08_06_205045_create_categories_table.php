@@ -17,10 +17,6 @@ return new class extends Migration
             $table->foreignId('parent_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->string('name');
             $table->integer('default_shelf_life_days')->nullable();
-            $table->integer('default_calories_per_100')->nullable();
-            $table->float('default_protein')->nullable();
-            $table->float('default_fat')->nullable();
-            $table->float('default_carbs')->nullable();
             $table->timestamps();
 
             $table->index('parent_id', 'idx_categories_parent');

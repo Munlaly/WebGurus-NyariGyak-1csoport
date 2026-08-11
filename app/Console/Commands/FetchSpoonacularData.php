@@ -140,6 +140,11 @@ class FetchSpoonacularData extends Command
                     'prep_time_minutes' => $recipeData['readyInMinutes'] ?? null,
                     'image' => $cleanImage,
                     'is_public' => true, // public by default
+                    'calories' => $macros['calories'] !== null ? (int) round($macros['calories']) : null,
+                    'protein' => $macros['protein'] !== null ? (float) $macros['calories'] : null,
+                    'fat' => $macros['fat'] !== null ? (float) $macros['calories'] : null,
+                    'carbs' => $macros['carbs'] !== null ? (float) $macros['calories'] : null,
+
                 ]);
                 $newRecipes[] = [
                     'title' => $recipeData['title'],

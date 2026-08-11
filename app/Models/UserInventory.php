@@ -15,4 +15,10 @@ class UserInventory extends Model
         'is_frozen',
         'last_audited_at',
     ];
+
+    protected $casts = [
+        'is_frozen' => 'boolean',
+        'expiration_date' => 'date',
+        'last_audited_at' => 'datetime',
+    ];
 }
