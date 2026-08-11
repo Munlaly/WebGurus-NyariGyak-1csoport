@@ -280,7 +280,7 @@
                 Smart & ZeroWaste
               </div>
               <h1 class="font-display text-display text-on-surface">Your custom menu is ready.</h1>
-              <p class="font-body-lg text-body-lg text-on-surface-variant">We've built your perfectly portioned <span class="text-primary font-bold">{{ quizData.daily_calorie_target }} kcal/day</span> waste-free plan. Create an account to save your preferences and unlock your week.</p>
+              <p class="font-body-lg text-body-lg text-on-surface-variant">We've built your perfectly portioned <span class="text-primary font-bold">{{ quizData.daily_calorie_target }} kcal/day</span> waste-free plan. Create an account to save your preferences and unlock your weekly plan.</p>
             </header>
 
             <form @submit.prevent="submitRegistration" class="space-y-6">
@@ -327,7 +327,7 @@
             </form>
             
             <div class="text-center pt-4">
-              <p class="font-body-md text-body-md text-on-surface-variant">Already have an account? <a href="Login.vue" class="text-primary font-semibold hover:underline">Log in</a></p>
+              <p class="font-body-md text-body-md text-on-surface-variant">Already have an account? <router-link to="/login" class="text-primary font-semibold hover:underline">Log in</router-link></p>
             </div>
             <button @click="currentStep--" class="w-full mt-2 text-on-surface-variant font-label-md hover:underline">Return to Quiz</button>
           </div>
@@ -496,6 +496,20 @@ function prevStep() {
 }
 
 function toggleGoal(goalValue) {
+  const loseWeightVal = 'Lose weight'
+  const gainWeightVal = 'Gain weight (bulking)'
+
+  // Mutual exclusion logic for Goals
+  if (goalValue === loseWeightVal && quizData.goals.includes(gainWeightVal)) {
+    // If selecting 'Lose weight' and 'Gain weight' is active, remove 'Gain weight'
+    const index = quizData.goals.indexOf(gainWeightVal)
+    if (index !== -1) quizData.goals.splice(index, 1)
+  } else if (goalValue === gainWeightVal && quizData.goals.includes(loseWeightVal)) {
+    // If selecting 'Gain weight' and 'Lose weight' is active, remove 'Lose weight'
+    const index = quizData.goals.indexOf(loseWeightVal)
+    if (index !== -1) quizData.goals.splice(index, 1)
+  }
+
   const index = quizData.goals.indexOf(goalValue)
   if (index === -1) {
     quizData.goals.push(goalValue)
@@ -505,6 +519,23 @@ function toggleGoal(goalValue) {
 }
 
 function toggleDiet(dietName) {
+  const omnivoreVal = 'Omnivore'
+
+  if (dietName === omnivoreVal) {
+    // If Omnivore is clicked, clear all other meal plan preferences and select only Omnivore (or toggle it off if already selected)
+    if (quizData.meal_plan_preferences.includes(omnivoreVal)) {
+      quizData.meal_plan_preferences = []
+    } else {
+      quizData.meal_plan_preferences = [omnivoreVal]
+    }
+    return
+  }
+
+  // If any other diet is clicked while Omnivore is active, remove Omnivore first
+  if (quizData.meal_plan_preferences.includes(omnivoreVal)) {
+    quizData.meal_plan_preferences = []
+  }
+
   const index = quizData.meal_plan_preferences.indexOf(dietName)
   if (index === -1) {
     quizData.meal_plan_preferences.push(dietName)
