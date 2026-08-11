@@ -5,26 +5,26 @@ import { useForm } from '@inertiajs/vue3';
 // Define client side validation
 const schema = z
   .object({
-    name: z.string().min(2, 'Name must be at leat 2 characters'),
+    username: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
-    password_confirm: z.string(),
+    password_confirmation: z.string(),
   })
-  .refine((data) => data.password === data.password_confirm, {
+  .refine((data) => data.password === data.password_confirmation, {
     message: 'Passwords do not match!',
     path: ['password_confirm'],
   });
 
 const form = useForm({
-  name: '',
+  username: '',
   email: '',
   password: '',
-  password_confirm: '',
+  password_confirmation: '',
 });
 
 function onSubmit() {
   form.post('/register', {
-    onSuccess: () => form.reset('password', 'password_confirm'),
+    onSuccess: () => form.reset('password', 'password_confirmation'),
   });
 }
 </script>
@@ -63,8 +63,12 @@ function onSubmit() {
             class="space-y-4"
             @submit="onSubmit"
           >
-            <UFormField label="Full name" name="name" :error="form.errors.name">
-              <UInput v-model="form.name" />
+            <UFormField
+              label="Full name"
+              name="name"
+              :error="form.errors.username"
+            >
+              <UInput v-model="form.username" />
             </UFormField>
 
             <UFormField label="Email" name="email" :error="form.errors.email">
@@ -82,9 +86,9 @@ function onSubmit() {
             <UFormField
               label="Confirm password"
               name="password_confirm"
-              :error="form.errors.password_confirm"
+              :error="form.errors.password_confirmation"
             >
-              <UInput v-model="form.password_confirm" />
+              <UInput v-model="form.password_confirmation" type="password" />
             </UFormField>
 
             <UButton type="submit" :loading="form.processing">
