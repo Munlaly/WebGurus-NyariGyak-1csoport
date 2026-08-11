@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('welcome', function () {
+Route::get('/', function () {
     return Inertia::render('Welcome');
-});
+})->name('welcome');
 
 require __DIR__.'/auth.php';
