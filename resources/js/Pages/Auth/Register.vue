@@ -1,3 +1,34 @@
+<script setup lang="ts">
+import { z } from 'zod';
+import { useForm } from '@inertiajs/vue3';
+
+// Define client side validation
+const schema = z
+  .object({
+    name: z.string().min(2, 'Name must be at leat 2 characters'),
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password_confirm: z.string(),
+  })
+  .refine((data) => data.password === data.password_confirm, {
+    message: 'Passwords do not match!',
+    path: ['password_confirm'],
+  });
+
+const form = useForm({
+  name: '',
+  email: '',
+  password: '',
+  password_confirm: '',
+});
+
+function onSubmit() {
+  form.post('/register', {
+    onSuccess: () => form.reset('password', 'password_confirm'),
+  });
+}
+</script>
+
 <template>
   <div
     class="bg-background text-on-surface font-body-md min-h-screen antialiased"
@@ -26,24 +57,39 @@
             </p>
           </div>
 
-          <UForm :state="formState" class="space-y-4" @submit="onSubmit">
-            <UFormField label="Full name" name="name">
-              <UInput v-model="formState.name" />
+          <UForm
+            :schema="schema"
+            :state="form"
+            class="space-y-4"
+            @submit="onSubmit"
+          >
+            <UFormField label="Full name" name="name" :error="form.errors.name">
+              <UInput v-model="form.name" />
             </UFormField>
 
-            <UFormField label="Email" name="email">
-              <UInput v-model="formState.email" />
+            <UFormField label="Email" name="email" :error="form.errors.email">
+              <UInput v-model="form.email" />
             </UFormField>
 
-            <UFormField label="Password" name="password">
-              <UInput v-model="formState.password" type="password" />
+            <UFormField
+              label="Password"
+              name="password"
+              :error="form.errors.password"
+            >
+              <UInput v-model="form.password" type="password" />
             </UFormField>
 
-            <UFormField label="Confirm password" name="password_confirm">
-              <UInput v-model="formState.password_confirm" />
+            <UFormField
+              label="Confirm password"
+              name="password_confirm"
+              :error="form.errors.password_confirm"
+            >
+              <UInput v-model="form.password_confirm" />
             </UFormField>
 
-            <UButton type="submit"> Secure Account and View Menu</UButton>
+            <UButton type="submit" :loading="form.processing">
+              Secure Account and View Menu</UButton
+            >
           </UForm>
 
           <!-- Login Fallback -->
@@ -69,19 +115,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { reactive } from 'vue';
-
-const formState = reactive({
-  name: '',
-  email: '',
-  password: '',
-  password_confirm: '',
-});
-
-function onSubmit() {}
-</script>
 
 <style scoped>
 .material-symbols-outlined {
