@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 
 // Define client side validation
 const schema = z.object({
@@ -48,8 +48,8 @@ function onSubmit() {
         >
           <UFormField
             label="Full Name"
-            name="name"
-            :errors="form.errors.username"
+            name="username"
+            :error="form.errors.username"
           >
             <UInput v-model="form.username" />
           </UFormField>
@@ -57,7 +57,7 @@ function onSubmit() {
           <UFormField
             label="Password"
             name="password"
-            :errors="form.errors.password"
+            :error="form.errors.password"
           >
             <UInput v-model="form.password" type="password" />
           </UFormField>
@@ -73,11 +73,12 @@ function onSubmit() {
         <div class="mt-4 text-center">
           <p class="font-body-sm text-body-sm text-on-surface-variant">
             Don't have an account?
-            <a
-              class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors"
-              href="#"
-              >Sign up</a
+            <Link
+              class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors hover:underline"
+              href="/register"
             >
+              Sign up
+            </Link>
           </p>
         </div>
       </div>
@@ -123,3 +124,12 @@ function onSubmit() {
     </aside>
   </div>
 </template>
+<style scoped>
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+</style>
