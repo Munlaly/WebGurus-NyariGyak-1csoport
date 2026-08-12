@@ -10,12 +10,22 @@ const toggleSidebar = () => {
 
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-70'));
 
+const profileImageSizeClass = computed(() =>
+  isCollapsed.value ? 'h-8 w-8' : 'h-12 w-12',
+);
+
 const navItemSpacingClass = computed(() =>
   isCollapsed.value ? 'justify-center p-3' : 'gap-3 px-4 py-4',
 );
 
 const toggleBtnSpacingClass = computed(() =>
   isCollapsed.value ? 'justify-center' : 'gap-3 px-4',
+);
+
+const toggleBtnArrowType = computed(() =>
+  isCollapsed.value
+    ? 'keyboard_double_arrow_right'
+    : 'keyboard_double_arrow_left',
 );
 
 const mainContentMarginClass = computed(() =>
@@ -51,7 +61,7 @@ const navigation = [
         >
           <img
             alt="User profile"
-            class="border-outline-variant h-12 w-12 shrink-0 rounded-full border object-cover"
+            class="['border-outline-varianth-12 object-cover', profileImageSizeClass] w-12 shrink-0 rounded-full border"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
           />
           <div
@@ -98,11 +108,7 @@ const navigation = [
             @click="toggleSidebar"
           >
             <span class="material-symbols-outlined">
-              {{
-                isCollapsed
-                  ? 'keyboard_double_arrow_right'
-                  : 'keyboard_double_arrow_left'
-              }}
+              {{ toggleBtnArrowType }}
             </span>
             <span v-show="!isCollapsed" class="font-body-md">Collapse</span>
           </button>
@@ -131,19 +137,6 @@ const navigation = [
             class="bg-surface-container text-on-surface font-label-md text-label-md hidden items-center gap-2 rounded-full px-3 py-1.5 sm:flex"
           >
             <span>🔥 2100 / 2500 kcal</span>
-          </div>
-
-          <div class="text-on-surface-variant flex items-center gap-4">
-            <button
-              class="hover:text-primary transition-all hover:scale-[1.02] active:scale-98"
-            >
-              <span class="material-symbols-outlined">eco</span>
-            </button>
-            <button
-              class="hover:text-primary transition-all hover:scale-[1.02] active:scale-98"
-            >
-              <span class="material-symbols-outlined">nutrition</span>
-            </button>
           </div>
 
           <!-- Logout Form -->
