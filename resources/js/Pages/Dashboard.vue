@@ -1,7 +1,52 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
+
+const dayOffset = ref(0);
+
+const getFormattedDate = (offset: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+const activeDateLabel = computed(() => {
+  if (dayOffset.value === -1) return `Yesterday (${getFormattedDate(-1)})`;
+  if (dayOffset.value === 1) return `Tomorrow (${getFormattedDate(1)})`;
+  return `Today (${getFormattedDate(0)})`;
+});
+
+const prevDateLabel = computed(() => {
+  if (dayOffset.value === 0) return 'Yesterday';
+  if (dayOffset.value === 1) return 'Today';
+  return '';
+});
+
+const nextDateLabel = computed(() => {
+  if (dayOffset.value === 0) return 'Tomorrow';
+  if (dayOffset.value === -1) return 'Today';
+  return '';
+});
+
+const goPrevDay = () => {
+  if (dayOffset.value > -1) dayOffset.value--;
+};
+
+const goNextDay = () => {
+  if (dayOffset.value < 1) dayOffset.value++;
+};
+
+const leftChevronClasses = computed(() => {
+  return dayOffset.value === -1
+    ? 'text-outline-variant cursor-not-allowed opacity-30'
+    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary';
+});
+
+const rightChevronClasses = computed(() => {
+  return dayOffset.value === 1
+    ? 'text-outline-variant cursor-not-allowed opacity-30'
+    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary';
+});
 
 // Mock data array to drive the v-for loop
 const todayMeals = ref([
@@ -52,27 +97,23 @@ const toggleMealStatus = (id: number) => {
       <div
         class="bg-surface-container-lowest mx-auto flex w-full max-w-md items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
       >
-        <button
-          class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary rounded-full p-2 transition-colors"
-        >
+        <button :class="leftChevronClasses" @click="goPrevDay">
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
         <div class="font-headline-md text-headline-md flex items-center gap-6">
           <span
             class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
-            >Yesterday</span
+            >{{ prevDateLabel }}</span
           >
-          <span class="text-primary border-primary border-b-2 pb-1 font-bold"
-            >Today (Aug 12)</span
-          >
+          <span class="text-primary border-primary border-b-2 pb-1 font-bold">{{
+            activeDateLabel
+          }}</span>
           <span
             class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
-            >Tomorrow</span
+            >{{ nextDateLabel }}</span
           >
         </div>
-        <button
-          class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary rounded-full p-2 transition-colors"
-        >
+        <button :class="rightChevronClasses" @click="goNextDay">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
