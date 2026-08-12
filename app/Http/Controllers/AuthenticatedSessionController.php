@@ -3,18 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Auth\Events\Registered;
+use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Validation\ValidationException;
 
-class LoggedInUserController extends Controller
+
+class AuthenticatedSessionController extends Controller
 {
     // Show the Login page
     public function create():Response{
@@ -27,24 +24,28 @@ class LoggedInUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
 
-    public function attempt(Request $request):RedirectResponse{
+    public function attempt(LoginRequest $request):RedirectResponse{
 
-    $credentials = $request->validate([
-        'username' => 'required|string|max:255',
-        'password' => 'required|string',
-    ]);
+        // Validates, rate-limits, and attempts authentication
+        $request->authenticate();
 
-    // Check if user exists 
-    if(Auth::attempt($credentials))  {
+        // Regenerate session to prevent fixation
         $request->session()->regenerate();
 
         return redirect()->intended(route('welcome'));
-    } 
+    }
 
-    // Handle failure with generic error message
-    throw ValidationException::withMessages([
-            'username' => trans('auth.failed'),
-        ]);
+    public function destroy(Request $request): RedirectResponse
+    {
+        // Log out of the guard
+        Auth::guard('web')->logout();
 
+        // Invalidate the session data
+        $request->session()->invalidate();
+
+        // Regenerate the CSRF token
+        $request->session()->regenerateToken();
+
+        return redirect('/');
     }
 }
