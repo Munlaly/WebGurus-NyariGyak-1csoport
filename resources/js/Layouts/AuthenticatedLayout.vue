@@ -61,7 +61,10 @@ const navigation = [
         >
           <img
             alt="User profile"
-            class="['border-outline-varianth-12 object-cover', profileImageSizeClass] w-12 shrink-0 rounded-full border"
+            :class="[
+              'border-outline-varianth-12 object-cover, w-12 shrink-0 rounded-full border',
+              profileImageSizeClass,
+            ]"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
           />
           <div
