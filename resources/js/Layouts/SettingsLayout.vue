@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from './AuthenticatedLayout.vue';
+import { computed } from 'vue';
 
-defineProps<{
+const props = defineProps<{
   activeTab: 'targets' | 'rules' | 'system';
 }>();
 const tabs = [
@@ -10,6 +11,33 @@ const tabs = [
   { name: 'Rules', value: 'rules', href: '/settings/rules' },
   { name: 'System', value: 'system', href: '/settings/system' },
 ];
+const activeIndex = computed(() =>
+  tabs.findIndex((tab) => tab.value === props.activeTab),
+);
+
+const leftChevronClasses = computed(() => {
+  return activeIndex.value <= 0
+    ? 'text-outline-variant cursor-not-allowed opacity-30'
+    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-colors';
+});
+
+const rightChevronClasses = computed(() => {
+  return activeIndex.value >= tabs.length - 1
+    ? 'text-outline-variant cursor-not-allowed opacity-30'
+    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-colors';
+});
+
+const goPrevTab = () => {
+  if (activeIndex.value > 0) {
+    router.get(tabs[activeIndex.value - 1].href);
+  }
+};
+
+const goNextTab = () => {
+  if (activeIndex.value < tabs.length - 1) {
+    router.get(tabs[activeIndex.value + 1].href);
+  }
+};
 </script>
 
 <template>
@@ -30,7 +58,9 @@ const tabs = [
         class="bg-surface-container-lowest flex w-full items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
       >
         <button
-          class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary rounded-full p-2 transition-colors"
+          :class="leftChevronClasses"
+          :disabled="activeIndex <= 0"
+          @click="goPrevTab"
         >
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
@@ -54,7 +84,9 @@ const tabs = [
         </div>
 
         <button
-          class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary rounded-full p-2 transition-colors"
+          :class="rightChevronClasses"
+          :disabled="activeIndex >= tabs.length - 1"
+          @click="goNextTab"
         >
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
