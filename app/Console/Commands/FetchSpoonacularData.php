@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Attributes\Description;
-use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -25,12 +23,12 @@ class FetchSpoonacularData extends Command
     {
         $this->info('Starting fetch...');
 
-        $limit = 50;
+        $limit = 150;
         $apiKey = env('SPOONACULAR_API_KEY');
 
         if(!$apiKey) {
             $this->error('Spoonacular API key is missing in .env');
-            return Command::FAILURE;    
+            return self::FAILURE;    
         }
 
         $offset = Cache::get('spoonacular_fetch_offset', 0);
@@ -50,14 +48,14 @@ class FetchSpoonacularData extends Command
         if($response->failed()) {
             $this->error('Failed to connect to Spoonacular API');
             Log::error('Spoonacular API Error', ['response' => $response->body()]);
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         $recipes = $response->json('results');
 
         if(empty($recipes)) {
             $this->warn('No recipes returned from API');
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         $newRecipes = [];
@@ -84,7 +82,7 @@ class FetchSpoonacularData extends Command
             
             $mappedTypes = array_unique($mappedTypes);
             if (empty($mappedTypes)) {
-                continue; 
+                continue;
             }
             
             $finalMealTypes = array_values($mappedTypes);
@@ -141,9 +139,10 @@ class FetchSpoonacularData extends Command
                     'image' => $cleanImage,
                     'is_public' => true, // public by default
                     'calories' => $macros['calories'] !== null ? (int) round($macros['calories']) : null,
-                    'protein' => $macros['protein'] !== null ? (float) $macros['calories'] : null,
-                    'fat' => $macros['fat'] !== null ? (float) $macros['calories'] : null,
-                    'carbs' => $macros['carbs'] !== null ? (float) $macros['calories'] : null,
+                    'protein' => $macros['protein'] !== null ? (float) $macros['protein'] : null,
+                    'fat' => $macros['fat'] !== null ? (float) $macros['fat'] : null,
+                    'carbs' => $macros['carbs'] !== null ? (float) $macros['carbs'] : null,
+                    'meal_types' => $finalMealTypes,
 
                 ]);
                 $newRecipes[] = [
@@ -174,7 +173,7 @@ class FetchSpoonacularData extends Command
             $this->info('No new data added');
         }
         Cache::put('spoonacular_fetch_offset', $offset + $limit);
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     private function appendToJsonFile(array $newRecipes) {
@@ -188,8 +187,14 @@ class FetchSpoonacularData extends Command
             $existingData = json_decode($fileContent, true) ?? [];
         }
 
-        $mergeData = array_merge($existingData, $newRecipes);
+        $existinTitles = array_column($existingData, 'title');
+
+        foreach($newRecipes as $newRecipe) {
+            if(!in_array($newRecipe['title'], $existinTitles)) {
+                $existingData[] = $newRecipe;
+            }
+        }
         
-        $disk->put($fileName, json_encode($mergeData, JSON_PRETTY_PRINT));
+        $disk->put($fileName, json_encode($existingData, JSON_PRETTY_PRINT));
     }
 }
