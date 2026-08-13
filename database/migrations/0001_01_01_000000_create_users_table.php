@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('username');
             $table->string('email')->unique();
             $table->string('password');
-            $table->integer('daily_calorie_target')->nullable();
             $table->timestamps();
         });
 
