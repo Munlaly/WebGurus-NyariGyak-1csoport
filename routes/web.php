@@ -12,7 +12,15 @@ Route::get('/', function () {
 })->name('welcome');
 
 Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
-Route::post('/quiz/save-session', [QuizController::class, 'saveSession'])->name('quiz.save-session');
+Route::post('/quiz/save-session', [QuizController::class, 'saveSession'])->name('quiz.save-session');Route::get('settings/targets', function(){
+    
+    return Inertia::render('Settings/Targets', [
+        'userSettings' => [
+            'mainGoal'=>'general',
+            'calorieTarget' => 2000,
+        ]
+    ]);
+})->name('settings.targets');
 
 
 Route::middleware('auth')->group(function(){
