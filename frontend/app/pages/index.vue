@@ -23,7 +23,7 @@
           <h1 class="font-display text-display text-on-background mb-4">What are your primary goals?</h1>
           <p class="font-body-lg text-body-lg text-on-surface-variant">Select all that apply.</p>
         </div>
-        
+      
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <button v-for="goal in availableGoals" :key="goal.value" @click="toggleGoal(goal.value)" type="button"
                   class="group relative flex items-center justify-between p-6 rounded-xl border-2 text-left cursor-pointer transition-all duration-200 ease-in-out shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
@@ -46,8 +46,14 @@
              Already have an account? Log in
            </router-link>
         </div>
+        <div class="flex justify-center w-full mt-10 mb-6">
+           <router-link to="/test" class="inline-flex items-center gap-2 px-6 py-2 bg-surface-container-low hover:bg-surface-container-high text-primary font-label-md text-label-md rounded-full shadow-sm transition-colors border border-surface-variant">
+             <span class="material-symbols-outlined text-[18px]">login</span>
+             Test Button
+           </router-link>
+        </div>
       </div>
-
+      
       <!-- STEP 2: DIETS -->
       <div v-else-if="currentStep === 2" class="w-full max-w-3xl flex flex-col">
         <header class="mb-10 text-center flex flex-col gap-4">
@@ -57,16 +63,16 @@
 
         <div class="flex flex-wrap justify-center gap-4">
           
-          <!-- Added exact calculated widths so it still looks like a 3-column grid -->
-          <div v-for="diet in availableDiets" :key="diet.name" @click="toggleDiet(diet.name)"
+          <!-- FIX: Updated diet.name to diet.value to match the data mapping properly -->
+          <div v-for="diet in availableDiets" :key="diet.value" @click="toggleDiet(diet.value)"
                class="w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-11px)] relative rounded-xl p-4 border-2 shadow-sm transition-all duration-200 cursor-pointer flex flex-col items-center text-center hover:-translate-y-0.5"
-               :class="quizData.meal_plan_preferences.includes(diet.name) ? 'bg-tertiary/10 border-primary-container' : 'bg-surface-container-lowest border-surface-variant hover:border-primary hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]'">
+               :class="quizData.meal_plan_preferences.includes(diet.value) ? 'bg-tertiary/10 border-primary-container' : 'bg-surface-container-lowest border-surface-variant hover:border-primary hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]'">
             
-            <div v-if="quizData.meal_plan_preferences.includes(diet.name)" class="absolute top-2 right-2 bg-primary-container text-on-primary rounded-full w-6 h-6 flex items-center justify-center">
+            <div v-if="quizData.meal_plan_preferences.includes(diet.value)" class="absolute top-2 right-2 bg-primary-container text-on-primary rounded-full w-6 h-6 flex items-center justify-center">
               <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check</span>
             </div>
             
-            <span class="material-symbols-outlined text-4xl mb-2" :class="quizData.meal_plan_preferences.includes(diet.name) ? 'text-primary' : 'text-outline'" style="font-variation-settings: 'FILL' 0;">{{ diet.icon }}</span>
+            <span class="material-symbols-outlined text-4xl mb-2" :class="quizData.meal_plan_preferences.includes(diet.value) ? 'text-primary' : 'text-outline'" style="font-variation-settings: 'FILL' 0;">{{ diet.icon }}</span>
             <span class="font-headline-md text-body-md font-semibold text-on-surface">{{ diet.name }}</span>
             <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">{{ diet.desc }}</p>
           </div>
@@ -88,7 +94,8 @@
 
         <!-- Active Exclusions Tags -->
         <div class="mb-10 w-full" v-if="quizData.custom_dislikes.length > 0 || quizData.disliked_ingredients.length > 0">
-          <div class="flex flex-wrap gap-3">
+          <!-- Changed justify-center to justify-start -->
+          <div class="flex flex-wrap justify-start gap-3">
             <button v-for="(tag, index) in quizData.custom_dislikes" :key="'custom-'+index" @click="removeCustomIngredient(index)" class="flex items-center gap-2 bg-error-container/20 border border-error-container text-on-surface px-4 py-2 rounded-full font-label-md text-label-md cursor-pointer hover:scale-[1.02] transition-all">
               <span>{{ tag }}</span><span class="material-symbols-outlined text-[16px] text-error">close</span>
             </button>
@@ -97,20 +104,22 @@
             </button>
           </div>
         </div>
-
+        
         <!-- View 1: Big Category Cards & Quick Suggestions -->
         <div v-if="!selectedCategory" class="w-full">
           <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-4">Browse Categories</h3>
+          
+          <!-- Reverted to grid-cols-4 -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             <button v-for="category in dummyCategories" :key="category.id" @click="selectedCategory = category"
-                    class="group flex flex-col items-center justify-center p-8 min-h-[160px] rounded-2xl bg-surface-container-lowest border-2 border-surface-variant hover:border-primary hover:bg-surface-container-low transition-all shadow-sm hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] cursor-pointer">
+                    class="group flex flex-col items-center justify-center p-8 min-h-40 rounded-2xl bg-surface-container-lowest border-2 border-surface-variant hover:border-primary hover:bg-surface-container-low transition-all shadow-sm hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] cursor-pointer">
               <span class="material-symbols-outlined text-5xl text-primary mb-4 group-hover:scale-110 transition-transform">{{ category.icon }}</span>
               <span class="font-headline-md text-body-md font-bold text-center text-on-surface">{{ category.name }}</span>
             </button>
           </div>
 
           <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-4">Common Exclusions</h3>
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap justify-center gap-3">
             <button v-for="suggestion in ['Shellfish', 'Spicy Foods', 'Soy', 'Tree Nuts']" :key="suggestion" @click="toggleDislikedIngredient(suggestion)" class="flex items-center gap-2 bg-surface-container-lowest border border-surface-variant px-4 py-2 rounded-full font-body-md text-body-md text-on-surface cursor-pointer shadow-sm hover:bg-surface-container-low hover:scale-[1.02] transition-all">
               <span class="material-symbols-outlined text-[18px] text-primary">{{ quizData.disliked_ingredients.includes(suggestion) ? 'check' : 'add' }}</span>
               <span>{{ suggestion }}</span>
@@ -129,9 +138,9 @@
              {{ selectedCategory.name }}
           </h3>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
+          <div class="flex flex-wrap justify-center gap-3 max-h-100 overflow-y-auto pr-2">
             <label v-for="ingredient in selectedCategory.ingredients" :key="ingredient" 
-                   class="flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all"
+                   class="flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all w-full sm:w-[calc(50%-6px)]"
                    :class="quizData.disliked_ingredients.includes(ingredient) ? 'bg-primary-container/10 border-primary' : 'bg-surface border-surface-variant hover:border-primary hover:bg-surface-container-low'">
               <input type="checkbox" :value="ingredient" v-model="quizData.disliked_ingredients" class="mr-4 w-5 h-5 accent-primary text-primary focus:ring-primary border-outline rounded cursor-pointer">
               <span class="font-medium font-body-md" :class="quizData.disliked_ingredients.includes(ingredient) ? 'text-primary font-bold' : 'text-on-surface'">{{ ingredient }}</span>
@@ -139,7 +148,7 @@
           </div>
         </div>
       </div>
-
+      
       <!-- STEP 4: CALORIE GOAL -->
       <div v-else-if="currentStep === 4" class="w-full max-w-xl flex flex-col items-center">
         <div class="text-center mb-12 max-w-xl">
@@ -156,7 +165,7 @@
               <span class="material-symbols-outlined text-3xl">remove</span>
             </button>
             
-            <div class="relative w-full max-w-[200px] group">
+            <div class="relative w-full max-w-50 group">
               <!-- Replaced inline logic with handleCalorieBlur, and added @input to clear warning if they start typing -->
               <input aria-label="Daily Calorie Goal" type="number" min="1300" 
                      @blur="handleCalorieBlur"
@@ -185,7 +194,7 @@
           </button>
         </div>
       </div>
-
+      
       <!-- STEP 5: BUDGET VS COMFORT -->
       <div v-else-if="currentStep === 5" class="w-full max-w-xl flex flex-col items-center">
         <header class="mb-10 text-center flex flex-col gap-4">
@@ -196,7 +205,7 @@
           <label class="group relative flex items-center p-6 cursor-pointer bg-surface border-2 transition-all duration-200 rounded-xl hover:-translate-y-0.5"
                  :class="quizData.budget_or_comfort === 'Budget-friendly (Save money)' ? 'bg-primary-container/10 border-primary shadow-sm' : 'border-surface-container-highest hover:border-outline-variant'">
             <input type="radio" value="Budget-friendly (Save money)" v-model="quizData.budget_or_comfort" class="sr-only" />
-            <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center mr-4" :class="quizData.budget_or_comfort === 'Budget-friendly (Save money)' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'">
+            <div class="shrink-0 w-12 h-12 rounded-full flex items-center justify-center mr-4" :class="quizData.budget_or_comfort === 'Budget-friendly (Save money)' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'">
               <span class="material-symbols-outlined text-2xl">savings</span>
             </div>
             <div class="flex-1">
@@ -208,7 +217,7 @@
           <label class="group relative flex items-center p-6 cursor-pointer bg-surface border-2 transition-all duration-200 rounded-xl hover:-translate-y-0.5"
                  :class="quizData.budget_or_comfort === 'Convenience & Comfort (Save time)' ? 'bg-primary-container/10 border-primary shadow-sm' : 'border-surface-container-highest hover:border-outline-variant'">
             <input type="radio" value="Convenience & Comfort (Save time)" v-model="quizData.budget_or_comfort" class="sr-only" />
-            <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center mr-4" :class="quizData.budget_or_comfort === 'Convenience & Comfort (Save time)' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'">
+            <div class="shrink-0 w-12 h-12 rounded-full flex items-center justify-center mr-4" :class="quizData.budget_or_comfort === 'Convenience & Comfort (Save time)' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'">
               <span class="material-symbols-outlined text-2xl">fast_forward</span>
             </div>
             <div class="flex-1">
@@ -244,7 +253,7 @@
           </label>
         </div>
       </div>
-
+      
       <!-- STEP 7: PREP TIME -->
       <div v-else-if="currentStep === 7" class="w-full max-w-xl flex flex-col items-center">
         <div class="text-center mb-12">
@@ -256,14 +265,14 @@
           <label v-for="time in prepTimeOptions" :key="time.value" 
                  class="group relative flex items-center gap-4 p-6 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
                  :class="quizData.prep_time_preference === time.value ? 'bg-primary-container/10 border-primary' : 'bg-surface border-surface-container-highest hover:border-outline-variant hover:bg-surface-container-low'">
-            <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-colors" :class="quizData.prep_time_preference === time.value ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant group-hover:bg-surface-variant'">
+            <div class="shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-colors" :class="quizData.prep_time_preference === time.value ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant group-hover:bg-surface-variant'">
               <span class="material-symbols-outlined text-2xl" :style="quizData.prep_time_preference === time.value ? 'font-variation-settings: \'FILL\' 1;' : ''">{{ time.icon }}</span>
             </div>
             <div class="flex-1 flex flex-col">
               <span class="font-headline-md text-headline-md text-on-background text-lg leading-tight mb-1">{{ time.title }}</span>
               <span class="font-body-sm text-body-sm text-on-surface-variant">{{ time.desc }}</span>
             </div>
-            <div class="flex-shrink-0 pl-4">
+            <div class="shrink-0 pl-4">
               <input type="radio" :value="time.value" v-model="quizData.prep_time_preference" class="w-5 h-5 text-primary border-outline focus:ring-primary focus:ring-offset-surface bg-surface cursor-pointer" />
             </div>
           </label>
@@ -272,7 +281,7 @@
 
       <!-- STEP 8: REGISTRATION SPLIT SCREEN -->
       <div v-else-if="currentStep === 8" class="fixed inset-0 w-full min-h-screen flex flex-col md:flex-row bg-background z-50">
-        <section class="w-full md:w-1/2 lg:w-[500px] flex-shrink-0 bg-surface-container-lowest flex flex-col justify-center px-gutter py-[40px] md:px-[64px] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] overflow-y-auto">
+        <section class="w-full md:w-1/2 lg:w-125 shrink-0 bg-surface-container-lowest flex flex-col justify-center px-gutter py-10 md:px-16 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] overflow-y-auto">
           <div class="max-w-md w-full mx-auto space-y-8">
             <header class="text-left space-y-4">
               <div class="font-headline-md text-headline-md font-bold text-primary flex items-center gap-2">
@@ -333,13 +342,12 @@
           </div>
         </section>
 
-        <section class="hidden md:block flex-grow relative overflow-hidden bg-tertiary-container">
+        <section class="hidden md:block grow relative overflow-hidden bg-tertiary-container">
           <img alt="Fresh ingredients" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLtwwvFMTc6LaK8czYngA7SthS1NkiOtDEGBiRZIwpte02w0EZtS698ph74AvqE2eIZMX_hsWls8V-KBuD7yqoxv54npmtpDv-KVtkHMIdnUc-Co4LTJaTzN64TJWbM2syNwEhuWe3KAPcIpOaUSSQZzK1MXxcMRh3GBM8ShPjrqjs19ueobRQOmQD0AV100F9SWiBBocYbYwj6X_1ANxetAcUi0BGKkZ9uhBj07dXiRqEMIKZwpZAyEZX0"/>
         </section>
       </div>
 
     </main>
-
     <!-- BOTTOM NAVIGATION (Only active during steps 1-7) -->
     <div v-if="currentStep >= 1 && currentStep <= 7" class="bg-surface shadow-sm border-t border-surface-container-highest shrink-0 w-full fixed bottom-0 left-0 z-50">
       <nav class="flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto h-20">
@@ -372,21 +380,21 @@ const showConfirmPassword = ref(false)
 
 // UI Data Mappings based on HTML classes
 const availableGoals = [
-  { value: 'Lose weight', title: 'Lose weight', icon: 'monitor_weight' },
-  { value: 'Gain weight (bulking)', title: 'Gain weight (bulking)', icon: 'fitness_center' },
-  { value: 'Build muscle', title: 'Build muscle', icon: 'accessibility_new' },
-  { value: 'Trying to eat healthy on a day to day basis', title: 'Trying to eat healthy on a day-to-day basis', icon: 'eco' },
-  { value: 'Inspiration for my fridge', title: 'Inspiration for my fridge (ZeroWaste focus)', icon: 'kitchen', fullWidth: true }
+  { value: 'lose_weight', title: 'Lose weight', icon: 'monitor_weight' },
+  { value: 'gain_weight', title: 'Gain weight (bulking)', icon: 'fitness_center' },
+  { value: 'build_muscle', title: 'Build muscle', icon: 'accessibility_new' },
+  { value: 'eat_healthy', title: 'Trying to eat healthy on a day-to-day basis', icon: 'eco' },
+  { value: 'zero_waste', title: 'Inspiration for my fridge (ZeroWaste focus)', icon: 'kitchen', fullWidth: true }
 ]
 
 const availableDiets = [
-  { name: 'Omnivore', icon: 'restaurant', desc: 'I eat everything' },
-  { name: 'Vegetarian', icon: 'eco', desc: 'No meat or poultry' },
-  { name: 'Vegan', icon: 'cruelty_free', desc: 'No animal products' },
-  { name: 'Gluten-Free', icon: 'agriculture', desc: 'Avoid wheat & gluten' },
-  { name: 'Dairy-Free', icon: 'water_drop', desc: 'No milk or cheese' },
-  { name: 'Keto / Low-Carb', icon: 'scale', desc: 'High fat, low carb' },
-  { name: 'Nut-Free', icon: 'block', desc: 'Allergy safe' }
+  { value: 'omnivore', name: 'Omnivore', title: 'Omnivore', icon: 'restaurant', desc: 'I eat everything' },
+  { value: 'vegetarian', name: 'Vegetarian', title: 'Vegetarian', icon: 'eco', desc: 'No meat or poultry' },
+  { value: 'vegan', name: 'Vegan', title: 'Vegan', icon: 'cruelty_free', desc: 'No animal products' },
+  { value: 'gluten_free', name: 'Gluten - Free', title: 'Gluten-Free', icon: 'agriculture', desc: 'Avoid wheat & gluten' },
+  { value: 'dairy_free', name: 'Dairy - Free', title: 'Dairy-Free', icon: 'water_drop', desc: 'No milk or cheese' },
+  { value: 'keto', name: 'Keto / Low-Carb', title: 'Keto / Low-Carb', icon: 'scale', desc: 'High fat, low carb' },
+  { value: 'nut_free', name: 'Nut - Free', title: 'Nut-Free', icon: 'block', desc: 'Allergy safe' }
 ]
 
 const dummyCategories = ref([
@@ -398,15 +406,15 @@ const dummyCategories = ref([
 const selectedCategory = ref(null)
 
 const householdOptions = [
-  { value: 'Just for myself (1 person)', title: 'Just for myself', desc: '1 person', icon: 'person' },
-  { value: 'Me and my partner (2 people)', title: 'Me and my partner', desc: '2 people', icon: 'group' },
-  { value: 'For the entire family (3-5 people)', title: 'For the entire family', desc: '3-5+ people', icon: 'diversity_3' }
+  { value: 1, title: 'Just for myself', desc: '1 person', icon: 'person' },
+  { value: 2, title: 'Me and my partner', desc: '2 people', icon: 'group' },
+  { value: 4, title: 'For the entire family', desc: '3-5+ people', icon: 'diversity_3' }
 ]
 
 const prepTimeOptions = [
-  { value: 'Lightning fast: under 20 minutes', title: 'Lightning fast', desc: 'Under 20 minutes', icon: 'bolt' },
-  { value: 'Normal pace: 30-45 minutes', title: 'Normal pace', desc: '30-45 minutes', icon: 'schedule' },
-  { value: 'Leisurely/weekend: over 1 hour', title: 'Leisurely / Weekend', desc: 'Over 1 hour', icon: 'restaurant_menu' }
+  { value: 20, title: 'Lightning fast', desc: 'Under 20 minutes', icon: 'bolt' },
+  { value: 45, title: 'Normal pace', desc: '30-45 minutes', icon: 'schedule' },
+  { value: 999, title: 'Leisurely / Weekend', desc: 'Over 1 hour', icon: 'restaurant_menu' }
 ]
 
 // SSR Safe Setup
@@ -487,25 +495,33 @@ const form = reactive({
 })
 
 // Methods
+// Methods
 function nextStep() {
+  if (currentStep.value === 3) {
+    selectedCategory.value = null
+  }
   currentStep.value++
 }
 
 function prevStep() {
-  if (currentStep.value > 1) currentStep.value--
+  if (currentStep.value === 3) {
+    selectedCategory.value = null
+  }
+  if (currentStep.value > 1) {
+    currentStep.value--
+  }
 }
 
 function toggleGoal(goalValue) {
-  const loseWeightVal = 'Lose weight'
-  const gainWeightVal = 'Gain weight (bulking)'
+  // FIX: These must perfectly match the 'value' strings inside your availableGoals array!
+  const loseWeightVal = 'lose_weight'
+  const gainWeightVal = 'gain_weight'
 
   // Mutual exclusion logic for Goals
   if (goalValue === loseWeightVal && quizData.goals.includes(gainWeightVal)) {
-    // If selecting 'Lose weight' and 'Gain weight' is active, remove 'Gain weight'
     const index = quizData.goals.indexOf(gainWeightVal)
     if (index !== -1) quizData.goals.splice(index, 1)
   } else if (goalValue === gainWeightVal && quizData.goals.includes(loseWeightVal)) {
-    // If selecting 'Gain weight' and 'Lose weight' is active, remove 'Lose weight'
     const index = quizData.goals.indexOf(loseWeightVal)
     if (index !== -1) quizData.goals.splice(index, 1)
   }
@@ -518,11 +534,11 @@ function toggleGoal(goalValue) {
   }
 }
 
-function toggleDiet(dietName) {
-  const omnivoreVal = 'Omnivore'
+function toggleDiet(dietValue) {
+  const omnivoreVal = 'omnivore'
 
-  if (dietName === omnivoreVal) {
-    // If Omnivore is clicked, clear all other meal plan preferences and select only Omnivore (or toggle it off if already selected)
+  if (dietValue === omnivoreVal) {
+    // If Omnivore is clicked, clear all other meal plan preferences and select only Omnivore
     if (quizData.meal_plan_preferences.includes(omnivoreVal)) {
       quizData.meal_plan_preferences = []
     } else {
@@ -536,9 +552,9 @@ function toggleDiet(dietName) {
     quizData.meal_plan_preferences = []
   }
 
-  const index = quizData.meal_plan_preferences.indexOf(dietName)
+  const index = quizData.meal_plan_preferences.indexOf(dietValue)
   if (index === -1) {
-    quizData.meal_plan_preferences.push(dietName)
+    quizData.meal_plan_preferences.push(dietValue)
   } else {
     quizData.meal_plan_preferences.splice(index, 1)
   }
@@ -645,6 +661,8 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 input[type="number"] {
+  -webkit-appearance: none;
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 </style>

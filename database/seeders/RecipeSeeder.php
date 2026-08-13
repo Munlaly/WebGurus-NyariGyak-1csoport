@@ -42,6 +42,7 @@ class RecipeSeeder extends Seeder {
                     'protein'=> $protein,
                     'fat' => $fat,
                     'carbs'=> $carbs,
+                    'meal_types' => $data['meal_types'] ?? [],
                 ]
             );
 
@@ -80,7 +81,8 @@ class RecipeSeeder extends Seeder {
                             'ingredient_id' => $ingredient->id,
                         ],
                         [
-                            'amount' => $ingData['amount'] ?? 0
+                            'amount' => $ingData['amount'] ?? 0,
+                            'unit' => $ingData['unit'] ?? null,
                         ]
                     );
                 }
