@@ -21,4 +21,8 @@ class UserInventory extends Model
         'expiration_date' => 'date',
         'last_audited_at' => 'datetime',
     ];
+
+    public function ingredient() {
+        return $this->belongsTo(Ingredient::class);
+    }
 }
