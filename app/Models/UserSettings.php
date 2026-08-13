@@ -22,7 +22,9 @@ class UserSettings extends Model
 
     protected $casts = [
         'goals' => 'array',
-        'meal_plan_preference' => 'array',
+        'meal_plan_preference'=> 'array',
+        'household_size' => 'integer',
+        'prep_time_preference'=> 'integer',
         'custom_dislikes' => 'array',
         'system_preferences' => 'array', 
         'daily_calorie_target' => 'integer',
