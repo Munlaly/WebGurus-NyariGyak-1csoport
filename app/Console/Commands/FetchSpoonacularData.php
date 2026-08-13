@@ -26,7 +26,7 @@ class FetchSpoonacularData extends Command
 
         if(!$apiKey) {
             $this->error('Spoonacular API key is missing in .env');
-            return Command::FAILURE;    
+            return self::FAILURE;    
         }
 
         $offset = Cache::get('spoonacular_fetch_offset', 0);
@@ -46,14 +46,14 @@ class FetchSpoonacularData extends Command
         if($response->failed()) {
             $this->error('Failed to connect to Spoonacular API');
             Log::error('Spoonacular API Error', ['response' => $response->body()]);
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         $recipes = $response->json('results');
 
         if(empty($recipes)) {
             $this->warn('No recipes returned from API');
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         $titles = array_column($recipes, 'title');
@@ -84,7 +84,7 @@ class FetchSpoonacularData extends Command
             
             $mappedTypes = array_unique($mappedTypes);
             if (empty($mappedTypes)) {
-                continue; 
+                continue;
             }
             
             $finalMealTypes = array_values($mappedTypes);
@@ -174,7 +174,7 @@ class FetchSpoonacularData extends Command
             $this->info('No new data added');
         }
         Cache::put('spoonacular_fetch_offset', $offset + $limit);
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     private function appendToJsonFile(array $newRecipes) {
@@ -188,8 +188,14 @@ class FetchSpoonacularData extends Command
             $existingData = json_decode($fileContent, true) ?? [];
         }
 
-        $mergeData = array_merge($existingData, $newRecipes);
+        $existinTitles = array_column($existingData, 'title');
+
+        foreach($newRecipes as $newRecipe) {
+            if(!in_array($newRecipe['title'], $existinTitles)) {
+                $existingData[] = $newRecipe;
+            }
+        }
         
-        $disk->put($fileName, json_encode($mergeData, JSON_PRETTY_PRINT));
+        $disk->put($fileName, json_encode($existingData, JSON_PRETTY_PRINT));
     }
 }
