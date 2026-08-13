@@ -16,13 +16,14 @@ class UserSettings extends Model
         'prep_time_preference',
         'custom_dislikes',
         'budget_or_comfort',
+        'daily_calorie_target',
     ];
 
     protected $casts = [
         'goals' => 'array',
         'meal_plan_preference'=> 'array',
-        'household_size' => 'array',
-        'prep_time_preference'=> 'array',
+        'household_size' => 'integer',
+        'prep_time_preference'=> 'integer',
         'custom_dislikes' => 'array',
     ];
 
