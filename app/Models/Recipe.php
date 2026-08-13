@@ -18,7 +18,8 @@ class Recipe extends Model
         'calories',
         'protein',
         'fat',
-        'carbs'
+        'carbs',
+        'meal_types',
     ];
 
     protected $casts = [
@@ -27,7 +28,8 @@ class Recipe extends Model
         'calories'=> 'integer',
         'protein'=> 'float',
         'fat'=> 'float',
-        'carbs' => 'float'
+        'carbs' => 'float',
+        'meal_types' => 'array',
     ];
 
     public function user(): BelongsTo {
@@ -40,6 +42,7 @@ class Recipe extends Model
 
     public function ingredients() {
         return $this->belongsToMany(Ingredient::class, 'recipe_ingredients')
-        ->withPivot('amount');
+        ->withPivot('amount', 'unit')
+        ->withTimestamps();
     }
 }
