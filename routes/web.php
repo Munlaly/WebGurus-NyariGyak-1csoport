@@ -22,6 +22,17 @@ Route::post('/quiz/save-session', [QuizController::class, 'saveSession'])->name(
     ]);
 })->name('settings.targets');
 
+Route::get('settings/rules', function(){
+    return Inertia::render('Settings/Rules', [
+        'userSettings' => [
+            'prepTime' => 'normal',
+            'numberOfPeople' => '1_person',
+            'dietType' => 'vegan',
+
+        ],
+    ]);
+})->name('settings.rules');
+
 
 Route::middleware('auth')->group(function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
