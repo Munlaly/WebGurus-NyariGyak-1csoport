@@ -4,9 +4,12 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+<<<<<<< HEAD
 use App\Models\User;
 use App\Models\UserSettings;
 use Illuminate\Support\Facades\Hash;
+=======
+>>>>>>> d608328 (Add UserInventoryController, seeder, and routes for managing user inventory. Update User and UserInventory models, and modify migrations for users and personal access tokens.)
 
 class DatabaseSeeder extends Seeder
 {
