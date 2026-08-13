@@ -176,6 +176,8 @@ class FetchSpoonacularData extends Command
                     'fat' => $macros['fat'] !== null ? (float) $macros['fat'] : null,
                     'carbs' => $macros['carbs'] !== null ? (float) $macros['carbs'] : null,
                     'diets' => $currentDiets,
+                    'meal_types' => $finalMealTypes,
+
                 ]);
                 $newRecipes[] = [
                     'title' => $recipeData['title'],
