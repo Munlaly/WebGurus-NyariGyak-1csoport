@@ -74,19 +74,16 @@ const prepTimeOptions = [
     label: 'Lightning fast',
     value: 'fast',
     description: 'Under 20 minutes',
-    icon: 'i-heroicons-bolt',
   },
   {
     label: 'Normal pace',
     value: 'normal',
     description: '30-45 minutes',
-    icon: 'i-heroicons-clock',
   },
   {
     label: 'Leisurely / Weekend',
     value: 'slow',
     description: 'Over 1 hour',
-    icon: 'i-heroicons-calendar-days',
   },
 ];
 

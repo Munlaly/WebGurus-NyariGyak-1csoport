@@ -10,38 +10,25 @@ const props = defineProps<{
   };
 }>();
 
-interface GoalItem {
-  label: string;
-  value: string;
-  description: string;
-}
-
 const activeTab = 'targets';
-const mainGoalItems = ref<GoalItem[]>([
+const mainGoalItems = [
   {
     label: 'Weight Loss',
     value: 'weightloss',
-    description: 'Helps loose weight',
+    description: 'Helps lose weight',
   },
   {
     label: 'Weight gain',
     value: 'weightgain',
     description: 'Helps gain weight (bulk)',
   },
-  {
-    label: 'Muscle gain',
-    value: 'muscle',
-    description: 'Helps build muscles',
-  },
-  {
-    label: 'Healthy',
-    value: 'general',
-    description: 'General balanced diet',
-  },
-]);
+  { label: 'Muscle gain', value: 'muscle', description: 'Helps build muscles' },
+  { label: 'Healthy', value: 'general', description: 'General balanced diet' },
+];
+
 const form = useForm({
   mainGoal: props.userSettings.mainGoal,
-  caloriesTarget: props.userSettings.calorieTarget,
+  calorieTarget: props.userSettings.calorieTarget,
 });
 
 const isEditing = ref({
@@ -111,9 +98,9 @@ const submitGoal = () => {
             @click="toggleEdit('calorieTarget')"
           />
         </div>
-        <UFormField :error="form.errors.caloriesTarget">
+        <UFormField :error="form.errors.calorieTarget">
           <UInputNumber
-            v-model="form.caloriesTarget"
+            v-model="form.calorieTarget"
             :disabled="!isEditing.calorieTarget"
           />
         </UFormField>
