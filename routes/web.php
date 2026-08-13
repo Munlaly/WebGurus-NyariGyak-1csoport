@@ -33,6 +33,12 @@ Route::get('settings/rules', function(){
     ]);
 })->name('settings.rules');
 
+Route::get('settings/system', function(){
+    return Inertia::render('Settings/System', [
+        
+    ]);
+})->name('settings.system');
+
 
 Route::middleware('auth')->group(function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
