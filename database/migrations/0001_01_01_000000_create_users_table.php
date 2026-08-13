@@ -17,8 +17,11 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+<<<<<<< HEAD
             $table->rememberToken();
             $table->integer('daily_calorie_target')->nullable();
+=======
+>>>>>>> 8c9d93d (Add UserInventoryController, seeder, and routes for managing user inventory. Update User and UserInventory models, and modify migrations for users and personal access tokens.)
             $table->timestamps();
         });
 
