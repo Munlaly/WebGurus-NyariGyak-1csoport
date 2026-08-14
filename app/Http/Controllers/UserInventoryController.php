@@ -4,18 +4,73 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\UserInventory;
+use Illuminate\Support\Carbon;
+use App\Models\UserSettings;
 
 class UserInventoryController extends Controller
 {
     public function index(Request $request) {
+        $user = $request->user();
+        $now = Carbon::now();
+        $oneWeekFromNow = $now->copy()->addDays(7);
+
+        $expiredItems = UserInventory::where('user_id', $user->id)
+            ->whereNotNull('expiration_date')
+            ->whereDate('expiration_date', '<', $now->toDateString())
+            ->get();
+
+        if($expiredItems->isNotEmpty()) {
+            $settings = UserSettings::where('user_id', $user->id)->first();
+            $pointsToDeduct = 0;
+
+            foreach($expiredItems as $item) {
+                $pointsToDeduct += 15;
+                $item->delete();
+            }
+
+            if($settings) {
+                $currentScore = $settings->zero_waste_score ?? 0;
+                $settings->update([
+                    'zero_waste_score' => max(0, $currentScore - $pointsToDeduct)
+                ]);
+            }
+        }
+
         $inventory = UserInventory::with('ingredient')
             ->where('user_id', $request->user()->id)
             ->orderBy('expiration_date', 'asc')
             ->get();
 
+        $attentionNeeded = [];
+        $regularInventory = [];
+
+        foreach($inventory as $item) {
+            $needsAttention = false;
+            if($item->expiration_date) {
+                $expDate = Carbon::parse($item->expiration_date);
+                if($expDate->isBetween($now, $oneWeekFromNow)) {
+                    $needsAttention = true;
+                }
+            }
+
+            if($item->status === 'LOW') {
+                $needsAttention = true;
+            }
+
+            if($needsAttention) {
+                $attentionNeeded[] = $item;
+            } else {
+                $regularInventory[] = $item;
+            }
+        }
+        
             return response()->json([
                 'success' => true,
-                'data' => $inventory
+                'data' => [
+                    'attention_needed' => $attentionNeeded,
+                    'inventory' => $regularInventory,
+                    'current_score' => $settings->zero_waste_score ?? 0
+                ]
             ]);
     }
 
