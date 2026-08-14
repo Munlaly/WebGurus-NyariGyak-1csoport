@@ -383,7 +383,7 @@ const availableGoals = [
   { value: 'lose_weight', title: 'Lose weight', icon: 'monitor_weight' },
   { value: 'gain_weight', title: 'Gain weight (bulking)', icon: 'fitness_center' },
   { value: 'build_muscle', title: 'Build muscle', icon: 'accessibility_new' },
-  { value: 'eat_healthy', title: 'Trying to eat healthy on a day-to-day basis', icon: 'eco' },
+  { value: 'eat_healthy', title: 'Clean eating', icon: 'eco' },
   { value: 'zero_waste', title: 'Inspiration for my fridge (ZeroWaste focus)', icon: 'kitchen', fullWidth: true }
 ]
 
@@ -394,7 +394,8 @@ const availableDiets = [
   { value: 'gluten_free', name: 'Gluten - Free', title: 'Gluten-Free', icon: 'agriculture', desc: 'Avoid wheat & gluten' },
   { value: 'dairy_free', name: 'Dairy - Free', title: 'Dairy-Free', icon: 'water_drop', desc: 'No milk or cheese' },
   { value: 'keto', name: 'Keto / Low-Carb', title: 'Keto / Low-Carb', icon: 'scale', desc: 'High fat, low carb' },
-  { value: 'nut_free', name: 'Nut - Free', title: 'Nut-Free', icon: 'block', desc: 'Allergy safe' }
+  { value: 'nut_free', name: 'Nut - Free', title: 'Nut-Free', icon: 'block', desc: 'Allergy safe' },
+  { value: 'pescatarian', name: 'Pescatarian', title: 'Pescatarian', icon: 'set_meal', desc: 'Vegetarian plus seafood' }
 ]
 
 const dummyCategories = ref([

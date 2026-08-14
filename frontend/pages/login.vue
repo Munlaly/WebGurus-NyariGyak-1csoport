@@ -2,7 +2,7 @@
   <div class="flex min-h-screen w-full bg-background antialiased text-on-surface">
     <!-- Left Side: Form Area -->
     <main class="w-full md:w-1/2 bg-surface-container-lowest flex flex-col justify-center px-margin-mobile py-12 sm:px-12 md:px-margin-desktop lg:px-32 relative z-10">
-      <div class="w-full max-w-[420px] mx-auto flex flex-col gap-8">
+      <div class="w-full max-w-105 mx-auto flex flex-col gap-8">
         
         <!-- Header Section -->
         <header class="flex flex-col gap-2">
@@ -61,9 +61,9 @@
           
           <!-- Divider -->
           <div class="relative flex items-center py-2">
-            <div class="flex-grow border-t border-surface-variant"></div>
-            <span class="flex-shrink-0 mx-4 text-on-surface-variant font-label-md text-xs font-semibold">OR</span>
-            <div class="flex-grow border-t border-surface-variant"></div>
+            <div class="grow border-t border-surface-variant"></div>
+            <span class="shrink-0 mx-4 text-on-surface-variant font-label-md text-xs font-semibold">OR</span>
+            <div class="grow border-t border-surface-variant"></div>
           </div>
           
           <!-- Secondary Social Login Button -->
@@ -97,10 +97,10 @@
     <aside class="hidden md:block md:w-1/2 relative bg-surface-container">
       <div class="absolute inset-0 w-full h-full">
         <img alt="Fresh vegetables and meal prep containers" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBx4UiNtwUiNfR_h2KXIdhLca3Sr74uhM9fnM4ZOSu1fTG7VgWzTxWZBVkh6pEK8C0cecI4_YWswWEGO8pAsdqn8QvJ-xyjUNIoB3cMU59dKHNsr0Oc9-g47F3ZfbCqniI8vrBLBqsboiHL_GaR-j8vBzqWz80_6jAmEptVKgbdpO5a83yt-xMH1EEDz-ATh68On08xOqiv4i-7xgrdjEUvEKpA0itfFM5xlKg6ooBzzoa4XY6SY5l5">
-        <div class="absolute inset-0 bg-gradient-to-tr from-on-surface/5 to-transparent mix-blend-multiply"></div>
+        <div class="absolute inset-0 bg-linear-to-tr from-on-surface/5 to-transparent mix-blend-multiply"></div>
       </div>
       
-      <div class="absolute bottom-12 right-12 bg-surface-container-lowest/90 backdrop-blur-md p-6 rounded-xl shadow-[0px_10px_30px_rgba(0,0,0,0.08)] max-w-[240px]">
+      <div class="absolute bottom-12 right-12 bg-surface-container-lowest/90 backdrop-blur-md p-6 rounded-xl shadow-[0px_10px_30px_rgba(0,0,0,0.08)] max-w-60">
         <div class="flex items-center gap-3 mb-2">
           <div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
             <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">eco</span>
