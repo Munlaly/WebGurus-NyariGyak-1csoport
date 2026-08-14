@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class Ingredient extends Model
 {
     protected $fillable = [
-        'parent_id',
+        'category_id',
         'name',
-        'default_shelf_life_days',
+        'base_unit',
     ];
 }
