@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserSettings extends Model
 {
@@ -28,7 +29,7 @@ class UserSettings extends Model
         'custom_dislikes' => 'array',
     ];
 
-    public function user() {
+    public function user(): BelongsTo {
         return $this->belongsTo(User::class);
     }
 }
