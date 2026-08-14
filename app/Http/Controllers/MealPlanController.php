@@ -164,6 +164,7 @@ class MealPlanController extends Controller
                 }
 
                 $score = 0;
+                /** @var \App\Models\Ingredient $ingredient */
                 foreach($meal->ingredients as $ingredient) {
                     if(in_array($ingredient->id, $weeklyActiveIngredients)) {
                         $score += 15; // Reward for using an ingredient already in the plan
@@ -240,7 +241,7 @@ class MealPlanController extends Controller
                     $d = $dinners->random();
                 }
 
-                $testTotal = ($b ? $b->calories : 0) + ($l ? $l->calories : 0) + ($d ? $d->calories : 0) + $snackCalories;
+                $testTotal = $b->calories + $l->calories + $d->calories + $snackCalories;
                 $difference = abs($testTotal - $targetCalories);
 
                 if($difference < $closestDifference) {
@@ -255,9 +256,7 @@ class MealPlanController extends Controller
             }
 
             foreach($dailyMeals as $meal) {
-                if(!$meal) {
-                    continue;
-                }
+                /** @var \App\Models\Ingredient $ingredient */
                 foreach($meal->ingredients as $ingredient) {
                     $ingId = $ingredient->id;
                     $amount = (float) ($ingredient->pivot->amount ?? 0);
