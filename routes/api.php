@@ -6,10 +6,6 @@ use App\Http\Controllers\MealPlanController;
 use App\Http\Controllers\UserRecipeController;
 use App\Http\Controllers\SettingsController;
 
-
-
-
-
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/inventory', [UserInventoryController::class, 'index']);
     Route::post('/user/inventory', [UserInventoryController::class, 'store']);
