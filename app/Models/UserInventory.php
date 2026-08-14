@@ -23,7 +23,7 @@ class UserInventory extends Model
         'last_audited_at' => 'datetime',
     ];
 
-    public function ingredient() {
+    public function ingredient(): BelongsTo {
         return $this->belongsTo(Ingredient::class);
     }
 }
