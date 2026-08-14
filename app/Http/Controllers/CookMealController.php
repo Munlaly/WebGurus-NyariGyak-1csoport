@@ -10,9 +10,9 @@ class CookMealController extends Controller
 {
     public function cook(Request $request, $recipeId) {
         $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
-        $user = $request->user();
+        $userId = auth()->id();
 
-        $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
+        $userSettings = DB::table('user_settings')->where('user_id', $userId)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
 
         return DB::transaction(function() use ($recipe, $user, $scale) {
