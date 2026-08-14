@@ -10,9 +10,9 @@ class CookMealController extends Controller
 {
     public function cook(Request $request, $recipeId) {
         $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
-        $user = $request->user();
+        $userId = auth()->id();
 
-        $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
+        $userSettings = DB::table('user_settings')->where('user_id', $userId)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
 
         $missingIngredients = [];
@@ -22,7 +22,7 @@ class CookMealController extends Controller
             $baseAmount = $recipeIngredient->pivot->amount ?? 1;
             $requiredAmount = $baseAmount * $scale;
 
-            $totalAvailable = UserInventory::where('user_id', $user->id)
+            $totalAvailable = UserInventory::where('user_id', $userId)
                 ->where('ingredient_id', $recipeIngredient->id)
                 ->sum('amount_left');
 
@@ -51,11 +51,11 @@ class CookMealController extends Controller
         }
 
         $usedIngredients = [];
-        DB::transaction(function() use ($recipe, $user, $scale, &$usedIngredients) {
+        DB::transaction(function() use ($recipe, $userId, $scale, &$usedIngredients) {
             foreach($recipe->ingredients as $recipeIngredient) {
                 $baseAmount = $recipeIngredient->pivot->amount ?? 1;
                 $remainingToDeduct = $baseAmount * $scale;
-                $inventoryItem = UserInventory::where('user_id', $user->id)
+                $inventoryItem = UserInventory::where('user_id', $userId)
                     ->where('ingredient_id', $recipeIngredient->id)
                     ->orderBy('expiration_date', 'asc')
                     ->lockForUpdate()

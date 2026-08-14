@@ -10,12 +10,12 @@ use Illuminate\Support\Facades\DB;
 class MealPlanController extends Controller
 {
     public function generate(Request $request) {
-        $user = $request->user();
-
-        $settings = UserSettings::where('user_id', $user->id)->first();
+        
+        $userId = auth()->id();
+        $settings = UserSettings::where('user_id', $userId)->first();
 
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
-            ->where('user_id', $user->id)
+            ->where('user_id', $userId)
             ->pluck('ingredient_id')
             ->toArray();
 
@@ -190,8 +190,8 @@ class MealPlanController extends Controller
     }
 
     public function regenerateMeal(Request $request) {
-        $user = $request->user();
-        $settings = UserSettings::where('user_id', $user->id)->first();
+        $userId = auth()->id();
+        $settings = UserSettings::where('user_id', $userId)->first();
 
         $mealType = $request->input('meal_type');
 
@@ -203,7 +203,7 @@ class MealPlanController extends Controller
         }
 
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
-            ->where('user_id', $user->id)
+            ->where('user_id', $userId)
             ->pluck('ingredient_id')
             ->toArray();
 
@@ -243,7 +243,7 @@ class MealPlanController extends Controller
     }
 
     public function savePlan(Request $request) {
-        $user = $request->user();
+        $userId = auth()->id();
         $plan = $request->input('plan');
 
         if(!$plan) {
@@ -253,7 +253,7 @@ class MealPlanController extends Controller
             ], 400);
         }
 
-        \App\Models\MealPlan::where('user_id', $user->id)
+        \App\Models\MealPlan::where('user_id', $userId)
             ->where('status', 'DRAFT')
             ->delete();
 
@@ -279,7 +279,7 @@ class MealPlanController extends Controller
                 $mealType = $mealTypes[$index] ?? 'lunch';
 
                 \App\Models\MealPlan::create([
-                    'user_id' => $user->id,
+                    'user_id' => $userId,
                     'recipe_id' => $meal['id'],
                     'scheduled_date' => $scheduledDate,
                     'meal_type' => $mealType,

@@ -9,7 +9,7 @@ class UserInventoryController extends Controller
 {
     public function index(Request $request) {
         $inventory = UserInventory::with('ingredient')
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', auth()->id())
             ->orderBy('expiration_date', 'asc')
             ->get();
 
@@ -29,7 +29,7 @@ class UserInventoryController extends Controller
         ]);
 
         $inventoryItem = UserInventory::create([
-            'user_id' => $request->user()->id,
+            'user_id' => auth()->id(),
             'ingredient_id' => $validated['ingredient_id'],
             'amount_left' => $validated['amount_left'] ?? null,
             'status' => $validated['status'] ?? 'FULL',
@@ -45,7 +45,7 @@ class UserInventoryController extends Controller
     }
 
     public function update(Request $request, $id) {
-        $inventoryItem = UserInventory::where('user_id', $request->user()->id)->findOrFail($id);
+        $inventoryItem = UserInventory::where('user_id', auth()->id())->findOrFail($id);
 
         $validated = $request->validate([
             'amount_left' => 'nullable|numeric',
@@ -64,7 +64,7 @@ class UserInventoryController extends Controller
     }
 
     public function destroy(Request $request, $id) {
-        $inventoryItem = UserInventory::where('user_id', $request->user()->id)->findOrFail($id);
+        $inventoryItem = UserInventory::where('user_id', auth()->id())->findOrFail($id);
         $inventoryItem->delete();
 
         return response()->json([
