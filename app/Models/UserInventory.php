@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserInventory extends Model
 {
@@ -22,7 +23,7 @@ class UserInventory extends Model
         'last_audited_at' => 'datetime',
     ];
 
-    public function ingredient() {
+    public function ingredient(): BelongsTo {
         return $this->belongsTo(Ingredient::class);
     }
 }
