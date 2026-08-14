@@ -1,0 +1,44 @@
+[33m694ca60[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mstart_quiz/INT-15[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33m4d1f5fe[m HEAD@{1}: commit: Finished frontend quiz layout and session storage
+[33m694ca60[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mstart_quiz/INT-15[m[33m)[m HEAD@{2}: commit: Save progress on quiz
+[33m333a105[m HEAD@{3}: commit: Frontend quiz progress
+[33m37f0b0d[m[33m ([m[1;31morigin/spoonacular_fetch/INT-6[m[33m, [m[1;32mspoonacular_fetch/INT-6[m[33m)[m HEAD@{4}: checkout: moving from spoonacular_fetch/INT-6 to start_quiz/INT-15
+[33m37f0b0d[m[33m ([m[1;31morigin/spoonacular_fetch/INT-6[m[33m, [m[1;32mspoonacular_fetch/INT-6[m[33m)[m HEAD@{5}: commit: Rearranging the USERS and USER SETTINGS tables
+[33me146cd1[m HEAD@{6}: commit: Small adjustments before pull request
+[33mbf63572[m HEAD@{7}: commit: Modifying the USER related tables for easier use
+[33m6349939[m HEAD@{8}: commit: Saving the image URL-s from the API
+[33m913bfc1[m HEAD@{9}: commit: Tiny fixes in the fetching logic
+[33m61f4592[m HEAD@{10}: commit: Finishing Spoonacular fetcher, JSON recipe data, and database seederss for base use
+[33m4137f6d[m HEAD@{11}: commit: Implement Spoonacular fetch command and update database models
+[33mc119640[m[33m ([m[1;32mdatabase[m[33m)[m HEAD@{12}: checkout: moving from database to spoonacular_fetch/INT-6
+[33mc119640[m[33m ([m[1;32mdatabase[m[33m)[m HEAD@{13}: checkout: moving from main to database
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{14}: checkout: moving from database to main
+[33mc119640[m[33m ([m[1;32mdatabase[m[33m)[m HEAD@{15}: checkout: moving from f0a303c1b611f31ff5d87abbf8211b14370c2325 to database
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{16}: reset: moving to origin/main
+[33m6f25cee[m[33m ([m[1;31morigin/database[m[33m)[m HEAD@{17}: checkout: moving from main to 6f25ceeb26c5985c5e3f750c01f44f8e085ff5ad
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{18}: reset: moving to origin/main
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{19}: checkout: moving from spoonacular_fetch/INT-6 to main
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{20}: reset: moving to origin/main
+[33m0dd52ab[m HEAD@{21}: checkout: moving from main to spoonacular_fetch/INT-6
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{22}: reset: moving to origin/main
+[33m7fbecb2[m HEAD@{23}: commit: Small change before final merge
+[33m8db6379[m HEAD@{24}: commit (merge): resolved merge conflict in app.vue
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{25}: reset: moving to origin/main
+[33m0dd52ab[m HEAD@{26}: checkout: moving from 6f25ceeb26c5985c5e3f750c01f44f8e085ff5ad to main
+[33m6f25cee[m[33m ([m[1;31morigin/database[m[33m)[m HEAD@{27}: checkout: moving from f0a303c1b611f31ff5d87abbf8211b14370c2325 to 6f25ceeb26c5985c5e3f750c01f44f8e085ff5ad
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{28}: checkout: moving from c1196402d5472cdead7d2b5b314f952f52eb8443 to f0a303c1b611f31ff5d87abbf8211b14370c2325
+[33mc119640[m[33m ([m[1;32mdatabase[m[33m)[m HEAD@{29}: checkout: moving from f0a303c1b611f31ff5d87abbf8211b14370c2325 to c1196402d5472cdead7d2b5b314f952f52eb8443
+[33mf0a303c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{30}: checkout: moving from spoonacular_fetch/INT-6 to f0a303c1b611f31ff5d87abbf8211b14370c2325
+[33m0dd52ab[m HEAD@{31}: reset: moving to HEAD
+[33m0dd52ab[m HEAD@{32}: Branch: renamed refs/heads/spoonacular_fetch to refs/heads/spoonacular_fetch/INT-6
+[33m0dd52ab[m HEAD@{34}: checkout: moving from main to spoonacular_fetch
+[33m0dd52ab[m HEAD@{35}: checkout: moving from database to main
+[33mc119640[m[33m ([m[1;32mdatabase[m[33m)[m HEAD@{36}: pull origin main (finish): returning to refs/heads/database
+[33mc119640[m[33m ([m[1;32mdatabase[m[33m)[m HEAD@{37}: pull origin main (pick): app.vue modositas
+[33m512da40[m HEAD@{38}: pull origin main (pick): adatbazis modellek es migraciok letrehozva
+[33m3b7d6d3[m HEAD@{39}: pull origin main (start): checkout 3b7d6d3010e0df88f61f48b5bdd5e9a4a05dc3d4
+[33m5d663a5[m HEAD@{40}: commit: app.vue modositas
+[33m6f25cee[m[33m ([m[1;31morigin/database[m[33m)[m HEAD@{41}: commit: adatbazis modellek es migraciok letrehozva
+[33m0dd52ab[m HEAD@{42}: checkout: moving from main to database
+[33m0dd52ab[m HEAD@{43}: commit: vue konfiguralasa
+[33m2498079[m HEAD@{44}: clone: from https://github.com/Munlaly/WebGurus-NyariGyak-1csoport.git

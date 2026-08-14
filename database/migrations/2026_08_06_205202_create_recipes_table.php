@@ -18,6 +18,14 @@ return new class extends Migration
             $table->text('instructions')->nullable();
             $table->integer('prep_time_minutes')->nullable();
             $table->boolean('is_public')->default(false);
+            $table->string('image')->nullable();
+
+            $table->integer('calories')->nullable();
+            $table->float('protein')->nullable();
+            $table->float('fat')->nullable();
+            $table->float('carbs')->nullable();
+            $table->string('meal_types')->nullable();
+
             $table->timestamps();
 
             $table->index('user_id', 'idx_recipes_user');
