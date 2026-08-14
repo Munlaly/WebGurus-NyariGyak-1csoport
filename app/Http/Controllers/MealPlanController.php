@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 class MealPlanController extends Controller
 {
     public function generate(Request $request) {
+        /** @var \App\Models\User $user */
         $user = $request->user();
 
         $settings = UserSettings::where('user_id', $user->id)->first();
@@ -141,8 +142,7 @@ class MealPlanController extends Controller
         $allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
         $currentDayName = Carbon::now()->format('l');
-        $currentIndex = array_search($currentDayName, $allDays);
-        $currentIndex = $currentIndex !== false ? $currentIndex : 0;
+        $currentIndex = (int) array_search($currentDayName, $allDays);
         $days = array_slice($allDays, $currentIndex);
 
         $weeklyActiveIngredients = [];
@@ -289,6 +289,7 @@ class MealPlanController extends Controller
     }
 
     public function regenerateMeal(Request $request) {
+        /** @var \App\Models\User $user */
         $user = $request->user();
         $settings = UserSettings::where('user_id', $user->id)->first();
 
@@ -391,6 +392,7 @@ class MealPlanController extends Controller
     }
 
     public function savePlan(Request $request) {
+        /** @var \App\Models\User $user */
         $user = $request->user();
         $plan = $request->input('plan');
 
@@ -417,14 +419,15 @@ class MealPlanController extends Controller
             'Sunday' => 6
         ];
 
-        $mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+        $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
+    
 
         foreach($plan as $dayName => $dayData) {
             $dayOffset = $dayMapping[$dayName] ?? 0;
             $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
             foreach($dayData['meals'] as $index => $meal) {
-                $mealType = $meal['meal_type'] ?? ($defaulMealTypes[$index] ?? 'snack');
+                $mealType = $meal['meal_type'] ?? ($mealTypesArray[$index] ?? 'snack');
 
                 MealPlan::create([
                     'user_id' => $user->id,
