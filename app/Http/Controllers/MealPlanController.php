@@ -12,7 +12,16 @@ use Illuminate\Support\Carbon;
 
 class MealPlanController extends Controller
 {
+<<<<<<< HEAD
     private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
+=======
+    public function generate(Request $request) {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $settings = UserSettings::where('user_id', $user->id)->first();
+
+>>>>>>> 3e27079 (fix: finalize MealPlanController logic and types)
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
             ->pluck('ingredient_id')
