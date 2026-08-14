@@ -42,7 +42,7 @@ class Recipe extends Model
         return $this->hasMany(RecipeIngredient::class);
     }
 
-    public function ingredients() {
+    public function ingredients(): BelongsToMany {
         return $this->belongsToMany(Ingredient::class, 'recipe_ingredients')
         ->withPivot('amount', 'unit')
         ->withTimestamps();
