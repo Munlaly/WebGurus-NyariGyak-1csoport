@@ -10,7 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * @property array|null $meal_types
  * @property array|null $diets
+<<<<<<< HEAD
  * @property \Illuminate\Database\Eloquent\Collection<int, Ingredient> $ingredients
+=======
+ * @property \Illuminate\Database\Eloquent\Collection $ingredients
+>>>>>>> 4ee0ea5 (fix: add typehints for phpstan tests)
  */
 class Recipe extends Model
 {
