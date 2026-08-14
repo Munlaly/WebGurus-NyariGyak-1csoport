@@ -24,7 +24,7 @@ class FetchSpoonacularData extends Command
         $this->info('Starting fetch...');
 
         $limit = 150;
-        $apiKey = env('SPOONACULAR_API_KEY');
+        $apiKey = config('services.spoonacular.key');
 
         if(!$apiKey) {
             $this->error('Spoonacular API key is missing in .env');

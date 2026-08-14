@@ -19,6 +19,7 @@ class CookMealController extends Controller
         $availableIngredients = [];
 
         foreach($recipe->ingredients as $recipeIngredient) {
+            /** @var \App\Models\Ingredient $recipeIngredient */
             $baseAmount = $recipeIngredient->pivot->amount ?? 1;
             $requiredAmount = $baseAmount * $scale;
 
@@ -53,6 +54,7 @@ class CookMealController extends Controller
         $usedIngredients = [];
         DB::transaction(function() use ($recipe, $user, $scale, &$usedIngredients) {
             foreach($recipe->ingredients as $recipeIngredient) {
+                /** @var \App\Models\Ingredient $recipeIngredient */
                 $baseAmount = $recipeIngredient->pivot->amount ?? 1;
                 $remainingToDeduct = $baseAmount * $scale;
                 $inventoryItem = UserInventory::where('user_id', $user->id)
@@ -62,6 +64,7 @@ class CookMealController extends Controller
                     ->get();
 
                 foreach($inventoryItem as $item) {
+                    /** @var UserInventory $item */
                     if ($remainingToDeduct <= 0) {
                         break; 
                     }
