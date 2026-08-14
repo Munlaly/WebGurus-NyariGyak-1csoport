@@ -17,6 +17,7 @@ class UserSettings extends Model
         'custom_dislikes',
         'budget_or_comfort',
         'daily_calorie_target',
+        'zero_waste_score',
     ];
 
     protected $casts = [
