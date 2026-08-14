@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property array|null $meal_types
+ * @property array|null $diets
+ * @property \Illuminate\Database\Eloquent\Collection $ingredients
+ */
 class Recipe extends Model
 {
     protected $fillable = [

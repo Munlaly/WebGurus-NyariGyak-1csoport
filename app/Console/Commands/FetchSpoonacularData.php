@@ -23,6 +23,8 @@ class FetchSpoonacularData extends Command
 
         $limit = 50;
         $apiKey = config('services.spoonacular.key');
+        $limit = 150;
+        $apiKey = config('services.spoonacular.key');
 
         if(!$apiKey) {
             $this->error('Spoonacular API key is missing in .env');
