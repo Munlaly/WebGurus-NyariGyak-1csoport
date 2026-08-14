@@ -20,6 +20,7 @@ class Recipe extends Model
         'fat',
         'carbs',
         'meal_types',
+        'diets',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Recipe extends Model
         'fat'=> 'float',
         'carbs' => 'float',
         'meal_types' => 'array',
+        'diets' => 'array',
     ];
 
     public function user(): BelongsTo {

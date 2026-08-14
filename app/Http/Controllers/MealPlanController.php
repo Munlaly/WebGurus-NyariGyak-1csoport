@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\UserSettings;
 use App\Models\Recipe;
 use Illuminate\Support\Facades\DB;
+use App\Models\MealPlan;
+use Illuminate\Support\Carbon;
 
 class MealPlanController extends Controller
 {
@@ -21,7 +23,7 @@ class MealPlanController extends Controller
 
         // PHASE 1: HARD FILTERS
 
-        $validRecipes = Recipe::query();
+        $validRecipes = Recipe::with('ingredients');
 
         if(!empty($dislikedIngredientIds)) {
             $validRecipes->whereDoesntHave('ingredients', function($query) use ($dislikedIngredientIds) {
@@ -34,6 +36,55 @@ class MealPlanController extends Controller
                 $query->where('prep_time_minutes', '<=', (int) $settings->prep_time_preference)
                       ->orWhereNull('prep_time_minutes');
             });
+        }
+
+        if($settings && !empty($settings->meal_plan_preference) && !in_array('omnivore', $settings->meal_plan_preference)) {
+            $preferences = $settings->meal_plan_preference;
+
+            if(in_array('nut_free', $preferences)) {
+                $validRecipes->where(function($q) {
+                    $q->whereDoesntHave('ingredients', function($subQ) {
+                        $subQ->where('name', 'like', '%nut%')
+                              ->orWhere('name', 'like', '%peanut%')
+                              ->orWhere('name', 'like', '%almond%')
+                              ->orWhere('name', 'like', '%cashew%')
+                              ->orWhere('name', 'like', '%walnut%')
+                              ->orWhere('name', 'like', '%pecan%')
+                              ->orWhere('name', 'like', '%hazelnut%')
+                              ->orWhere('name', 'like', '%macadamia%')
+                              ->orWhere('name', 'like', '%pistachio%');
+                    })
+                        ->where('title', 'not like', '% nut %')
+                        ->where('title', 'not like', '%nuts%')
+                        ->where('title', 'not like', '%peanut%')
+                        ->where('title', 'not like', '%almond%')
+                        ->where('title', 'not like', '%cashew%')
+                        ->where('title', 'not like', '%walnut%')
+                        ->where('title', 'not like', '%pecan%')
+                        ->where('title', 'not like', '%hazelnut%')
+                        ->where('title', 'not like', '%macadamia%')
+                        ->where('title', 'not like', '%pistachio%')
+
+                        ->where('instructions', 'not like', '% nut %')
+                        ->where('instructions', 'not like', '%nuts%')
+                        ->where('instructions', 'not like', '%peanut%')
+                        ->where('instructions', 'not like', '%almond%')
+                        ->where('instructions', 'not like', '%cashew%')
+                        ->where('instructions', 'not like', '%walnut%')
+                        ->where('instructions', 'not like', '%pecan%')
+                        ->where('instructions', 'not like', '%hazelnut%')
+                        ->where('instructions', 'not like', '%macadamia%')
+                        ->where('instructions', 'not like', '%pistachio%');
+                });
+                $preferences = array_diff($preferences, ['nut_free']);
+            }
+            if(!empty($preferences)) {
+                $validRecipes->where(function($query) use ($preferences) {
+                    foreach($preferences as $diet) {
+                        $query->whereJsonContains('diets', $diet);
+                    }
+                });
+            }
         }
 
         $poolOfAllowedMeals = $validRecipes->get();
@@ -61,11 +112,12 @@ class MealPlanController extends Controller
             $poolOfAllowedMeals = $poolOfAllowedMeals->sortBy('fat')->take($cutoffThreshold)->values();
         }
 
-        // PHASE 2: CALORIE COMBINER
+        // PHASE 2: CALORIE & ZERO-WASTE ENGINE
 
         $breakfasts = $poolOfAllowedMeals->filter(fn($recipe) => is_array($recipe->meal_types) && in_array('breakfast', $recipe->meal_types));
         $lunches = $poolOfAllowedMeals->filter(fn($recipe) => is_array($recipe->meal_types) && in_array('lunch', $recipe->meal_types));
         $dinners = $poolOfAllowedMeals->filter(fn($recipe) => is_array($recipe->meal_types) && in_array('dinner', $recipe->meal_types));
+        $snacks = $poolOfAllowedMeals->filter(fn($recipe) => is_array($recipe->meal_types) && in_array('snack', $recipe->meal_types));
 
         if($breakfasts->isEmpty() || $lunches->isEmpty() || $dinners->isEmpty()) {
             return response()->json([
@@ -75,6 +127,7 @@ class MealPlanController extends Controller
                     'breakfasts_fount' => $breakfasts->count(),
                     'lunches_found' => $lunches->count(),
                     'dinners_found' => $dinners->count(),
+                    'snacks_found' => $snacks->count(),
                 ]
             ], 400);
         }
@@ -87,10 +140,15 @@ class MealPlanController extends Controller
         $weeklyPlan = [];
         $allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-        $currentDayName = \Carbon\Carbon::now()->format('l');
+        $currentDayName = Carbon::now()->format('l');
         $currentIndex = array_search($currentDayName, $allDays);
         $currentIndex = $currentIndex !== false ? $currentIndex : 0;
         $days = array_slice($allDays, $currentIndex);
+
+        $weeklyActiveIngredients = [];
+        $weeklyIngredientQuantities = [];
+
+        $snackChancePercentage = 40;
 
         foreach($days as $day) {
             $dailyMeals = null;
@@ -99,6 +157,28 @@ class MealPlanController extends Controller
 
             $attempts = 0;
             $maxAttempts = 150;  // don't let the server loop forever
+
+            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients) {
+                if(empty($weeklyActiveIngredients)) {
+                    return mt_rand(1, 100); // Randomize the first day
+                }
+
+                $score = 0;
+                foreach($meal->ingredients as $ingredient) {
+                    if(in_array($ingredient->id, $weeklyActiveIngredients)) {
+                        $score += 15; // Reward for using an ingredient already in the plan
+                
+                        $amount = (float) ($ingredient->pivot->amount ?? 1);
+                        $score += $amount;
+                    }
+                }
+                return $score;
+            };
+
+
+            $includeSnack = $snacks->isNotEmpty() && (mt_rand(1, 100) <= $snackChancePercentage);
+            $snack = $includeSnack ? $snacks->sortByDesc($zeroWasteScorer)->first() : null;
+            $snackCalories = $snack ? (int) $snack->calories : 0;
 
             $fillerMeal = mt_rand(0, 2);
             while($attempts < $maxAttempts) {
@@ -110,7 +190,7 @@ class MealPlanController extends Controller
                 if($fillerMeal === 0) {
                     $l = $lunches->random();
                     $d = $dinners->random();
-                    $currentCalories = $l->calories + $d->calories;
+                    $currentCalories = $l->calories + $d->calories + $snackCalories;
 
                     $neededMin = $minCalories - $currentCalories;
                     $neededMax = $maxCalories - $currentCalories;
@@ -119,15 +199,15 @@ class MealPlanController extends Controller
                                                ->where('calories', '<=', $neededMax);
 
                     if($perfectMeals->isNotEmpty()) {
-                        $b = $perfectMeals->random();
-                        $dailyMeals = collect([$b, $l, $d]);
+                        $b = $perfectMeals->sortByDesc($zeroWasteScorer)->first();
+                        $dailyMeals = collect(array_filter([$b, $l, $d, $snack]));
                         break;
                     }
                     $b = $breakfasts->random();
                 } else if($fillerMeal === 1) {
                     $b = $breakfasts->random();
                     $d = $dinners->random();
-                    $currentCalories = $b->calories + $d->calories;
+                    $currentCalories = $b->calories + $d->calories + $snackCalories;
 
                     $neededMin = $minCalories - $currentCalories;
                     $neededMax = $maxCalories - $currentCalories;
@@ -136,15 +216,15 @@ class MealPlanController extends Controller
                                             ->where('calories', '<=', $neededMax);
 
                     if($perfectMeals->isNotEmpty()) {
-                        $l = $perfectMeals->random();
-                        $dailyMeals = collect([$b, $l, $d]);
+                        $l = $perfectMeals->sortByDesc($zeroWasteScorer)->first();
+                        $dailyMeals = collect(array_filter([$b, $l, $d, $snack]));
                         break;
                     }
                     $l = $lunches->random();
                 } else {
                     $b = $breakfasts->random();
                     $l = $lunches->random();
-                    $currentCalories = $b->calories + $l->calories;
+                    $currentCalories = $b->calories + $l->calories + $snackCalories;
 
                     $neededMin = $minCalories - $currentCalories;
                     $neededMax = $maxCalories - $currentCalories;
@@ -153,19 +233,19 @@ class MealPlanController extends Controller
                                                ->where('calories', '<=', $neededMax);
 
                     if($perfectMeals->isNotEmpty()) {
-                        $d = $perfectMeals->random();
-                        $dailyMeals = collect([$b, $l, $d]);
+                        $d = $perfectMeals->sortByDesc($zeroWasteScorer)->first();
+                        $dailyMeals = collect(array_filter([$b, $l, $d, $snack]));
                         break;
                     }
                     $d = $dinners->random();
                 }
 
-                $testTotal = $b->calories + $l->calories + $d->calories;
+                $testTotal = ($b ? $b->calories : 0) + ($l ? $l->calories : 0) + ($d ? $d->calories : 0) + $snackCalories;
                 $difference = abs($testTotal - $targetCalories);
 
                 if($difference < $closestDifference) {
                     $closestDifference = $difference;
-                    $bestAttempt = collect([$b, $l, $d]);
+                    $bestAttempt = collect(array_filter([$b, $l, $d, $snack]));
                 }
                 $attempts++;
             }
@@ -174,16 +254,35 @@ class MealPlanController extends Controller
                 $dailyMeals = $bestAttempt;
             }
 
+            foreach($dailyMeals as $meal) {
+                if(!$meal) {
+                    continue;
+                }
+                foreach($meal->ingredients as $ingredient) {
+                    $ingId = $ingredient->id;
+                    $amount = (float) ($ingredient->pivot->amount ?? 0);
+
+                    if(!in_array($ingId, $weeklyActiveIngredients)) {
+                        $weeklyActiveIngredients[] = $ingId;
+                        $weeklyIngredientQuantities[$ingId] = 0;
+                    }
+                    $weeklyIngredientQuantities[$ingId] += $amount;
+                }
+            }
+
+            $weeklyActiveIngredients = array_unique($weeklyActiveIngredients);
+
             $weeklyPlan[$day] = [
-                'meals' => $dailyMeals,
+                'meals' => $dailyMeals->values(),
                 'total_calories' => $dailyMeals->sum('calories'),
+                'has_snack' => $includeSnack,
                 'perfect_match' => $attempts < $maxAttempts
             ];
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Weekly plan succesfully generated. ',
+            'message' => 'Weekly plan succesfully generated.',
             'target_calories' => $targetCalories,
             'plan' => $weeklyPlan,
         ]);
@@ -195,7 +294,7 @@ class MealPlanController extends Controller
 
         $mealType = $request->input('meal_type');
 
-        if(!in_array($mealType, ['breakfast', 'lunch', 'dinner'])) {
+        if(!in_array($mealType, ['breakfast', 'lunch', 'dinner', 'snack'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid meal type provided.',
@@ -207,7 +306,7 @@ class MealPlanController extends Controller
             ->pluck('ingredient_id')
             ->toArray();
 
-        $validRecipes = Recipe::query();
+        $validRecipes = Recipe::with('ingredients');
 
         if(!empty($dislikedIngredientIds)) {
             $validRecipes->whereDoesntHave('ingredients', function($query) use ($dislikedIngredientIds) {
@@ -220,6 +319,55 @@ class MealPlanController extends Controller
                 $query->where('prep_time_minutes', '<=', (int) $settings->prep_time_preference)
                       ->orWhereNull('prep_time_minutes');
             });
+        }
+
+        if($settings && !empty($settings->meal_plan_preference) && !in_array('omnivore', $settings->meal_plan_preference)) {
+            $preferences = $settings->meal_plan_preference;
+
+            if(in_array('nut_free', $preferences)) {
+                $validRecipes->where(function($q) {
+                    $q->whereDoesntHave('ingredients', function($subQ) {
+                        $subQ->where('name', 'like', '%nut%')
+                              ->orWhere('name', 'like', '%peanut%')
+                              ->orWhere('name', 'like', '%almond%')
+                              ->orWhere('name', 'like', '%cashew%')
+                              ->orWhere('name', 'like', '%walnut%')
+                              ->orWhere('name', 'like', '%pecan%')
+                              ->orWhere('name', 'like', '%hazelnut%')
+                              ->orWhere('name', 'like', '%macadamia%')
+                              ->orWhere('name', 'like', '%pistachio%');
+                    })
+                        ->where('title', 'not like', '% nut %')
+                        ->where('title', 'not like', '%nuts%')
+                        ->where('title', 'not like', '%peanut%')
+                        ->where('title', 'not like', '%almond%')
+                        ->where('title', 'not like', '%cashew%')
+                        ->where('title', 'not like', '%walnut%')
+                        ->where('title', 'not like', '%pecan%')
+                        ->where('title', 'not like', '%hazelnut%')
+                        ->where('title', 'not like', '%macadamia%')
+                        ->where('title', 'not like', '%pistachio%')
+
+                        ->where('instructions', 'not like', '% nut %')
+                        ->where('instructions', 'not like', '%nuts%')
+                        ->where('instructions', 'not like', '%peanut%')
+                        ->where('instructions', 'not like', '%almond%')
+                        ->where('instructions', 'not like', '%cashew%')
+                        ->where('instructions', 'not like', '%walnut%')
+                        ->where('instructions', 'not like', '%pecan%')
+                        ->where('instructions', 'not like', '%hazelnut%')
+                        ->where('instructions', 'not like', '%macadamia%')
+                        ->where('instructions', 'not like', '%pistachio%');
+                });
+                $preferences = array_diff($preferences, ['nut_free']);
+            }
+            if(!empty($preferences)) {
+                $validRecipes->where(function($query) use ($preferences) {
+                    foreach($preferences as $diet) {
+                        $query->whereJsonContains('diets', $diet);
+                    }
+                });
+            }
         }
 
         $poolOfAllowedMeals = $validRecipes->get();
@@ -253,11 +401,11 @@ class MealPlanController extends Controller
             ], 400);
         }
 
-        \App\Models\MealPlan::where('user_id', $user->id)
+        MealPlan::where('user_id', $user->id)
             ->where('status', 'DRAFT')
             ->delete();
 
-        $startOfWeek = \Carbon\Carbon::now()->startOfWeek();
+        $startOfWeek = Carbon::now()->startOfWeek();
 
         $dayMapping = [
             'Monday' => 0,
@@ -269,16 +417,16 @@ class MealPlanController extends Controller
             'Sunday' => 6
         ];
 
-        $mealTypes = ['breakfast', 'lunch', 'dinner'];
+        $mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
 
         foreach($plan as $dayName => $dayData) {
             $dayOffset = $dayMapping[$dayName] ?? 0;
             $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
             foreach($dayData['meals'] as $index => $meal) {
-                $mealType = $mealTypes[$index] ?? 'lunch';
+                $mealType = $meal['meal_type'] ?? ($defaulMealTypes[$index] ?? 'snack');
 
-                \App\Models\MealPlan::create([
+                MealPlan::create([
                     'user_id' => $user->id,
                     'recipe_id' => $meal['id'],
                     'scheduled_date' => $scheduledDate,
