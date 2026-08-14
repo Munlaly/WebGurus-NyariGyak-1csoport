@@ -5,7 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property array|null $meal_types
+ * @property array|null $diets
+ * @property \Illuminate\Database\Eloquent\Collection $ingredients
+ */
 class Recipe extends Model
 {
     protected $fillable = [
@@ -40,7 +46,7 @@ class Recipe extends Model
         return $this->hasMany(RecipeIngredient::class);
     }
 
-    public function ingredients() {
+    public function ingredients(): BelongsToMany {
         return $this->belongsToMany(Ingredient::class, 'recipe_ingredients')
         ->withPivot('amount', 'unit')
         ->withTimestamps();
