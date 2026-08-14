@@ -25,12 +25,6 @@ class Recipe extends Model
     ];
 
     protected $casts = [
-        'is_public' => 'boolean',
-        'prep_time_minutes' => 'integer',
-        'calories'=> 'integer',
-        'protein'=> 'float',
-        'fat'=> 'float',
-        'carbs' => 'float',
         'meal_types' => 'array',
         'diets' => 'array',
     ];
