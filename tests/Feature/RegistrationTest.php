@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use Database\Factories\UserFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -87,5 +88,26 @@ class RegistrationTest extends TestCase
          // Assert no session was established
         $this->assertGuest();
 
+    }
+
+    public function test_users_cannot_register_with_existing_username(){
+        // Seed an existing user into the test database
+        User::factory()->create([
+            'username'=>'testuser'
+        ]);
+
+         // Execute register request on mock Http client
+        $response = $this->post('/register',[
+            'username'=> 'testuser',
+            'email'=> 'test@example.com',
+            'password'=>'password',
+            'password_confirmation' =>'password',
+        ]);
+
+        // Assert validation error on the usernamefield (already exists)
+        $response->assertSessionHasErrors('username');
+
+        // Assert no session was established
+        $this->assertGuest();
     }
 }
