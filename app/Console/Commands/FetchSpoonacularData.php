@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Attributes\Description;
-use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -11,8 +9,6 @@ use App\Models\Recipe;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
-##[Signature('app:fetch-spoonacular-data')]
-##[Description('Command description')]
 class FetchSpoonacularData extends Command
 {
     /**
@@ -60,6 +56,10 @@ class FetchSpoonacularData extends Command
             return Command::SUCCESS;
         }
 
+        $titles = array_column($recipes, 'title');
+
+        $existingRecipeNames = Recipe::whereIn('name', $titles)->pluck('name')->toArray();
+
         $newRecipes = [];
         $saveCount = 0;
 
@@ -89,7 +89,7 @@ class FetchSpoonacularData extends Command
             
             $finalMealTypes = array_values($mappedTypes);
 
-            $exist = Recipe::where('name', $recipeData['title'])->exists();
+            $exist = in_array($recipeData['title'], $existingRecipeNames);
             $instructionsText = null;
             if(!empty($recipeData['analyzedInstructions'])) {
                 $stepDescriptions = [];
@@ -141,9 +141,9 @@ class FetchSpoonacularData extends Command
                     'image' => $cleanImage,
                     'is_public' => true, // public by default
                     'calories' => $macros['calories'] !== null ? (int) round($macros['calories']) : null,
-                    'protein' => $macros['protein'] !== null ? (float) $macros['calories'] : null,
-                    'fat' => $macros['fat'] !== null ? (float) $macros['calories'] : null,
-                    'carbs' => $macros['carbs'] !== null ? (float) $macros['calories'] : null,
+                    'protein' => $macros['protein'] !== null ? (float) $macros['protein'] : null,
+                    'fat' => $macros['fat'] !== null ? (float) $macros['fat'] : null,
+                    'carbs' => $macros['carbs'] !== null ? (float) $macros['carbs'] : null,
 
                 ]);
                 $newRecipes[] = [
