@@ -26,10 +26,10 @@ class DatabaseSeeder extends Seeder
 
         UserSettings::create([
             'user_id'=> $user->id,
-            'goals' => json_encode(['lose weight']),
-            'meal_plan_preference' => json_encode(['vegan']),
-            'household_size' => json_encode(['1 person']),
-            'prep_time_preference' => json_encode(['under 20 minutes']),
+            'goals' => ['lose weight'],
+            'meal_plan_preference' => ['vegan'],
+            'household_size' => ['1 person'],
+            'prep_time_preference' => ['under 20 minutes'],
             'budget_or_comfort' => 'comfort_first',
         ]);
         
