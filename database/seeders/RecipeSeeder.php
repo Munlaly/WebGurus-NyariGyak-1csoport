@@ -11,13 +11,13 @@ use App\Models\RecipeIngredient;
 
 class RecipeSeeder extends Seeder {
     public function run() {
-        $json = Storage::disk('local')->get('spoonacular_recipes.json');
-
-        if(!$json) {
+        if(!Storage::disk('local')->exists('spoonacular_recipes.json')){
             $this->command->error('No JSON file found. Run the fetch command first!');
             return;
         }
+        $json = Storage::disk('local')->get('spoonacular_recipes.json');
 
+        
         $recipeData = json_decode($json, true);
         $uncategorized = Category::where('name', 'Uncategorized')->first();
 
@@ -38,7 +38,7 @@ class RecipeSeeder extends Seeder {
                     'prep_time_minutes' => $data['prep_time'],
                     'image' => $cleanImage,
                     'is_public' => true,
-                    'calories' => (int) round($calories),
+                    'calories' => $calories !== null ? (int) round($calories): null,
                     'protein'=> $protein,
                     'fat' => $fat,
                     'carbs'=> $carbs,
@@ -103,14 +103,14 @@ class RecipeSeeder extends Seeder {
         $weightAisles = [
             'meat', 'seafood', 'pasta and rice', 'baking', 'cereal', 
             'savory snacks', 'sweet snacks', 'cheese', 'health foods', 
-            'nutt butters', 'jams, and honey', 'canned and jarred'
+            'nut butters', 'jams and honey', 'canned and jarred'
         ];
         if(in_array($aisle, $weightAisles)) {
             return 'g';
         }
 
         $volumeAisles = [
-            'oil', 'vinegar, salad and dressing', 'beverages', 
+            'oil, vinegar, salad dressing', 'beverages', 
             'alcoholic beverages', 'milk, eggs, other dairy', 'condiments'
         ];
         if(in_array($aisle, $volumeAisles)) {
