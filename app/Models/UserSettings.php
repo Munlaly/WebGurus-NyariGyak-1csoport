@@ -21,8 +21,6 @@ class UserSettings extends Model
     protected $casts = [
         'goals' => 'array',
         'meal_plan_preference'=> 'array',
-        'household_size' => 'array',
-        'prep_time_preference'=> 'array',
         'custom_dislikes' => 'array',
     ];
 

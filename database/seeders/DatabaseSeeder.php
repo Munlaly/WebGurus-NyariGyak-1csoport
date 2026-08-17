@@ -28,8 +28,8 @@ class DatabaseSeeder extends Seeder
             'user_id'=> $user->id,
             'goals' => ['lose weight'],
             'meal_plan_preference' => ['vegan'],
-            'household_size' => ['1 person'],
-            'prep_time_preference' => ['under 20 minutes'],
+            'household_size' => '1 person',
+            'prep_time_preference' => 'under 20 minutes',
             'budget_or_comfort' => 'comfort_first',
         ]);
         
