@@ -12,7 +12,7 @@ const schema = z
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: 'Passwords do not match!',
-    path: ['password_confirm'],
+    path: ['password_confirmation'],
   });
 
 const form = useForm({
@@ -64,8 +64,8 @@ function onSubmit() {
             @submit="onSubmit"
           >
             <UFormField
-              label="Full name"
-              name="name"
+              label="Username"
+              name="username"
               :error="form.errors.username"
             >
               <UInput v-model="form.username" />
@@ -85,7 +85,7 @@ function onSubmit() {
 
             <UFormField
               label="Confirm password"
-              name="password_confirm"
+              name="password_confirmation"
               :error="form.errors.password_confirmation"
             >
               <UInput v-model="form.password_confirmation" type="password" />
