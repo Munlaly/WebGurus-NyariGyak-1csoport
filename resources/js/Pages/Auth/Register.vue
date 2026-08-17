@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod';
 import { useForm, Link } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
 
 // Define client side validation
 const schema = z
@@ -101,7 +102,7 @@ function onSubmit() {
             Already have an account?
             <Link
               class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors hover:underline"
-              href="/login"
+              :href="route('login')"
             >
               Sign in
             </Link>
