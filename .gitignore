@@ -36,3 +36,11 @@ Thumbs.db
 components.d.ts
 auto-imports.d.ts
 .nuxt/
+
+# Inertia
+public/hot
+
+#IDE auto completion
+_ide_helper.php
+_ide_helper_models.php
+phpstrom.meta.php
