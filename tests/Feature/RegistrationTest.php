@@ -13,8 +13,7 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register(): void
     {
-        $this->withoutVite();
-
+        
         $response = $this->post('/register', [
             'username' => 'Test User',
             'email' => 'test@example.com',
