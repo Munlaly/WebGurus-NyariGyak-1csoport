@@ -39,3 +39,8 @@ auto-imports.d.ts
 
 # Inertia
 public/hot
+
+#IDE auto completion
+_ide_helper.php
+_ide_helper_models.php
+phpstrom.meta.php
