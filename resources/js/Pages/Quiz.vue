@@ -1,12 +1,48 @@
 <script setup>
-import { reactive, ref, watch, onMounted, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import { Link, useForm } from '@inertiajs/vue3';
+
+const props = defineProps({
+  categories: {
+    type: Array,
+    // Falling back to the dummy data if no data is passed (will be removed later)
+    default: () => [
+      {
+        id: 1,
+        name: 'Vegetables',
+        icon: 'eco',
+        ingredients: [
+          'Mushrooms',
+          'Onions',
+          'Tomatoes',
+          'Broccoli',
+          'Bell Peppers',
+        ],
+      },
+      {
+        id: 2,
+        name: 'Dairy & Eggs',
+        icon: 'water_drop',
+        ingredients: ['Cheese', 'Milk', 'Eggs', 'Yogurt'],
+      },
+      {
+        id: 3,
+        name: 'Meat & Seafood',
+        icon: 'set_meal',
+        ingredients: ['Pork', 'Beef', 'Shrimp', 'Salmon', 'Chicken'],
+      },
+      {
+        id: 4,
+        name: 'Herbs & Spices',
+        icon: 'nutrition',
+        ingredients: ['Cilantro', 'Garlic', 'Oregano', 'Basil'],
+      },
+    ],
+  },
+});
 
 const currentStep = ref(1);
 
-const showPassword = ref(false);
-const showConfirmPassword = ref(false);
-
-// UI Data Mappings based on HTML classes
 const availableGoals = [
   { value: 'Lose weight', title: 'Lose weight', icon: 'monitor_weight' },
   {
@@ -38,39 +74,9 @@ const availableDiets = [
   { name: 'Nut-Free', icon: 'block', desc: 'Allergy safe' },
 ];
 
-const dummyCategories = ref([
-  {
-    id: 1,
-    name: 'Vegetables',
-    icon: 'eco',
-    ingredients: [
-      'Mushrooms',
-      'Onions',
-      'Tomatoes',
-      'Broccoli',
-      'Bell Peppers',
-    ],
-  },
-  {
-    id: 2,
-    name: 'Dairy & Eggs',
-    icon: 'water_drop',
-    ingredients: ['Cheese', 'Milk', 'Eggs', 'Yogurt'],
-  },
-  {
-    id: 3,
-    name: 'Meat & Seafood',
-    icon: 'set_meal',
-    ingredients: ['Pork', 'Beef', 'Shrimp', 'Salmon', 'Chicken'],
-  },
-  {
-    id: 4,
-    name: 'Herbs & Spices',
-    icon: 'nutrition',
-    ingredients: ['Cilantro', 'Garlic', 'Oregano', 'Basil'],
-  },
-]);
 const selectedCategory = ref(null);
+const currentCustomInput = ref('');
+const showCalorieWarning = ref(false);
 
 const householdOptions = [
   {
@@ -114,8 +120,7 @@ const prepTimeOptions = [
   },
 ];
 
-// SSR Safe Setup
-const quizData = reactive({
+const form = useForm({
   goals: [],
   meal_plan_preferences: [],
   household_size: '',
@@ -129,10 +134,10 @@ const quizData = reactive({
 onMounted(() => {
   const savedProgress = JSON.parse(sessionStorage.getItem('zeroWasteQuiz'));
   if (savedProgress) {
-    Object.assign(quizData, savedProgress);
+    Object.assign(form, savedProgress);
   }
   watch(
-    quizData,
+    () => form.data(),
     (newState) => {
       sessionStorage.setItem('zeroWasteQuiz', JSON.stringify(newState));
     },
@@ -140,34 +145,31 @@ onMounted(() => {
   );
 });
 
-const currentCustomInput = ref('');
-const showCalorieWarning = ref(false);
-
 function decreaseCalories() {
-  if (quizData.daily_calorie_target <= 1300) {
-    quizData.daily_calorie_target = 1300;
+  if (form.daily_calorie_target <= 1300) {
+    form.daily_calorie_target = 1300;
     showCalorieWarning.value = true;
   } else {
-    quizData.daily_calorie_target -= 50;
+    form.daily_calorie_target -= 50;
     showCalorieWarning.value = false;
   }
 }
 
 function increaseCalories() {
-  if (quizData.daily_calorie_target >= 4000) {
-    quizData.daily_calorie_target = 4000;
+  if (form.daily_calorie_target >= 4000) {
+    form.daily_calorie_target = 4000;
     showCalorieWarning.value = true;
   } else {
-    quizData.daily_calorie_target += 50;
+    form.daily_calorie_target += 50;
     showCalorieWarning.value = false;
   }
 }
 
 function handleCalorieBlur() {
-  if (quizData.daily_calorie_target < 1300) {
-    quizData.daily_calorie_target = 1300;
-  } else if (quizData.daily_calorie_target > 4000) {
-    quizData.daily_calorie_target = 4000;
+  if (form.daily_calorie_target < 1300) {
+    form.daily_calorie_target = 1300;
+  } else if (form.daily_calorie_target > 4000) {
+    form.daily_calorie_target = 4000;
   }
   showCalorieWarning.value = false;
 }
@@ -175,32 +177,15 @@ function handleCalorieBlur() {
 const isNextDisabled = computed(() => {
   if (
     currentStep.value === 4 &&
-    (quizData.daily_calorie_target < 1300 ||
-      quizData.daily_calorie_target > 4000)
-  ) {
+    (form.daily_calorie_target < 1300 || form.daily_calorie_target > 4000)
+  )
     return true;
-  }
-  if (currentStep.value === 5 && !quizData.budget_or_comfort) {
-    return true;
-  }
-  if (currentStep.value === 6 && !quizData.household_size) {
-    return true;
-  }
-  if (currentStep.value === 7 && !quizData.prep_time_preference) {
-    return true;
-  }
+  if (currentStep.value === 5 && !form.budget_or_comfort) return true;
+  if (currentStep.value === 6 && !form.household_size) return true;
+  if (currentStep.value === 7 && !form.prep_time_preference) return true;
   return false;
 });
 
-// Form state
-const form = reactive({
-  username: '',
-  email: '',
-  password: '',
-  password_confirmation: '',
-});
-
-// Methods
 function nextStep() {
   currentStep.value++;
 }
@@ -213,25 +198,22 @@ function toggleGoal(goalValue) {
   const loseWeightVal = 'Lose weight';
   const gainWeightVal = 'Gain weight (bulking)';
 
-  // Mutual exclusion logic for Goals
-  if (goalValue === loseWeightVal && quizData.goals.includes(gainWeightVal)) {
-    // If selecting 'Lose weight' and 'Gain weight' is active, remove 'Gain weight'
-    const index = quizData.goals.indexOf(gainWeightVal);
-    if (index !== -1) quizData.goals.splice(index, 1);
+  if (goalValue === loseWeightVal && form.goals.includes(gainWeightVal)) {
+    const index = form.goals.indexOf(gainWeightVal);
+    if (index !== -1) form.goals.splice(index, 1);
   } else if (
     goalValue === gainWeightVal &&
-    quizData.goals.includes(loseWeightVal)
+    form.goals.includes(loseWeightVal)
   ) {
-    // If selecting 'Gain weight' and 'Lose weight' is active, remove 'Lose weight'
-    const index = quizData.goals.indexOf(loseWeightVal);
-    if (index !== -1) quizData.goals.splice(index, 1);
+    const index = form.goals.indexOf(loseWeightVal);
+    if (index !== -1) form.goals.splice(index, 1);
   }
 
-  const index = quizData.goals.indexOf(goalValue);
+  const index = form.goals.indexOf(goalValue);
   if (index === -1) {
-    quizData.goals.push(goalValue);
+    form.goals.push(goalValue);
   } else {
-    quizData.goals.splice(index, 1);
+    form.goals.splice(index, 1);
   }
 }
 
@@ -239,34 +221,32 @@ function toggleDiet(dietName) {
   const omnivoreVal = 'Omnivore';
 
   if (dietName === omnivoreVal) {
-    // If Omnivore is clicked, clear all other meal plan preferences and select only Omnivore (or toggle it off if already selected)
-    if (quizData.meal_plan_preferences.includes(omnivoreVal)) {
-      quizData.meal_plan_preferences = [];
+    if (form.meal_plan_preferences.includes(omnivoreVal)) {
+      form.meal_plan_preferences = [];
     } else {
-      quizData.meal_plan_preferences = [omnivoreVal];
+      form.meal_plan_preferences = [omnivoreVal];
     }
     return;
   }
 
-  // If any other diet is clicked while Omnivore is active, remove Omnivore first
-  if (quizData.meal_plan_preferences.includes(omnivoreVal)) {
-    quizData.meal_plan_preferences = [];
+  if (form.meal_plan_preferences.includes(omnivoreVal)) {
+    form.meal_plan_preferences = [];
   }
 
-  const index = quizData.meal_plan_preferences.indexOf(dietName);
+  const index = form.meal_plan_preferences.indexOf(dietName);
   if (index === -1) {
-    quizData.meal_plan_preferences.push(dietName);
+    form.meal_plan_preferences.push(dietName);
   } else {
-    quizData.meal_plan_preferences.splice(index, 1);
+    form.meal_plan_preferences.splice(index, 1);
   }
 }
 
 function toggleDislikedIngredient(ingredientName) {
-  const index = quizData.disliked_ingredients.indexOf(ingredientName);
+  const index = form.disliked_ingredients.indexOf(ingredientName);
   if (index === -1) {
-    quizData.disliked_ingredients.push(ingredientName);
+    form.disliked_ingredients.push(ingredientName);
   } else {
-    quizData.disliked_ingredients.splice(index, 1);
+    form.disliked_ingredients.splice(index, 1);
   }
 }
 
@@ -280,10 +260,10 @@ function addCustomIngredient(event) {
       .filter((tag) => tag);
     newTags.forEach((tag) => {
       if (
-        !quizData.custom_dislikes.includes(tag) &&
-        !quizData.disliked_ingredients.includes(tag)
+        !form.custom_dislikes.includes(tag) &&
+        !form.disliked_ingredients.includes(tag)
       ) {
-        quizData.custom_dislikes.push(tag);
+        form.custom_dislikes.push(tag);
       }
     });
     currentCustomInput.value = '';
@@ -291,75 +271,13 @@ function addCustomIngredient(event) {
 }
 
 function removeCustomIngredient(index) {
-  quizData.custom_dislikes.splice(index, 1);
+  form.custom_dislikes.splice(index, 1);
 }
 
-async function submitRegistration() {
-  if (form.password.trim() !== form.password_confirmation.trim()) {
-    alert('Passwords do not match. Please check them before proceeding.');
-    return;
-  }
+function submitQuiz() {
+  sessionStorage.removeItem('zeroWasteQuiz');
 
-  const authPayload = {
-    username: form.username,
-    email: form.email,
-    password: form.password,
-    password_confirmation: form.password_confirmation,
-  };
-
-  try {
-    const authResponse = await fetch('/api/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(authPayload),
-    });
-
-    const authData = await authResponse.json();
-
-    if (!authResponse.ok) {
-      alert('Error registering account. Please check your details.');
-      return;
-    }
-
-    const token = authData.token;
-    const mappedBudgetSetting =
-      quizData.budget_or_comfort === 'Budget-friendly (Save money)'
-        ? 'budget_first'
-        : 'comfort_first';
-
-    const settingsPayload = {
-      daily_calorie_target: quizData.daily_calorie_target,
-      goals: quizData.goals,
-      meal_plan_preferences: quizData.meal_plan_preferences,
-      household_size: quizData.household_size,
-      prep_time_preference: quizData.prep_time_preference,
-      budget_or_comfort: mappedBudgetSetting,
-      disliked_ingredients: quizData.disliked_ingredients,
-      custom_dislikes: quizData.custom_dislikes,
-    };
-
-    const settingsResponse = await fetch('/api/user-settings', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(settingsPayload),
-    });
-
-    if (settingsResponse.ok) {
-      alert('Account and preferences successfully saved!');
-      window.location.href = '/dashboard';
-    } else {
-      alert('Account created, but there was an error saving your preferences.');
-    }
-  } catch (error) {
-    console.error('Submission failed:', error);
-  }
+  form.post('/quiz/save-session');
 }
 </script>
 
@@ -367,7 +285,6 @@ async function submitRegistration() {
   <div
     class="bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container flex min-h-screen flex-col antialiased"
   >
-    <!-- PROGRESS BAR (Steps 1-7) -->
     <header
       v-if="currentStep >= 1 && currentStep <= 7"
       class="px-gutter max-w-container-max relative z-10 mx-auto mt-4 flex w-full shrink-0 flex-col items-center pt-8 md:mt-8"
@@ -393,11 +310,9 @@ async function submitRegistration() {
       </div>
     </header>
 
-    <!-- MAIN CONTENT AREA -->
     <main
       class="max-w-container-max px-gutter relative mx-auto mb-20 flex w-full flex-1 flex-col items-center justify-center py-12"
     >
-      <!-- STEP 1: GOALS -->
       <div v-if="currentStep === 1" class="flex w-full max-w-3xl flex-col">
         <div class="mb-12 text-left md:text-center">
           <h1 class="font-display text-display text-on-background mb-4">
@@ -412,21 +327,21 @@ async function submitRegistration() {
           <button
             v-for="goal in availableGoals"
             :key="goal.value"
-            @click="toggleGoal(goal.value)"
             type="button"
             class="group relative flex cursor-pointer items-center justify-between rounded-xl border-2 p-6 text-left shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-200 ease-in-out"
             :class="[
-              quizData.goals.includes(goal.value)
+              form.goals.includes(goal.value)
                 ? 'bg-primary-container/10 border-primary scale-[1.02] shadow-[0px_10px_30px_rgba(0,0,0,0.08)]'
                 : 'bg-surface-container-lowest border-surface-variant hover:border-primary hover:scale-[1.02] hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]',
               goal.fullWidth ? 'md:col-span-2' : '',
             ]"
+            @click="toggleGoal(goal.value)"
           >
             <div class="flex items-center gap-4">
               <span
                 class="material-symbols-outlined text-[32px] transition-colors"
                 :class="
-                  quizData.goals.includes(goal.value)
+                  form.goals.includes(goal.value)
                     ? 'text-primary'
                     : 'text-outline group-hover:text-primary'
                 "
@@ -435,7 +350,7 @@ async function submitRegistration() {
               <span
                 class="font-body-md text-body-md font-semibold transition-colors"
                 :class="
-                  quizData.goals.includes(goal.value)
+                  form.goals.includes(goal.value)
                     ? 'text-primary'
                     : 'text-on-surface group-hover:text-primary'
                 "
@@ -443,7 +358,7 @@ async function submitRegistration() {
               >
             </div>
             <span
-              v-if="quizData.goals.includes(goal.value)"
+              v-if="form.goals.includes(goal.value)"
               class="material-symbols-outlined text-primary font-bold"
               style="font-variation-settings: 'FILL' 1"
               >check_circle</span
@@ -451,46 +366,38 @@ async function submitRegistration() {
           </button>
         </div>
 
-        <!-- Login Bypass Button -->
         <div class="mt-10 mb-6 flex w-full justify-center">
-          <router-link
-            to="/login"
+          <Link
+            href="/login"
             class="bg-surface-container-low hover:bg-surface-container-high text-primary font-label-md text-label-md border-surface-variant inline-flex items-center gap-2 rounded-full border px-6 py-2 shadow-sm transition-colors"
           >
             <span class="material-symbols-outlined text-[18px]">login</span>
             Already have an account? Log in
-          </router-link>
+          </Link>
         </div>
       </div>
 
-      <!-- STEP 2: DIETS -->
       <div v-else-if="currentStep === 2" class="flex w-full max-w-3xl flex-col">
         <header class="mb-10 flex flex-col gap-4 text-center">
           <h1 class="font-display text-display text-on-surface">
             How do you prefer to eat?
           </h1>
-          <p
-            class="font-body-lg text-body-lg text-on-surface-variant mx-auto max-w-2xl"
-          >
-            Select any specific diets or restrictions that apply to you.
-          </p>
         </header>
 
         <div class="flex flex-wrap justify-center gap-4">
-          <!-- Added exact calculated widths so it still looks like a 3-column grid -->
           <div
             v-for="diet in availableDiets"
             :key="diet.name"
-            @click="toggleDiet(diet.name)"
             class="relative flex w-full cursor-pointer flex-col items-center rounded-xl border-2 p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-0.5 sm:w-[calc(50%-8px)] md:w-[calc(33.333%-11px)]"
             :class="
-              quizData.meal_plan_preferences.includes(diet.name)
+              form.meal_plan_preferences.includes(diet.name)
                 ? 'bg-tertiary/10 border-primary-container'
                 : 'bg-surface-container-lowest border-surface-variant hover:border-primary hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]'
             "
+            @click="toggleDiet(diet.name)"
           >
             <div
-              v-if="quizData.meal_plan_preferences.includes(diet.name)"
+              v-if="form.meal_plan_preferences.includes(diet.name)"
               class="bg-primary-container text-on-primary absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full"
             >
               <span
@@ -503,7 +410,7 @@ async function submitRegistration() {
             <span
               class="material-symbols-outlined mb-2 text-4xl"
               :class="
-                quizData.meal_plan_preferences.includes(diet.name)
+                form.meal_plan_preferences.includes(diet.name)
                   ? 'text-primary'
                   : 'text-outline'
               "
@@ -514,56 +421,44 @@ async function submitRegistration() {
               class="font-headline-md text-body-md text-on-surface font-semibold"
               >{{ diet.name }}</span
             >
-            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
-              {{ diet.desc }}
-            </p>
           </div>
         </div>
       </div>
 
-      <!-- STEP 3: EXCLUSIONS -->
       <div v-else-if="currentStep === 3" class="flex w-full max-w-3xl flex-col">
         <header class="mb-10 flex flex-col gap-4 text-center">
           <h1 class="font-display text-display text-on-surface">
             Any ingredients we should completely avoid?
           </h1>
-          <p
-            class="font-body-lg text-body-lg text-on-surface-variant mx-auto max-w-2xl"
-          >
-            Search for specific foods or select common exclusions. We'll make
-            sure they never show up in your meal plan.
-          </p>
         </header>
 
-        <!-- Search Bar -->
         <div class="group relative mb-8 w-full">
           <span
             class="material-symbols-outlined text-on-surface-variant absolute top-1/2 left-4 -translate-y-1/2 transform"
             >search</span
           >
           <input
-            type="text"
             v-model="currentCustomInput"
-            @keydown.enter="addCustomIngredient"
+            type="text"
             placeholder="Search ingredients (e.g., Mushrooms, Cilantro)..."
             class="bg-surface-container-low font-body-lg text-body-lg focus:border-primary focus:bg-surface w-full rounded-xl border-2 border-transparent py-4 pr-4 pl-12 shadow-sm transition-colors duration-200 focus:outline-none"
+            @keydown.enter="addCustomIngredient"
           />
         </div>
 
-        <!-- Active Exclusions Tags -->
         <div
-          class="mb-10 w-full"
           v-if="
-            quizData.custom_dislikes.length > 0 ||
-            quizData.disliked_ingredients.length > 0
+            form.custom_dislikes.length > 0 ||
+            form.disliked_ingredients.length > 0
           "
+          class="mb-10 w-full"
         >
           <div class="flex flex-wrap gap-3">
             <button
-              v-for="(tag, index) in quizData.custom_dislikes"
+              v-for="(tag, index) in form.custom_dislikes"
               :key="'custom-' + index"
-              @click="removeCustomIngredient(index)"
               class="bg-error-container/20 border-error-container text-on-surface font-label-md text-label-md flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 transition-all hover:scale-[1.02]"
+              @click="removeCustomIngredient(index)"
             >
               <span>{{ tag }}</span
               ><span class="material-symbols-outlined text-error text-[16px]"
@@ -571,10 +466,10 @@ async function submitRegistration() {
               >
             </button>
             <button
-              v-for="(tag, index) in quizData.disliked_ingredients"
+              v-for="(tag, index) in form.disliked_ingredients"
               :key="'std-' + index"
-              @click="toggleDislikedIngredient(tag)"
               class="bg-error-container/20 border-error-container text-on-surface font-label-md text-label-md flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 transition-all hover:scale-[1.02]"
+              @click="toggleDislikedIngredient(tag)"
             >
               <span>{{ tag }}</span
               ><span class="material-symbols-outlined text-error text-[16px]"
@@ -584,7 +479,6 @@ async function submitRegistration() {
           </div>
         </div>
 
-        <!-- View 1: Big Category Cards & Quick Suggestions -->
         <div v-if="!selectedCategory" class="w-full">
           <h3
             class="font-label-md text-label-md text-on-surface-variant mb-4 tracking-widest uppercase"
@@ -593,10 +487,10 @@ async function submitRegistration() {
           </h3>
           <div class="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
             <button
-              v-for="category in dummyCategories"
+              v-for="category in props.categories"
               :key="category.id"
-              @click="selectedCategory = category"
               class="group bg-surface-container-lowest border-surface-variant hover:border-primary hover:bg-surface-container-low flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-8 shadow-sm transition-all hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
+              @click="selectedCategory = category"
             >
               <span
                 class="material-symbols-outlined text-primary mb-4 text-5xl transition-transform group-hover:scale-110"
@@ -608,7 +502,6 @@ async function submitRegistration() {
               >
             </button>
           </div>
-
           <h3
             class="font-label-md text-label-md text-on-surface-variant mb-4 tracking-widest uppercase"
           >
@@ -623,13 +516,13 @@ async function submitRegistration() {
                 'Tree Nuts',
               ]"
               :key="suggestion"
-              @click="toggleDislikedIngredient(suggestion)"
               class="bg-surface-container-lowest border-surface-variant font-body-md text-body-md text-on-surface hover:bg-surface-container-low flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition-all hover:scale-[1.02]"
+              @click="toggleDislikedIngredient(suggestion)"
             >
               <span
                 class="material-symbols-outlined text-primary text-[18px]"
                 >{{
-                  quizData.disliked_ingredients.includes(suggestion)
+                  form.disliked_ingredients.includes(suggestion)
                     ? 'check'
                     : 'add'
                 }}</span
@@ -639,21 +532,19 @@ async function submitRegistration() {
           </div>
         </div>
 
-        <!-- View 2: Ingredients inside Selected Category -->
         <div
           v-else
           class="bg-surface-container-lowest border-surface-variant mb-8 flex w-full flex-col rounded-2xl border p-6 shadow-sm md:p-8"
         >
           <button
-            @click="selectedCategory = null"
             class="text-primary mb-6 flex items-center self-start text-sm font-bold hover:underline"
+            @click="selectedCategory = null"
           >
             <span class="material-symbols-outlined mr-1 text-sm"
               >arrow_back</span
             >
             Back to Categories
           </button>
-
           <h3
             class="font-headline-md text-on-surface mb-6 flex items-center gap-3 text-2xl font-bold"
           >
@@ -662,30 +553,29 @@ async function submitRegistration() {
             }}</span>
             {{ selectedCategory.name }}
           </h3>
-
           <div
-            class="grid max-h-[400px] grid-cols-1 gap-3 overflow-y-auto pr-2 sm:grid-cols-2"
+            class="grid max-h-100 grid-cols-1 gap-3 overflow-y-auto pr-2 sm:grid-cols-2"
           >
             <label
               v-for="ingredient in selectedCategory.ingredients"
               :key="ingredient"
               class="flex cursor-pointer items-center rounded-xl border-2 p-4 transition-all"
               :class="
-                quizData.disliked_ingredients.includes(ingredient)
+                form.disliked_ingredients.includes(ingredient)
                   ? 'bg-primary-container/10 border-primary'
                   : 'bg-surface border-surface-variant hover:border-primary hover:bg-surface-container-low'
               "
             >
               <input
+                v-model="form.disliked_ingredients"
                 type="checkbox"
                 :value="ingredient"
-                v-model="quizData.disliked_ingredients"
                 class="accent-primary text-primary focus:ring-primary border-outline mr-4 h-5 w-5 cursor-pointer rounded"
               />
               <span
                 class="font-body-md font-medium"
                 :class="
-                  quizData.disliked_ingredients.includes(ingredient)
+                  form.disliked_ingredients.includes(ingredient)
                     ? 'text-primary font-bold'
                     : 'text-on-surface'
                 "
@@ -696,7 +586,6 @@ async function submitRegistration() {
         </div>
       </div>
 
-      <!-- STEP 4: CALORIE GOAL -->
       <div
         v-else-if="currentStep === 4"
         class="flex w-full max-w-xl flex-col items-center"
@@ -705,51 +594,41 @@ async function submitRegistration() {
           <h1 class="font-display text-display text-on-surface mb-4">
             Set your daily calorie goal.
           </h1>
-          <p class="font-body-lg text-body-lg text-on-surface-variant">
-            We use this to perfectly portion your weekly menu and eliminate food
-            waste.
-          </p>
         </div>
 
         <div
           class="flex w-full max-w-md flex-col items-center justify-center gap-4"
         >
-          <!-- Interactive Changer Container -->
           <div class="flex w-full items-center justify-center gap-4">
             <button
-              @click="decreaseCalories"
               class="bg-surface-container-lowest border-surface-variant hover:border-primary hover:text-primary text-on-surface-variant flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 shadow-sm transition-all active:scale-95"
+              @click="decreaseCalories"
             >
               <span class="material-symbols-outlined text-3xl">remove</span>
             </button>
-
-            <div class="group relative w-full max-w-[200px]">
-              <!-- Replaced inline logic with handleCalorieBlur, and added @input to clear warning if they start typing -->
+            <div class="group relative w-full max-w-50">
               <input
+                v-model="form.daily_calorie_target"
                 aria-label="Daily Calorie Goal"
                 type="number"
                 min="1300"
+                class="text-primary-container bg-surface-container-lowest border-surface-variant focus:border-primary-container focus:ring-primary-container/20 hover:border-outline-variant w-full rounded-2xl border-2 px-2 py-6 text-center text-5xl font-bold shadow-sm transition-all duration-200 hover:shadow-md focus:ring-4 focus:outline-none"
                 @blur="handleCalorieBlur"
                 @input="showCalorieWarning = false"
-                v-model="quizData.daily_calorie_target"
-                class="text-primary-container bg-surface-container-lowest border-surface-variant focus:border-primary-container focus:ring-primary-container/20 hover:border-outline-variant w-full rounded-2xl border-2 px-2 py-6 text-center text-5xl font-bold shadow-sm transition-all duration-200 hover:shadow-md focus:ring-4 focus:outline-none"
               />
             </div>
-
             <button
-              @click="increaseCalories"
               class="bg-surface-container-lowest border-surface-variant hover:border-primary hover:text-primary text-on-surface-variant flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 shadow-sm transition-all active:scale-95"
+              @click="increaseCalories"
             >
               <span class="material-symbols-outlined text-3xl">add</span>
             </button>
           </div>
 
-          <!-- Unit Label & Warning Message Container -->
           <div class="flex h-12 flex-col items-center text-center">
             <span class="font-headline-md text-headline-md text-outline"
               >kcal / day</span
             >
-            <!-- The Warning Message (only visible when showCalorieWarning is true) -->
             <span
               v-if="showCalorieWarning"
               class="font-body-sm text-error mt-1 animate-pulse font-semibold transition-opacity"
@@ -757,28 +636,9 @@ async function submitRegistration() {
               Calories cannot be set lower than 1300 or higher than 4000.
             </span>
           </div>
-
-          <button
-            @click="
-              quizData.daily_calorie_target = 2000;
-              showCalorieWarning = false;
-            "
-            class="group text-primary hover:text-primary-container mt-4 flex items-center justify-center gap-2 transition-colors duration-200"
-          >
-            <span
-              class="material-symbols-outlined text-[20px] transition-transform group-hover:scale-110"
-              style="font-variation-settings: 'FILL' 0"
-              >help</span
-            >
-            <span
-              class="font-body-sm text-body-sm underline-offset-4 group-hover:underline"
-              >Not sure? Reset to default (2000).</span
-            >
-          </button>
         </div>
       </div>
 
-      <!-- STEP 5: BUDGET VS COMFORT -->
       <div
         v-else-if="currentStep === 5"
         class="flex w-full max-w-xl flex-col items-center"
@@ -793,21 +653,21 @@ async function submitRegistration() {
           <label
             class="group bg-surface relative flex cursor-pointer items-center rounded-xl border-2 p-6 transition-all duration-200 hover:-translate-y-0.5"
             :class="
-              quizData.budget_or_comfort === 'Budget-friendly (Save money)'
+              form.budget_or_comfort === 'Budget-friendly (Save money)'
                 ? 'bg-primary-container/10 border-primary shadow-sm'
                 : 'border-surface-container-highest hover:border-outline-variant'
             "
           >
             <input
+              v-model="form.budget_or_comfort"
               type="radio"
               value="Budget-friendly (Save money)"
-              v-model="quizData.budget_or_comfort"
               class="sr-only"
             />
             <div
-              class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full"
+              class="mr-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
               :class="
-                quizData.budget_or_comfort === 'Budget-friendly (Save money)'
+                form.budget_or_comfort === 'Budget-friendly (Save money)'
                   ? 'bg-primary text-on-primary'
                   : 'bg-surface-container-high text-on-surface-variant'
               "
@@ -820,31 +680,26 @@ async function submitRegistration() {
               >
                 Budget-friendly
               </h3>
-              <p class="font-body-sm text-body-sm text-on-surface-variant">
-                Minimize costs, prep items manually.
-              </p>
             </div>
           </label>
-
           <label
             class="group bg-surface relative flex cursor-pointer items-center rounded-xl border-2 p-6 transition-all duration-200 hover:-translate-y-0.5"
             :class="
-              quizData.budget_or_comfort === 'Convenience & Comfort (Save time)'
+              form.budget_or_comfort === 'Convenience & Comfort (Save time)'
                 ? 'bg-primary-container/10 border-primary shadow-sm'
                 : 'border-surface-container-highest hover:border-outline-variant'
             "
           >
             <input
+              v-model="form.budget_or_comfort"
               type="radio"
               value="Convenience & Comfort (Save time)"
-              v-model="quizData.budget_or_comfort"
               class="sr-only"
             />
             <div
-              class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full"
+              class="mr-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
               :class="
-                quizData.budget_or_comfort ===
-                'Convenience & Comfort (Save time)'
+                form.budget_or_comfort === 'Convenience & Comfort (Save time)'
                   ? 'bg-primary text-on-primary'
                   : 'bg-surface-container-high text-on-surface-variant'
               "
@@ -859,15 +714,11 @@ async function submitRegistration() {
               >
                 Convenience & Comfort
               </h3>
-              <p class="font-body-sm text-body-sm text-on-surface-variant">
-                Save time, buy pre-prepped ingredients.
-              </p>
             </div>
           </label>
         </div>
       </div>
 
-      <!-- STEP 6: HOUSEHOLD SIZE -->
       <div
         v-else-if="currentStep === 6"
         class="flex w-full max-w-xl flex-col items-center"
@@ -876,10 +727,6 @@ async function submitRegistration() {
           <h1 class="font-headline-lg text-headline-lg text-on-surface mb-4">
             How many people are you cooking for?
           </h1>
-          <p class="font-body-md text-body-md text-on-surface-variant">
-            This helps us calculate precise ingredient quantities and minimize
-            waste.
-          </p>
         </div>
 
         <div class="w-full space-y-4">
@@ -888,21 +735,21 @@ async function submitRegistration() {
             :key="option.value"
             class="group relative flex cursor-pointer items-center rounded-xl border-2 p-6 transition-all duration-200 hover:-translate-y-0.5"
             :class="
-              quizData.household_size === option.value
+              form.household_size === option.value
                 ? 'bg-primary-container/10 border-primary scale-[1.02] shadow-sm'
                 : 'bg-surface-container-lowest border-surface-variant hover:border-outline-variant'
             "
           >
             <input
+              v-model="form.household_size"
               type="radio"
               :value="option.value"
-              v-model="quizData.household_size"
               class="sr-only"
             />
             <div
               class="mr-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors"
               :class="
-                quizData.household_size === option.value
+                form.household_size === option.value
                   ? 'bg-primary text-on-primary shadow-sm'
                   : 'bg-surface-container-low text-on-surface-variant group-hover:bg-surface-variant'
               "
@@ -917,32 +764,11 @@ async function submitRegistration() {
               >
                 {{ option.title }}
               </h3>
-              <p class="font-body-sm text-body-sm text-on-surface-variant">
-                {{ option.desc }}
-              </p>
-            </div>
-            <div
-              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors"
-              :class="
-                quizData.household_size === option.value
-                  ? 'border-primary'
-                  : 'border-outline'
-              "
-            >
-              <div
-                class="h-3 w-3 rounded-full transition-colors"
-                :class="
-                  quizData.household_size === option.value
-                    ? 'bg-primary'
-                    : 'bg-transparent'
-                "
-              ></div>
             </div>
           </label>
         </div>
       </div>
 
-      <!-- STEP 7: PREP TIME -->
       <div
         v-else-if="currentStep === 7"
         class="flex w-full max-w-xl flex-col items-center"
@@ -951,11 +777,6 @@ async function submitRegistration() {
           <h1 class="font-display text-display text-on-background mb-4">
             How much time do you usually have for meal prep?
           </h1>
-          <p
-            class="font-body-lg text-body-lg text-on-surface-variant mx-auto max-w-lg"
-          >
-            We'll tailor your recipe recommendations to fit your daily schedule.
-          </p>
         </div>
 
         <div class="flex w-full flex-col gap-4">
@@ -964,15 +785,15 @@ async function submitRegistration() {
             :key="time.value"
             class="group relative flex cursor-pointer items-center gap-4 rounded-xl border-2 p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
             :class="
-              quizData.prep_time_preference === time.value
+              form.prep_time_preference === time.value
                 ? 'bg-primary-container/10 border-primary'
                 : 'bg-surface border-surface-container-highest hover:border-outline-variant hover:bg-surface-container-low'
             "
           >
             <div
-              class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition-colors"
+              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors"
               :class="
-                quizData.prep_time_preference === time.value
+                form.prep_time_preference === time.value
                   ? 'bg-primary text-on-primary'
                   : 'bg-surface-container-high text-on-surface-variant group-hover:bg-surface-variant'
               "
@@ -980,7 +801,7 @@ async function submitRegistration() {
               <span
                 class="material-symbols-outlined text-2xl"
                 :style="
-                  quizData.prep_time_preference === time.value
+                  form.prep_time_preference === time.value
                     ? 'font-variation-settings: \'FILL\' 1;'
                     : ''
                 "
@@ -992,15 +813,12 @@ async function submitRegistration() {
                 class="font-headline-md text-headline-md text-on-background mb-1 text-lg leading-tight"
                 >{{ time.title }}</span
               >
-              <span class="font-body-sm text-body-sm text-on-surface-variant">{{
-                time.desc
-              }}</span>
             </div>
-            <div class="flex-shrink-0 pl-4">
+            <div class="shrink-0 pl-4">
               <input
+                v-model="form.prep_time_preference"
                 type="radio"
                 :value="time.value"
-                v-model="quizData.prep_time_preference"
                 class="text-primary border-outline focus:ring-primary focus:ring-offset-surface bg-surface h-5 w-5 cursor-pointer"
               />
             </div>
@@ -1008,13 +826,12 @@ async function submitRegistration() {
         </div>
       </div>
 
-      <!-- STEP 8: REGISTRATION SPLIT SCREEN -->
       <div
         v-else-if="currentStep === 8"
         class="bg-background fixed inset-0 z-50 flex min-h-screen w-full flex-col md:flex-row"
       >
         <section
-          class="bg-surface-container-lowest px-gutter flex w-full flex-shrink-0 flex-col justify-center overflow-y-auto py-[40px] shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:w-1/2 md:px-[64px] lg:w-[500px]"
+          class="bg-surface-container-lowest px-gutter flex w-full shrink-0 flex-col justify-center overflow-y-auto py-10 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:w-1/2 md:px-16 lg:w-125"
         >
           <div class="mx-auto w-full max-w-md space-y-8">
             <header class="space-y-4 text-left">
@@ -1034,126 +851,44 @@ async function submitRegistration() {
               <p class="font-body-lg text-body-lg text-on-surface-variant">
                 We've built your perfectly portioned
                 <span class="text-primary font-bold"
-                  >{{ quizData.daily_calorie_target }} kcal/day</span
+                  >{{ form.daily_calorie_target }} kcal/day</span
                 >
                 waste-free plan. Create an account to save your preferences and
                 unlock your weekly plan.
               </p>
             </header>
 
-            <form @submit.prevent="submitRegistration" class="space-y-6">
-              <div class="space-y-4">
-                <div>
-                  <label
-                    class="font-label-md text-label-md text-on-surface-variant mb-2 block tracking-wide uppercase"
-                    >Full Name / Username</label
-                  >
-                  <input
-                    type="text"
-                    v-model="form.username"
-                    required
-                    class="bg-surface-container-low font-body-md text-on-surface focus:ring-primary focus:bg-surface-container-lowest w-full rounded-lg border-none px-4 py-3 transition-colors duration-200 focus:ring-2"
-                    placeholder="Jane Doe"
-                  />
-                </div>
-                <div>
-                  <label
-                    class="font-label-md text-label-md text-on-surface-variant mb-2 block tracking-wide uppercase"
-                    >Email Address</label
-                  >
-                  <input
-                    type="email"
-                    v-model="form.email"
-                    required
-                    class="bg-surface-container-low font-body-md text-on-surface focus:ring-primary focus:bg-surface-container-lowest w-full rounded-lg border-none px-4 py-3 transition-colors duration-200 focus:ring-2"
-                    placeholder="jane@example.com"
-                  />
-                </div>
-
-                <!-- Password with Toggle -->
-                <div>
-                  <label
-                    class="font-label-md text-label-md text-on-surface-variant mb-2 block tracking-wide uppercase"
-                    >Password</label
-                  >
-                  <div class="relative flex items-center">
-                    <input
-                      :type="showPassword ? 'text' : 'password'"
-                      v-model="form.password"
-                      required
-                      class="bg-surface-container-low font-body-md text-on-surface focus:ring-primary focus:bg-surface-container-lowest w-full rounded-lg border-none px-4 py-3 pr-12 transition-colors duration-200 focus:ring-2"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      @click="showPassword = !showPassword"
-                      class="text-on-surface-variant hover:text-primary absolute right-4 flex items-center justify-center transition-colors focus:outline-none"
-                    >
-                      <span class="material-symbols-outlined text-xl">{{
-                        showPassword ? 'visibility_off' : 'visibility'
-                      }}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Confirm Password with Toggle -->
-                <div>
-                  <label
-                    class="font-label-md text-label-md text-on-surface-variant mb-2 block tracking-wide uppercase"
-                    >Confirm Password</label
-                  >
-                  <div class="relative flex items-center">
-                    <input
-                      :type="showConfirmPassword ? 'text' : 'password'"
-                      v-model="form.password_confirmation"
-                      required
-                      class="bg-surface-container-low font-body-md text-on-surface focus:ring-primary focus:bg-surface-container-lowest w-full rounded-lg border-none px-4 py-3 pr-12 transition-colors duration-200 focus:ring-2"
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      @click="showConfirmPassword = !showConfirmPassword"
-                      class="text-on-surface-variant hover:text-primary absolute right-4 flex items-center justify-center transition-colors focus:outline-none"
-                    >
-                      <span class="material-symbols-outlined text-xl">{{
-                        showConfirmPassword ? 'visibility_off' : 'visibility'
-                      }}</span>
-                    </button>
-                  </div>
-                  <!-- Optional real-time matching warning -->
-                  <span
-                    v-if="
-                      form.password_confirmation &&
-                      form.password !== form.password_confirmation
-                    "
-                    class="text-error mt-1 block text-xs font-semibold"
-                  >
-                    Passwords do not match!
-                  </span>
-                </div>
-              </div>
+            <div class="space-y-6">
               <button
-                type="submit"
-                class="bg-primary-container text-on-primary-container font-headline-md text-headline-md flex w-full items-center justify-center gap-2 rounded-xl py-4 text-[18px] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
+                :disabled="form.processing"
+                class="bg-primary-container text-on-primary-container font-headline-md text-headline-md flex w-full items-center justify-center gap-2 rounded-xl py-4 text-[18px] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)] disabled:cursor-not-allowed disabled:opacity-70"
+                @click="submitQuiz"
               >
-                <span class="material-symbols-outlined">lock</span>
-                Register & View Menu
+                <span
+                  v-if="form.processing"
+                  class="material-symbols-outlined animate-spin"
+                  >refresh</span
+                >
+                <span v-else class="material-symbols-outlined"
+                  >arrow_forward</span
+                >
+                {{ form.processing ? 'Saving...' : 'Continue to Registration' }}
               </button>
-            </form>
+            </div>
 
             <div class="pt-4 text-center">
               <p class="font-body-md text-body-md text-on-surface-variant">
                 Already have an account?
-                <router-link
-                  to="/login"
+                <Link
+                  href="/login"
                   class="text-primary font-semibold hover:underline"
-                  >Log in</router-link
+                  >Log in</Link
                 >
               </p>
             </div>
             <button
-              @click="currentStep--"
               class="text-on-surface-variant font-label-md mt-2 w-full hover:underline"
+              @click="currentStep--"
             >
               Return to Quiz
             </button>
@@ -1161,7 +896,7 @@ async function submitRegistration() {
         </section>
 
         <section
-          class="bg-tertiary-container relative hidden flex-grow overflow-hidden md:block"
+          class="bg-tertiary-container relative hidden grow overflow-hidden md:block"
         >
           <img
             alt="Fresh ingredients"
@@ -1172,7 +907,6 @@ async function submitRegistration() {
       </div>
     </main>
 
-    <!-- BOTTOM NAVIGATION (Only active during steps 1-7) -->
     <div
       v-if="currentStep >= 1 && currentStep <= 7"
       class="bg-surface border-surface-container-highest fixed bottom-0 left-0 z-50 w-full shrink-0 border-t shadow-sm"
@@ -1181,7 +915,6 @@ async function submitRegistration() {
         class="px-gutter max-w-container-max mx-auto flex h-20 items-center justify-between py-4"
       >
         <button
-          @click="prevStep"
           :disabled="currentStep === 1"
           class="text-on-surface-variant font-label-md text-label-md flex items-center justify-center rounded-xl px-6 py-3 transition-colors duration-200"
           :class="
@@ -1189,20 +922,21 @@ async function submitRegistration() {
               ? 'cursor-not-allowed opacity-50'
               : 'hover:bg-surface-container-low hover:scale-[1.02] active:scale-95'
           "
+          @click="prevStep"
         >
           <span class="material-symbols-outlined mr-2">arrow_back</span> Back
         </button>
         <button
-          @click="nextStep"
-          :disabled="isNextDisabled"
           class="font-label-md text-label-md flex items-center justify-center rounded-xl px-8 py-3 font-bold transition-all duration-200"
+          :disabled="isNextDisabled"
           :class="
             isNextDisabled
               ? 'bg-surface-container-high text-on-surface-variant cursor-not-allowed opacity-50'
               : 'bg-primary-container text-on-primary-container hover:scale-[1.02] hover:shadow-md active:scale-95'
           "
+          @click="nextStep"
         >
-          {{ currentStep === 7 ? 'Complete Setup' : 'Next' }}
+          {{ currentStep === 7 ? 'View Menu' : 'Next' }}
           <span v-if="currentStep < 7" class="material-symbols-outlined ml-2"
             >arrow_forward</span
           >
@@ -1220,7 +954,6 @@ async function submitRegistration() {
     'GRAD' 0,
     'opsz' 24;
 }
-/* Hide number input spinners for the Calorie step */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
