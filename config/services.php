@@ -34,7 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+
     'spoonacular' => [
-        'key' => env('SPOONACULAR_API_KEY'),
+        'key'=> env('SPOONACULAR_API_KEY'),
     ],
+
 ];
