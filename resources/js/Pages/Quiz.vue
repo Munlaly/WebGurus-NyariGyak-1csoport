@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
 
 const props = defineProps({
   categories: {
@@ -277,7 +278,7 @@ function removeCustomIngredient(index) {
 function submitQuiz() {
   sessionStorage.removeItem('zeroWasteQuiz');
 
-  form.post('/quiz/save-session');
+  form.post(route('quiz.save-session'));
 }
 </script>
 
@@ -368,7 +369,7 @@ function submitQuiz() {
 
         <div class="mt-10 mb-6 flex w-full justify-center">
           <Link
-            href="/login"
+            :href="route('login')"
             class="bg-surface-container-low hover:bg-surface-container-high text-primary font-label-md text-label-md border-surface-variant inline-flex items-center gap-2 rounded-full border px-6 py-2 shadow-sm transition-colors"
           >
             <span class="material-symbols-outlined text-[18px]">login</span>
@@ -489,7 +490,7 @@ function submitQuiz() {
             <button
               v-for="category in props.categories"
               :key="category.id"
-              class="group bg-surface-container-lowest border-surface-variant hover:border-primary hover:bg-surface-container-low flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-8 shadow-sm transition-all hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
+              class="group bg-surface-container-lowest border-surface-variant hover:border-primary hover:bg-surface-container-low flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 p-8 shadow-sm transition-all hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
               @click="selectedCategory = category"
             >
               <span
