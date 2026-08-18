@@ -8,7 +8,6 @@ interface RecipeProps {
   calories: number;
   imageUrl: string;
   imageAlt: string;
-  isZeroWaste: boolean;
   macros: {
     protein: number;
     carbs: number;
@@ -28,44 +27,40 @@ const goBack = () => {
 </script>
 
 <template>
-  <main class="mx-auto max-w-5xl p-8">
-    <!-- Header Area -->
-    <header
-      class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center"
-    >
-      <UButton
-        variant="ghost"
-        color="primary"
-        icon="i-heroicons-arrow-left"
-        class="w-full md:w-auto"
-        @click="goBack"
-      >
-        Back to Planner
-      </UButton>
+  <main class="min-h-screen bg-gray-50 p-8 dark:bg-gray-900">
+    <div class="mx-auto max-w-7xl">
+      <!-- Grid-based Header for perfect centering -->
+      <header class="mb-10 grid grid-cols-3 items-center">
+        <!-- Left Col: Back Button -->
+        <div class="flex justify-start">
+          <UButton
+            variant="ghost"
+            color="primary"
+            icon="i-heroicons-arrow-left"
+            @click="goBack"
+          >
+            Back to Planner
+          </UButton>
+        </div>
 
-      <h1
-        class="font-headline-lg flex-1 text-center text-[32px] font-bold text-gray-900 dark:text-white"
-      >
-        {{ recipe.title }}
-      </h1>
+        <!-- Center Col: Title -->
+        <div class="flex justify-center">
+          <h1
+            class="font-headline-lg text-center text-[32px] font-bold text-gray-900 dark:text-white"
+          >
+            {{ recipe.title }}
+          </h1>
+        </div>
 
-      <div class="flex w-full items-center justify-end md:w-auto">
-        <UBadge
-          color="gray"
-          variant="solid"
-          size="lg"
-          class="gap-2 rounded-full px-4 py-2"
-        >
-          <UIcon name="i-heroicons-clock" class="text-lg" />
-          {{ recipe.prepTime }} MIN PREP
-        </UBadge>
-      </div>
-    </header>
+        <!-- Right Col: Empty (Keeps the grid balanced) -->
+        <div></div>
+      </header>
+    </div>
 
     <!-- Main Grid -->
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <!-- Left Column: Ingredients & Macros -->
-      <div class="flex flex-col gap-8 lg:col-span-1">
+      <div class="flex h-fit flex-col gap-8 lg:sticky lg:top-8 lg:col-span-1">
         <!-- Ingredients -->
         <UCard>
           <template #header>
@@ -135,30 +130,32 @@ const goBack = () => {
 
       <!-- Right Column: Hero Image & Instructions -->
       <div class="lg:col-span-2">
-        <!-- Hero Image Container -->
+        <!-- Hero Image Container with relocated Prep Time -->
         <div
-          class="relative mb-8 h-96 w-full overflow-hidden rounded-xl shadow-sm"
+          class="relative mb-8 aspect-video w-full overflow-hidden rounded-xl shadow-sm"
         >
           <img
             class="h-full w-full object-cover"
             :src="recipe.imageUrl"
             :alt="recipe.imageAlt"
           />
-          <div v-if="recipe.isZeroWaste" class="absolute right-4 bottom-4">
+
+          <!-- Prep Time overlaid on the image for maximum visibility -->
+          <div class="absolute top-4 left-4">
             <UBadge
-              color="primary"
+              color="white"
               variant="solid"
               size="lg"
-              class="bg-opacity-90 gap-2 px-4 py-2 shadow-lg backdrop-blur-sm"
+              class="gap-2 bg-white/90 px-4 py-2 text-lg font-bold text-gray-900 shadow-lg backdrop-blur-md"
             >
-              <UIcon name="i-heroicons-sparkles" class="text-lg" />
-              ZERO WASTE RECORD
+              <UIcon name="i-heroicons-clock" class="text-xl" />
+              {{ recipe.prepTime }} MIN PREP
             </UBadge>
           </div>
         </div>
 
         <!-- Instructions -->
-        <UCard>
+        <UCard class="shadow-sm">
           <template #header>
             <h2
               class="flex items-center gap-2 text-[24px] font-bold text-gray-900 dark:text-white"
@@ -171,7 +168,7 @@ const goBack = () => {
             </h2>
           </template>
 
-          <ol class="space-y-8">
+          <ol class="space-y-5">
             <li
               v-for="(step, index) in recipe.instructions"
               :key="index"
@@ -189,7 +186,7 @@ const goBack = () => {
               </div>
               <div class="pt-1">
                 <p
-                  class="text-lg leading-relaxed text-gray-900 dark:text-gray-100"
+                  class="text-lg leading-relaxed text-gray-700 dark:text-gray-300"
                 >
                   {{ step }}
                 </p>
