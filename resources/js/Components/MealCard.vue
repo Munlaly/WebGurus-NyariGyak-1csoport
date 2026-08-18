@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { route } from 'ziggy-js';
 const props = defineProps<{
+  id: number;
   title: string;
   calories: number;
   prepTime: number;
@@ -36,7 +39,10 @@ const contentStateClass = computed(() =>
     class="bg-surface-container-lowest group flex cursor-pointer flex-col overflow-hidden rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
   >
     <!-- Image Header -->
-    <div class="bg-surface-container h-40 w-full overflow-hidden">
+    <Link
+      :href="route('recipe.show', id)"
+      class="bg-surface-container h-40 w-full overflow-hidden"
+    >
       <!-- Floating Status Badge -->
       <div
         v-if="isPrepared"
@@ -55,7 +61,7 @@ const contentStateClass = computed(() =>
         :alt="imageAlt"
         :src="imageUrl"
       />
-    </div>
+    </Link>
 
     <!-- Content Body -->
     <div :class="['flex flex-1 flex-col p-6', contentStateClass]">
