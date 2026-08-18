@@ -189,6 +189,7 @@ const isNextDisabled = computed(() => {
   if (currentStep.value === 7 && !quizData.prep_time_preference) {
     return true;
   }
+  return false;
 });
 
 // Form state
