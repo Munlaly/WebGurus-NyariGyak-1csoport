@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { z } from 'zod';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
 
 // Define client side validation
 const schema = z
@@ -99,11 +100,12 @@ function onSubmit() {
           <!-- Login Fallback -->
           <div class="text-on-surface-variant font-body-md mt-8 text-center">
             Already have an account?
-            <a
-              class="text-primary font-bold transition-all hover:underline"
-              href="#"
-              >Log in</a
+            <Link
+              class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors hover:underline"
+              :href="route('login')"
             >
+              Sign in
+            </Link>
           </div>
         </div>
       </div>
