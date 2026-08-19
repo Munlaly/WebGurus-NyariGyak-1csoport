@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 
+import AuthenticatedLayout from './AuthenticatedLayout.vue';
+
 const props = defineProps<{
   activeTab: 'targets' | 'rules' | 'system';
 }>();
