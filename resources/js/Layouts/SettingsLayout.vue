@@ -1,98 +1,78 @@
 <script setup lang="ts">
-import { Link, router } from '@inertiajs/vue3';
-import AuthenticatedLayout from './AuthenticatedLayout.vue';
 import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
 
 const props = defineProps<{
   activeTab: 'targets' | 'rules' | 'system';
 }>();
-const tabs = [
-  { name: 'Targets', value: 'targets', href: '/settings/targets' },
-  { name: 'Rules', value: 'rules', href: '/settings/rules' },
-  { name: 'System', value: 'system', href: '/settings/system' },
+
+const baseTabs = [
+  {
+    name: 'Targets',
+    value: 'targets',
+    routeName: 'settings.targets',
+    icon: 'i-heroicons-bullseye',
+  },
+  {
+    name: 'Rules',
+    value: 'rules',
+    routeName: 'settings.rules',
+    icon: 'i-heroicons-clipboard-document-check',
+  },
+  {
+    name: 'System',
+    value: 'system',
+    routeName: 'settings.system',
+    icon: 'i-heroicons-cog-6-tooth',
+  },
 ];
-const activeIndex = computed(() =>
-  tabs.findIndex((tab) => tab.value === props.activeTab),
-);
 
-const leftChevronClasses = computed(() => {
-  return activeIndex.value <= 0
-    ? 'text-outline-variant cursor-not-allowed opacity-30'
-    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-colors';
+const navigationTabs = computed(() => {
+  return baseTabs.map((tab) => {
+    const isActive = props.activeTab === tab.value;
+
+    return {
+      ...tab,
+      url: route(tab.routeName),
+      linkClass: isActive
+        ? 'border-primary text-primary dark:text-primary-400'
+        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+      iconClass: isActive
+        ? 'text-primary dark:text-primary-400'
+        : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400',
+    };
+  });
 });
-
-const rightChevronClasses = computed(() => {
-  return activeIndex.value >= tabs.length - 1
-    ? 'text-outline-variant cursor-not-allowed opacity-30'
-    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-colors';
-});
-
-const goPrevTab = () => {
-  if (activeIndex.value > 0) {
-    router.get(tabs[activeIndex.value - 1].href);
-  }
-};
-
-const goNextTab = () => {
-  if (activeIndex.value < tabs.length - 1) {
-    router.get(tabs[activeIndex.value + 1].href);
-  }
-};
 </script>
 
 <template>
   <AuthenticatedLayout>
-    <div class="mx-auto flex w-full max-w-2xl flex-col gap-8">
-      <!-- Shared Page Header -->
-      <header class="mb-4">
-        <h2 class="font-headline-lg text-headline-lg text-on-background">
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-8">
+      <header>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
           Settings &amp; Goals
-        </h2>
-        <p class="font-body-md text-body-md text-on-surface-variant mt-2">
-          Customize your smart planning experience.
+        </h1>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          Customize your smart planning experience and dietary rules.
         </p>
       </header>
 
-      <!-- Shared Category Picker -->
-      <div
-        class="bg-surface-container-lowest flex w-full items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
-      >
-        <button
-          :class="leftChevronClasses"
-          :disabled="activeIndex <= 0"
-          @click="goPrevTab"
-        >
-          <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-
-        <div
-          class="flex flex-1 items-center justify-center gap-8 overflow-x-auto px-4"
-        >
+      <div class="border-b border-gray-200 dark:border-gray-800">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
           <Link
-            v-for="tab in tabs"
+            v-for="tab in navigationTabs"
             :key="tab.value"
-            :href="tab.href"
-            :class="[
-              'font-body-md text-body-md pb-1 whitespace-nowrap transition-colors',
-              activeTab === tab.value
-                ? 'text-primary border-primary border-b-2 font-bold'
-                : 'text-on-surface-variant/50 hover:text-on-surface-variant',
-            ]"
+            :href="tab.url"
+            class="group inline-flex items-center gap-2 border-b-2 px-1 py-4 text-sm font-medium transition-colors"
+            :class="tab.linkClass"
           >
+            <UIcon :name="tab.icon" class="text-lg" :class="tab.iconClass" />
             {{ tab.name }}
           </Link>
-        </div>
-
-        <button
-          :class="rightChevronClasses"
-          :disabled="activeIndex >= tabs.length - 1"
-          @click="goNextTab"
-        >
-          <span class="material-symbols-outlined">chevron_right</span>
-        </button>
+        </nav>
       </div>
 
-      <!-- Specific Form Content Injected Here -->
       <main>
         <slot />
       </main>
