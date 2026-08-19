@@ -3,13 +3,31 @@ import { ref, computed } from 'vue';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
 
-const dayOffset = ref(0);
+interface Meal {
+  id: number;
+  title: string;
+  calories: number;
+  prepTime: number;
+  imageUrl: string;
+  imageAlt: string;
+  isPrepared: boolean;
+}
+
+const props = defineProps<{
+  mealsByOffset: Record<string, Meal[]>;
+}>();
+
+const dayOffset = ref<number>(0);
+
+// Local state tracking for toggle actions across days
+const localPreparedStatus = ref<Record<number, boolean>>({});
 
 const getFormattedDate = (offset: number) => {
   const date = new Date();
   date.setDate(date.getDate() + offset);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
+
 const activeDateLabel = computed(() => {
   if (dayOffset.value === -1) return `Yesterday (${getFormattedDate(-1)})`;
   if (dayOffset.value === 1) return `Tomorrow (${getFormattedDate(1)})`;
@@ -36,63 +54,35 @@ const goNextDay = () => {
   if (dayOffset.value < 1) dayOffset.value++;
 };
 
-const leftChevronClasses = computed(() => {
-  return dayOffset.value === -1
+const leftChevronClasses = computed(() =>
+  dayOffset.value === -1
     ? 'text-outline-variant cursor-not-allowed opacity-30'
-    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary';
-});
+    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary',
+);
 
-const rightChevronClasses = computed(() => {
-  return dayOffset.value === 1
+const rightChevronClasses = computed(() =>
+  dayOffset.value === 1
     ? 'text-outline-variant cursor-not-allowed opacity-30'
-    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary';
-});
+    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-primary',
+);
 
-// Mock data array to drive the v-for loop
-const todayMeals = ref([
-  {
-    id: 1,
-    title: 'Protein Oatmeal & Berries',
-    calories: 450,
-    prepTime: 10,
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDrPdwFVoid6FfI0L-M-qpbLkz8XtP2HJUNBhVmMqxGXc6iea-xztQaOlZWUIW6ZAHPmdE36hQXze0dD0Jf2yuxfrL5-rrAYgOA5wY4z0c1sTmSrH5K3FFQ1WfLWL0fk5Cc7vl6qNSIkbfSj-hL4K_A0SdnyJt9_KoVPtOl_Hgv89qq4iBhC8pP04S9BzuTD6bWyeFBdc7i9TkyFQfskuGMmxqa9Okfq2tZ_8ymnvTOEcmJ2hvyPjfP',
-    imageAlt: 'Protein oatmeal with berries in a white bowl',
-    isPrepared: false,
-  },
-  {
-    id: 2,
-    title: 'ZeroWaste Lemon Herb Chicken',
-    calories: 750,
-    prepTime: 25,
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuB7v_Qt5QaI_rtwDA4HcNZXyANBtfqk05xAHGhSEXFVcveJzeYJZ7CdeOuAZNl4-V0WJi71nPbpgaGox34GwOMv60qqI1RBQS1HskEu3w5wPnMfQWojU1ybtdgo2piVThXtJ7eXBvmPPUOo-tXWgGIheqI-oHEd9MyITE6w0EI3nxDmtvSY1E8VG_18ZfAZx00a3cdZ2kWpBfH2zvVGnqfQsfvd8Gtk5Ev6z7okEwKkRgGBuDOfjH1t',
-    imageAlt: 'Lemon herb chicken breast plated on a white plate',
-    isPrepared: false,
-  },
-  {
-    id: 3,
-    title: 'Leftover Veggie Stir-fry',
-    calories: 550,
-    prepTime: 15,
-    imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDu4P_047DwrMD2QKLAbFN7jaii9BTjhaa_B9hP8cCRuHUHy2z11v-5Q1F9OZKiXNUNYAsA3gLMfAs-CPPswEy3dGz-vL_wS72j3Q61iOn8ol5Rm1bCJNCV-Yr5qVJLP8HkDSi-qKdoLWsGffrmK-sUKMD0LftWYCPKZHkalh3oU_U96Zy7qtZ4qOPPLWACruM4xp6bsf31OgEd3t_7PhwSfgveAbn_kwBjSnwD_6xG-2RaTEm8Pgf4',
-    imageAlt: 'Colorful vegetable stir-fry in a ceramic bowl',
-    isPrepared: false,
-  },
-]);
+const currentMeals = computed(() => {
+  const list = props.mealsByOffset[String(dayOffset.value)] || [];
+  return list.map((meal) => ({
+    ...meal,
+    isPrepared: localPreparedStatus.value[meal.id] ?? meal.isPrepared,
+  }));
+});
 
 const toggleMealStatus = (id: number) => {
-  const meal = todayMeals.value.find((m) => m.id === id);
-  if (meal) {
-    meal.isPrepared = !meal.isPrepared;
-  }
+  const current = localPreparedStatus.value[id] ?? false;
+  localPreparedStatus.value[id] = !current;
 };
 </script>
 
 <template>
   <AuthenticatedLayout>
-    <div class="animate-fade-in space-y-8">
+    <div class="animate-fade-in flex flex-1 flex-col gap-8">
       <!-- Date Picker -->
       <div
         class="bg-surface-container-lowest mx-auto flex w-full max-w-md items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
@@ -103,25 +93,27 @@ const toggleMealStatus = (id: number) => {
         <div class="font-headline-md text-headline-md flex items-center gap-6">
           <span
             class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
-            >{{ prevDateLabel }}</span
           >
-          <span class="text-primary border-primary border-b-2 pb-1 font-bold">{{
-            activeDateLabel
-          }}</span>
+            {{ prevDateLabel }}
+          </span>
+          <span class="text-primary border-primary border-b-2 pb-1 font-bold">
+            {{ activeDateLabel }}
+          </span>
           <span
             class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
-            >{{ nextDateLabel }}</span
           >
+            {{ nextDateLabel }}
+          </span>
         </div>
         <button :class="rightChevronClasses" @click="goNextDay">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
 
-      <!-- Meal Grid (Grid is better than flex here) -->
-      <div class="gap-gutter grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <!-- Meal Grid -->
+      <div class="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         <MealCard
-          v-for="meal in todayMeals"
+          v-for="meal in currentMeals"
           :id="meal.id"
           :key="meal.id"
           :title="meal.title"
@@ -134,9 +126,9 @@ const toggleMealStatus = (id: number) => {
         />
       </div>
 
-      <!-- Weekly Analytics Placeholder -->
+      <!-- Weekly Analytics Section -->
       <div
-        class="bg-surface-container-lowest border-surface-container-high mt-12 rounded-xl border p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
+        class="bg-surface-container-lowest border-surface-container-high mt-auto rounded-xl border p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
       >
         <div class="mb-6 flex items-center justify-between">
           <h3 class="font-headline-lg text-headline-lg text-on-surface">
@@ -150,8 +142,9 @@ const toggleMealStatus = (id: number) => {
           <div class="flex flex-col items-center gap-2">
             <span
               class="material-symbols-outlined text-tertiary-container text-4xl"
-              >bar_chart</span
             >
+              bar_chart
+            </span>
             <span>Analytics visualization will appear here</span>
           </div>
         </div>
