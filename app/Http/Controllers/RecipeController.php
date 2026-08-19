@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Recipe; // Fixed missing semicolon
+use App\Models\Recipe;
+use App\Models\Ingredient;
 use Inertia\Inertia;
 use Inertia\Response;
 
