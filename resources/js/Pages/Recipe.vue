@@ -120,19 +120,19 @@ const handleImageError = (event: Event) => {
               <li class="flex items-center justify-between pt-4 first:pt-0">
                 <span class="font-medium">Protein</span>
                 <UBadge color="green" variant="soft"
-                  >{{ recipe.macros.protein }}g</UBadge
+                  >{{ recipe.macros.protein }} g</UBadge
                 >
               </li>
               <li class="flex items-center justify-between pt-4">
                 <span class="font-medium">Carbs</span>
                 <UBadge color="gray" variant="soft"
-                  >{{ recipe.macros.carbs }}g</UBadge
+                  >{{ recipe.macros.carbs }} g</UBadge
                 >
               </li>
               <li class="flex items-center justify-between pt-4">
                 <span class="font-medium">Fat</span>
                 <UBadge color="orange" variant="soft"
-                  >{{ recipe.macros.fat }}g</UBadge
+                  >{{ recipe.macros.fat }} g</UBadge
                 >
               </li>
               <li
