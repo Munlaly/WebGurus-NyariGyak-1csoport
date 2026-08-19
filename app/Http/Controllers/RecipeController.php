@@ -10,8 +10,15 @@ use Inertia\Response;
 
 class RecipeController extends Controller
 {
-    public function show(Recipe $recipe): Response
+    public function show(Request $request, Recipe $recipe): Response
     {
+        $userId = $request->user()?->id;
+        $isAuthor = $userId && $recipe->user_id === $userId;
+        $isAccessible = $recipe->is_public || is_null($recipe->user_id) || $isAuthor;
+
+        if (! $isAccessible) {
+            abort(404); 
+        }
         // get all related ingredients
         $recipe->load('ingredients');
 
