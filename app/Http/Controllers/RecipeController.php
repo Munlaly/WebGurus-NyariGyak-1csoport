@@ -25,7 +25,15 @@ class RecipeController extends Controller
             'unit' => null, 
         ]);
 
-        $imageUrl = $recipe->image ? asset('storage/' . $recipe->image) : 'https://placehold.co/600x400?text=No+Image';
+        $imageUrl = 'https://placehold.co/600x400?text=No+Image';
+
+        if ($recipe->image) {
+            // If it's an external Spoonacular link, use it directly. 
+            // Otherwise, treat it as a local upload and wrap it in asset().
+            $imageUrl = str_starts_with($recipe->image, 'http') 
+                ? $recipe->image 
+                : asset('storage/' . $recipe->image);
+        }
 
         return Inertia::render('Recipe', [
             'recipe' => [

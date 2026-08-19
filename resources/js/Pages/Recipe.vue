@@ -24,6 +24,14 @@ defineProps<{
 const goBack = () => {
   router.get('/dashboard');
 };
+
+const handleImageError = (event: Event) => {
+  const target = event.target as HTMLImageElement | null;
+
+  if (target) {
+    target.src = 'https://placehold.co/600x400?text=No+Image';
+  }
+};
 </script>
 
 <template>
@@ -147,6 +155,7 @@ const goBack = () => {
               class="h-full w-full object-cover"
               :src="recipe.imageUrl"
               :alt="recipe.imageAlt"
+              @error="handleImageError"
             />
 
             <!-- Prep Time Overlay -->
