@@ -63,13 +63,13 @@ const navigation = [
             alt="User profile"
             :class="[
               'border-outline-variant aspect-square shrink-0 rounded-full border object-cover transition-all duration-300',
-              profileImageSizeClass,
+              isCollapsed ? 'h-9 w-9 min-w-9' : 'h-11 w-11 min-w-11',
             ]"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
           />
           <div
-            v-show="!isCollapsed"
-            class="min-w-0 flex-1 whitespace-nowrap transition-opacity duration-300"
+            v-if="!isCollapsed"
+            class="min-w-0 flex-1 overflow-hidden whitespace-nowrap"
           >
             <h2
               class="font-headline-md text-headline-md text-primary dark:text-primary-fixed truncate font-bold"
