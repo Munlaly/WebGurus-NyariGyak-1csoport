@@ -39,7 +39,7 @@ const submitGoal = () => {
   <SettingsLayout :active-tab="activeTab">
     <UForm
       :state="form"
-      class="flex flex-1 flex-col divide-y divide-gray-200 dark:divide-gray-800"
+      class="flex flex-1 flex-col divide-y divide-gray-200 px-4 md:px-0 dark:divide-gray-800"
       @submit.prevent="submitGoal"
     >
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">

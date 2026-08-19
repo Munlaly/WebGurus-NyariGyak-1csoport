@@ -42,7 +42,7 @@ const submitSystemSettings = () => {
   <SettingsLayout :active-tab="activeTab">
     <UForm
       :state="form"
-      class="divide-y divide-gray-200 dark:divide-gray-800"
+      class="flex flex-1 flex-col divide-y divide-gray-200 px-4 md:px-0 dark:divide-gray-800"
       @submit.prevent="submitSystemSettings"
     >
       <!-- Theme Section -->
@@ -124,8 +124,14 @@ const submitSystemSettings = () => {
         </div>
       </div>
 
-      <div class="flex justify-end py-6">
-        <UButton type="submit" color="primary" :loading="form.processing">
+      <!-- Pinned to bottom with mt-auto -->
+      <div class="mt-auto flex justify-end py-6">
+        <UButton
+          type="submit"
+          color="primary"
+          :loading="form.processing"
+          class="px-6 py-2 text-sm md:px-8 md:py-3 md:text-base lg:text-lg"
+        >
           Save System Settings
         </UButton>
       </div>
