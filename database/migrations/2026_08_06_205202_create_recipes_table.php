@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('instructions')->nullable();
             $table->integer('prep_time_minutes')->nullable();
-            $table->boolean('is_public')->default(false);
+            $table->boolean('is_public')->default(true);
             $table->string('image')->nullable();
 
             $table->integer('calories')->nullable();

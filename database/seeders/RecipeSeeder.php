@@ -66,11 +66,13 @@ class RecipeSeeder extends Seeder {
                     // 5. Final trim to catch any leftover spaces
                     $ingredientName = trim($ingredientName);
 
+                    $rawUnit = $ingData['unit'] ?? null;    
+
                     $ingredient = Ingredient::firstOrCreate(
                         ['name' => $ingredientName],
                         [
                             'category_id' => $categoryId,
-                            'base_unit' => $this->mapUnit($ingData['unit'], $ingData['aisle'] ?? 'Uncategorized'),
+                            'base_unit' => $this->mapUnit($rawUnit, $ingData['aisle'] ?? 'Uncategorized'),
                         ]
                     );
 
@@ -80,7 +82,8 @@ class RecipeSeeder extends Seeder {
                             'ingredient_id' => $ingredient->id,
                         ],
                         [
-                            'amount' => $ingData['amount'] ?? 0
+                            'amount' => $ingData['amount'] ?? 0,
+                            'unit'   => !empty($rawUnit) ? trim($rawUnit) : null,
                         ]
                     );
                 }

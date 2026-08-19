@@ -23,7 +23,7 @@ class RecipeController extends Controller
         $formattedIngredients = $recipe->ingredients->map(fn($ingredient) => [
             'name' => $ingredient->name,
             'amount' => (float) $ingredient->pivot->amount,
-            'unit' => null, 
+            'unit' => $ingredient->pivot->unit 
         ]);
 
         $imageUrl = 'https://placehold.co/600x400?text=No+Image';
