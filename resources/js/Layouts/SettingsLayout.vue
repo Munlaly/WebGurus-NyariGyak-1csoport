@@ -50,7 +50,7 @@ const navigationTabs = computed(() => {
 
 <template>
   <AuthenticatedLayout>
-    <div class="mx-auto flex w-full max-w-4xl flex-col gap-8">
+    <div class="flex h-full flex-1 flex-col gap-6 md:gap-8">
       <header>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
           Settings &amp; Goals

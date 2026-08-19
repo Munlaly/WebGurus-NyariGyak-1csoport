@@ -155,7 +155,7 @@ const navigation = [
       </header>
 
       <!-- Content Canvas (Injected via Slot) -->
-      <main class="w-full flex-1 p-6 md:p-8">
+      <main class="flex-colp-6 flex w-full flex-1 md:p-8">
         <slot />
       </main>
     </div>

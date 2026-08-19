@@ -69,21 +69,9 @@ const householdOptions = [
 ];
 
 const prepTimeOptions = [
-  {
-    label: 'Lightning fast',
-    value: 'fast',
-    description: 'Under 20 minutes',
-  },
-  {
-    label: 'Normal pace',
-    value: 'normal',
-    description: '30-45 minutes',
-  },
-  {
-    label: 'Leisurely / Weekend',
-    value: 'slow',
-    description: 'Over 1 hour',
-  },
+  { label: 'Lightning fast', value: 'fast', description: 'Under 20 minutes' },
+  { label: 'Normal pace', value: 'normal', description: '30-45 minutes' },
+  { label: 'Leisurely / Weekend', value: 'slow', description: 'Over 1 hour' },
 ];
 
 const props = defineProps<{
@@ -105,9 +93,7 @@ const form = useForm({
 });
 
 const submitRule = () => {
-  form.post('/settings/rules', {
-    preserveScroll: true,
-  });
+  form.post('/settings/rules', { preserveScroll: true });
 };
 </script>
 
@@ -115,86 +101,100 @@ const submitRule = () => {
   <SettingsLayout :active-tab="activeTab">
     <UForm
       :state="form"
-      class="mx-auto max-w-2xl space-y-6"
+      class="divide-y divide-gray-200 dark:divide-gray-800"
       @submit.prevent="submitRule"
     >
-      <!-- Card 1: Diet -->
-      <UCard>
-        <div class="mb-6 flex items-center justify-between">
-          <h2
-            class="font-display text-primary text-[24px] font-bold tracking-tight"
-          >
+      <!-- Diet Section -->
+      <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
             Dietary Preference
           </h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Select your baseline diet type.
+          </p>
         </div>
-        <UFormField :error="form.errors.dietType">
-          <URadioGroup
-            v-model="form.dietType"
-            :items="dietOptions"
-            variant="table"
-          />
-        </UFormField>
-      </UCard>
+        <div class="md:col-span-2">
+          <UFormField :error="form.errors.dietType">
+            <URadioGroup
+              v-model="form.dietType"
+              :items="dietOptions"
+              variant="table"
+            />
+          </UFormField>
+        </div>
+      </div>
 
-      <!-- Card 2: Household -->
-      <UCard>
-        <div class="mb-6 flex items-center justify-between">
-          <h2
-            class="font-display text-primary text-[24px] font-bold tracking-tight"
-          >
+      <!-- Household Section -->
+      <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+            Household Size
+          </h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             How many people are you cooking for?
-          </h2>
+          </p>
         </div>
-        <UFormField :error="form.errors.numberOfPeople">
-          <URadioGroup
-            v-model="form.numberOfPeople"
-            :items="householdOptions"
-            variant="table"
-          />
-        </UFormField>
-      </UCard>
+        <div class="md:col-span-2">
+          <UFormField :error="form.errors.numberOfPeople">
+            <URadioGroup
+              v-model="form.numberOfPeople"
+              :items="householdOptions"
+              variant="table"
+            />
+          </UFormField>
+        </div>
+      </div>
 
-      <!-- Card 3: Prep Time -->
-      <UCard>
-        <div class="mb-6 flex items-center justify-between">
-          <h2
-            class="font-display text-primary text-[24px] font-bold tracking-tight"
+      <!-- Prep Time Section -->
+      <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+            Prep Time
+          </h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            How much time do you usually have to cook?
+          </p>
+        </div>
+        <div class="md:col-span-2">
+          <UFormField :error="form.errors.prepTime">
+            <URadioGroup
+              v-model="form.prepTime"
+              :items="prepTimeOptions"
+              variant="table"
+            />
+          </UFormField>
+        </div>
+      </div>
+
+      <!-- Avoided Ingredients Section -->
+      <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
+        <div class="md:col-span-1">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+            Avoided Ingredients
+          </h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            List specific ingredients you want to completely avoid (allergies,
+            dislikes).
+          </p>
+        </div>
+        <div class="md:col-span-2">
+          <UFormField
+            :error="form.errors.avoidedIngredients"
+            hint="Separate with commas"
           >
-            How much time do you usually have for meal prep?
-          </h2>
+            <UInput
+              v-model="form.avoidedIngredients"
+              placeholder="e.g., Peanuts, Shellfish, Cilantro"
+              class="w-full max-w-md"
+            />
+          </UFormField>
         </div>
-        <UFormField :error="form.errors.prepTime">
-          <URadioGroup
-            v-model="form.prepTime"
-            :items="prepTimeOptions"
-            variant="table"
-          />
-        </UFormField>
-      </UCard>
+      </div>
 
-      <!-- Card 4: Avoided Ingredients -->
-      <UCard>
-        <div class="mb-6 flex items-center justify-between">
-          <h2
-            class="font-display text-primary text-[24px] font-bold tracking-tight"
-          >
-            Any ingredients we should completely avoid?
-          </h2>
-        </div>
-        <UFormField
-          :error="form.errors.avoidedIngredients"
-          hint="Separate with commas"
-        >
-          <UInput
-            v-model="form.avoidedIngredients"
-            placeholder="e.g., Peanuts, Shellfish, Cilantro"
-          />
-        </UFormField>
-      </UCard>
-
-      <div class="flex justify-end pt-4">
+      <div class="flex justify-end py-6">
         <UButton type="submit" color="primary" :loading="form.processing">
-          Apply settings
+          Save Rules
         </UButton>
       </div>
     </UForm>
