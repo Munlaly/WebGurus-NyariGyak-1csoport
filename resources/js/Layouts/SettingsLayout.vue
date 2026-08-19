@@ -14,7 +14,7 @@ const baseTabs = [
     name: 'Targets',
     value: 'targets',
     routeName: 'settings.targets',
-    icon: 'i-heroicons-bullseye',
+    icon: 'i-heroicons-flag',
   },
   {
     name: 'Rules',
