@@ -122,6 +122,7 @@ const toggleMealStatus = (id: number) => {
       <div class="gap-gutter grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <MealCard
           v-for="meal in todayMeals"
+          :id="meal.id"
           :key="meal.id"
           :title="meal.title"
           :calories="meal.calories"

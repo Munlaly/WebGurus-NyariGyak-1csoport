@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
-import { route } from 'ziggy-js';
 
 const props = defineProps({
   categories: {

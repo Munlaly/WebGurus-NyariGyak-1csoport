@@ -2,6 +2,7 @@ import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import ui from '@nuxt/ui/vue-plugin';
 import { createRouter, createMemoryHistory } from 'vue-router';
+import { ZiggyVue } from 'ziggy-js';
 
 // Blank memory router just to satisfy NuxtUi
 const router = createRouter({
@@ -25,6 +26,7 @@ createInertiaApp({
   setup({ el, App, props, plugin }) {
     const app = createApp({ render: () => h(App, props) })
       .use(plugin)
+      .use(ZiggyVue)
       .use(router)
       .use(ui);
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod';
 import { useForm, Link } from '@inertiajs/vue3';
-import { route } from 'ziggy-js';
 
 // Define client side validation
 const schema = z

@@ -2,13 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class RecipeIngredient extends Model
+/**
+ * @property float $amount
+ */
+class RecipeIngredient extends Pivot
 {
+    protected $table = 'recipe_ingredients';
+    
     protected $fillable = [
         'recipe_id',
         'ingredient_id',
         'amount',
+        'unit',
     ];
 }
