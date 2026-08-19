@@ -6,44 +6,23 @@ use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\SettingsController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('welcome');
 
 Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
-Route::post('/quiz/save-session', [QuizController::class, 'saveSession'])->name('quiz.save-session');Route::get('settings/targets', function(){
-    
-    return Inertia::render('Settings/Targets', [
-        'userSettings' => [
-            'mainGoal'=>'general',
-            'calorieTarget' => 2000,
-        ]
-    ]);
-})->name('settings.targets');
-
-Route::get('settings/rules', function(){
-    return Inertia::render('Settings/Rules', [
-        'userSettings' => [
-            'prepTime' => 'normal',
-            'numberOfPeople' => '1_person',
-            'dietType' => 'vegan',
-
-        ],
-    ]);
-})->name('settings.rules');
-
-Route::get('settings/system', function(){
-    return Inertia::render('Settings/System', [
-        
-    ]);
-})->name('settings.system');
+Route::post('/quiz/save-session', [QuizController::class, 'saveSession'])->name('quiz.save-session');
 
 
 Route::middleware('auth')->group(function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
    Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
+    Route::get('settings/targets', [SettingsController::class, 'targets'])->name('settings.targets');
+    Route::get('settings/rules', [SettingsController::class, 'rules'])->name('settings.rules');
+    Route::get('settings/system', [SettingsController::class, 'system'])->name('settings.system');
 });
 
 require __DIR__.'/auth.php';
