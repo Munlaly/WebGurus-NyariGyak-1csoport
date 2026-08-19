@@ -13,7 +13,7 @@ interface RecipeProps {
     carbs: number;
     fat: number;
   };
-  ingredients: Array<{ name: string; amount: string }>;
+  ingredients: Array<{ name: string; amount: number; unit: string | null }>;
   instructions: Array<string>;
 }
 
@@ -90,9 +90,9 @@ const goBack = () => {
                 <span class="font-medium text-gray-900 dark:text-white">{{
                   ingredient.name
                 }}</span>
-                <span class="text-gray-500 dark:text-gray-400">{{
-                  ingredient.amount
-                }}</span>
+                <span class="text-gray-500 dark:text-gray-400"
+                  >{{ ingredient.amount }} {{ ingredient.unit || '' }}</span
+                >
               </li>
             </ul>
           </UCard>

@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Recipe; // Fixed missing semicolon
+use Inertia\Inertia;
+use Inertia\Response;
+
+class RecipeController extends Controller
+{
+    public function show(Recipe $recipe): Response
+    {
+        // get all related ingredients
+        $recipe->load('ingredients');
+
+        $instructionsArray = array_values(array_filter(array_map(
+            fn($step) => preg_replace('/^\d+\.\s*/', '', trim($step)), 
+            explode("\n", $recipe->instructions)
+        )));
+
+        $formattedIngredients = $recipe->ingredients->map(fn($ingredient) => [
+            'name' => $ingredient->name,
+            'amount' => (float) $ingredient->pivot->amount,
+            'unit' => null, 
+        ]);
+
+        $imageUrl = $recipe->image ? asset('storage/' . $recipe->image) : 'https://placehold.co/600x400?text=No+Image';
+
+        return Inertia::render('Recipe', [
+            'recipe' => [
+                'id' => $recipe->id,
+                'title' => $recipe->name,
+                'prepTime' => $recipe->prep_time_minutes,
+                'calories' => $recipe->calories,
+                'imageUrl' => $imageUrl,
+                'imageAlt' => $recipe->name,
+                'macros' => [
+                    'protein' => (float) $recipe->protein,
+                    'carbs' => (float) $recipe->carbs,
+                    'fat' => (float) $recipe->fat,
+                ],
+                'ingredients' => $formattedIngredients,
+                'instructions' => $instructionsArray,
+            ]
+        ]);
+    }
+}
