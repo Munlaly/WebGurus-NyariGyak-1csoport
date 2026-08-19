@@ -11,7 +11,12 @@ Route::get('/', function () {
 
 Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
 Route::post('/quiz/save-session', [QuizController::class, 'saveSession'])->name('quiz.save-session');
-Route::get('recipe/{id}', function($id) {
+
+
+Route::middleware('auth')->group(function(){
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('recipe/{id}', function($id) {
         return Inertia::render('Recipe', [
             'recipe' => [
                 'id' => (int) $id,
@@ -41,9 +46,6 @@ Route::get('recipe/{id}', function($id) {
             ]
         ]);
     })->name('recipe.show');
-
-Route::middleware('auth')->group(function(){
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 require __DIR__.'/auth.php';
