@@ -11,7 +11,7 @@ const toggleSidebar = () => {
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
 
 const profileImageSizeClass = computed(() =>
-  isCollapsed.value ? 'h-9 w-9' : 'h-11 w-11',
+  isCollapsed.value ? 'h-9 w-9 min-w-9' : 'h-11 w-11 min-w-11',
 );
 
 const navItemSpacingClass = computed(() =>
@@ -63,7 +63,7 @@ const navigation = [
             alt="User profile"
             :class="[
               'border-outline-variant aspect-square shrink-0 rounded-full border object-cover transition-all duration-300',
-              isCollapsed ? 'h-9 w-9 min-w-9' : 'h-11 w-11 min-w-11',
+              profileImageSizeClass,
             ]"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
           />
