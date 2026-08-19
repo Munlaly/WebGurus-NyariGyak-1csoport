@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
-import { ref } from 'vue';
 
 const props = defineProps<{
   userSettings: {
@@ -31,22 +30,9 @@ const form = useForm({
   calorieTarget: props.userSettings.calorieTarget,
 });
 
-const isEditing = ref({
-  mainGoal: false,
-  calorieTarget: false,
-});
-
-const toggleEdit = (field: keyof typeof isEditing.value) => {
-  isEditing.value[field] = !isEditing.value[field];
-};
-
 const submitGoal = () => {
   form.post('/settings/targets', {
     preserveScroll: true,
-    onSuccess: () => {
-      isEditing.value.mainGoal = false;
-      isEditing.value.calorieTarget = false;
-    },
   });
 };
 </script>
@@ -65,20 +51,12 @@ const submitGoal = () => {
           >
             Main goal
           </h2>
-
-          <UButton
-            icon="i-heroicons-pencil-square"
-            color="gray"
-            variant="ghost"
-            @click="toggleEdit('mainGoal')"
-          />
         </div>
         <UFormField :error="form.errors.mainGoal">
           <URadioGroup
             v-model="form.mainGoal"
             :items="mainGoalItems"
             variant="table"
-            :disabled="!isEditing.mainGoal"
           >
           </URadioGroup>
         </UFormField>
@@ -90,19 +68,9 @@ const submitGoal = () => {
           >
             Daily calorie Target
           </h2>
-
-          <UButton
-            icon="i-heroicons-pencil-square"
-            color="gray"
-            variant="ghost"
-            @click="toggleEdit('calorieTarget')"
-          />
         </div>
         <UFormField :error="form.errors.calorieTarget">
-          <UInputNumber
-            v-model="form.calorieTarget"
-            :disabled="!isEditing.calorieTarget"
-          />
+          <UInputNumber v-model="form.calorieTarget" />
         </UFormField>
       </UCard>
 

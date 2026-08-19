@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 
@@ -105,27 +104,9 @@ const form = useForm({
   avoidedIngredients: props.userSettings?.avoidedIngredients || '',
 });
 
-const isEditing = ref({
-  prepTime: false,
-  numberOfPeople: false,
-  dietType: false,
-  avoidedIngredients: false,
-});
-
-const toggleEdit = (field: keyof typeof isEditing.value) => {
-  isEditing.value[field] = !isEditing.value[field];
-};
-
 const submitRule = () => {
   form.post('/settings/rules', {
     preserveScroll: true,
-    onSuccess: () => {
-      (
-        Object.keys(isEditing.value) as Array<keyof typeof isEditing.value>
-      ).forEach((key) => {
-        isEditing.value[key] = false;
-      });
-    },
   });
 };
 </script>
@@ -145,19 +126,12 @@ const submitRule = () => {
           >
             Dietary Preference
           </h2>
-          <UButton
-            icon="i-heroicons-pencil-square"
-            color="gray"
-            variant="ghost"
-            @click="toggleEdit('dietType')"
-          />
         </div>
         <UFormField :error="form.errors.dietType">
           <URadioGroup
             v-model="form.dietType"
             :items="dietOptions"
             variant="table"
-            :disabled="!isEditing.dietType"
           />
         </UFormField>
       </UCard>
@@ -170,19 +144,12 @@ const submitRule = () => {
           >
             How many people are you cooking for?
           </h2>
-          <UButton
-            icon="i-heroicons-pencil-square"
-            color="gray"
-            variant="ghost"
-            @click="toggleEdit('numberOfPeople')"
-          />
         </div>
         <UFormField :error="form.errors.numberOfPeople">
           <URadioGroup
             v-model="form.numberOfPeople"
             :items="householdOptions"
             variant="table"
-            :disabled="!isEditing.numberOfPeople"
           />
         </UFormField>
       </UCard>
@@ -195,19 +162,12 @@ const submitRule = () => {
           >
             How much time do you usually have for meal prep?
           </h2>
-          <UButton
-            icon="i-heroicons-pencil-square"
-            color="gray"
-            variant="ghost"
-            @click="toggleEdit('prepTime')"
-          />
         </div>
         <UFormField :error="form.errors.prepTime">
           <URadioGroup
             v-model="form.prepTime"
             :items="prepTimeOptions"
             variant="table"
-            :disabled="!isEditing.prepTime"
           />
         </UFormField>
       </UCard>
@@ -220,12 +180,6 @@ const submitRule = () => {
           >
             Any ingredients we should completely avoid?
           </h2>
-          <UButton
-            icon="i-heroicons-pencil-square"
-            color="gray"
-            variant="ghost"
-            @click="toggleEdit('avoidedIngredients')"
-          />
         </div>
         <UFormField
           :error="form.errors.avoidedIngredients"
@@ -234,7 +188,6 @@ const submitRule = () => {
           <UInput
             v-model="form.avoidedIngredients"
             placeholder="e.g., Peanuts, Shellfish, Cilantro"
-            :disabled="!isEditing.avoidedIngredients"
           />
         </UFormField>
       </UCard>
