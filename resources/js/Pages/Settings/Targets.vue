@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
+import { route } from 'ziggy-js';
 
 const props = defineProps<{
   userSettings: {
@@ -31,7 +32,7 @@ const form = useForm({
 });
 
 const submitGoal = () => {
-  form.post('/settings/targets', { preserveScroll: true });
+  form.put(route('settings.targets'), { preserveScroll: true });
 };
 </script>
 

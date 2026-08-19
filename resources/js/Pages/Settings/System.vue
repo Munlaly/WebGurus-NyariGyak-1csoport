@@ -2,6 +2,7 @@
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 import { computed } from 'vue';
+import { route } from 'ziggy-js';
 
 const props = defineProps<{
   userSettings: {
@@ -34,7 +35,7 @@ const themeButtonClasses = computed(() => {
 });
 
 const submitSystemSettings = () => {
-  form.post('/settings/system', { preserveScroll: true });
+  form.put(route('settings.system'), { preserveScroll: true });
 };
 </script>
 

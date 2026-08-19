@@ -20,9 +20,17 @@ Route::middleware('auth')->group(function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
    Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
-    Route::get('settings/targets', [SettingsController::class, 'targets'])->name('settings.targets');
-    Route::get('settings/rules', [SettingsController::class, 'rules'])->name('settings.rules');
-    Route::get('settings/system', [SettingsController::class, 'system'])->name('settings.system');
+
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('targets', [SettingsController::class, 'targets'])->name('targets');
+        Route::put('targets', [SettingsController::class, 'updateTargets']);
+        
+        Route::get('rules', [SettingsController::class, 'rules'])->name('rules');
+        Route::put('rules', [SettingsController::class, 'updateRules']);
+        
+        Route::get('system', [SettingsController::class, 'system'])->name('system');
+        Route::put('system', [SettingsController::class, 'updateSystem']);
+    });
 });
 
 require __DIR__.'/auth.php';

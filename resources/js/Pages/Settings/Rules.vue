@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
+import { route } from 'ziggy-js';
 
 const dietOptions = [
   {
@@ -93,7 +94,7 @@ const form = useForm({
 });
 
 const submitRule = () => {
-  form.post('/settings/rules', { preserveScroll: true });
+  form.put(route('settings.rules'), { preserveScroll: true });
 };
 </script>
 
