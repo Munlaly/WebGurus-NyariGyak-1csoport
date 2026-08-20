@@ -5,9 +5,12 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\UserSettings;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
@@ -18,11 +21,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'sex',
-        'birthdate',
-        'height_cm',
-        'weight_cm',
-        'baseline_activity'
+        'onboarded_at'
     ];
 
     protected $hidden = [
@@ -35,12 +34,21 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'onboarded_at' => 'datetime'
         ];
     }
-    public function settings() {
+
+    public function profile(): HasOne
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
+    public function settings(): HasOne
+    {
         return $this->hasOne(UserSettings::class);
     }
-    public function dislikedIngredients() {
+
+    public function dislikedIngredients(): BelongsToMany {
         return $this->belongsToMany(Ingredient::class,'user_disliked_ingredients');
     }
 }

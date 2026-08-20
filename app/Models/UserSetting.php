@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserSettings extends Model
 {
@@ -11,24 +12,18 @@ class UserSettings extends Model
     protected $fillable = [
         'user_id',
         'goals',
-        'meal_plan_preference',
         'household_size',
         'prep_time_preference',
-        'daily_calorie_target', 
-        'custom_dislikes',
-        'budget_or_comfort',
-        'system_preferences',  
+        'system_preferences',
     ];
 
     protected $casts = [
         'goals' => 'array',
-        'meal_plan_preference' => 'array',
-        'custom_dislikes' => 'array',
-        'system_preferences' => 'array', 
-        'daily_calorie_target' => 'integer',
+        'household_size' => 'integer',
+        'system_preferences' => 'array',
     ];
 
-    public function user() {
+    public function user(): BelongsTo{
         return $this->belongsTo(User::class);
     }
 }
