@@ -2,23 +2,31 @@
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-const props = defineProps<{
-  id: number;
-  title: string;
-  calories: number;
-  prepTime: number;
-  imageUrl: string;
-  imageAlt: string;
-  isPrepared: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    id: number;
+    title: string;
+    calories: number;
+    prepTime: number;
+    imageUrl: string;
+    imageAlt: string;
+    isPrepared: boolean;
+    isFavorite?: boolean;
+  }>(),
+  {
+    isFavorite: false,
+  },
+);
 
 const emit = defineEmits<{
   (e: 'toggle-cooked'): void;
+  (e: 'toggle-favorite'): void;
 }>();
 
 const btnText = computed(() =>
   props.isPrepared ? 'Cooked (Click to undo)' : 'Mark as Cooked',
 );
+
 const buttonClass = computed(() =>
   props.isPrepared
     ? 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high border border-outline-variant'
@@ -32,18 +40,33 @@ const imageStateClass = computed(() =>
 const contentStateClass = computed(() =>
   props.isPrepared ? 'opacity-75' : '',
 );
+
+// Favorite Button Computed Properties
+const favoriteButtonClass = computed(() =>
+  props.isFavorite
+    ? 'bg-red-500 border-red-500 text-white shadow-sm hover:bg-red-600 hover:border-red-600'
+    : 'bg-surface-container-low border-outline-variant/40 text-on-surface-variant hover:border-red-300 hover:bg-red-50/50 dark:hover:bg-red-950/20 hover:text-red-500',
+);
+
+const favoriteIconName = computed(() =>
+  props.isFavorite ? 'i-heroicons-heart-solid' : 'i-heroicons-heart',
+);
+
+const favoriteTooltipText = computed(() =>
+  props.isFavorite ? 'Remove like' : 'Like this meal',
+);
 </script>
 
 <template>
   <div
-    class="bg-surface-container-lowest group flex cursor-pointer flex-col overflow-hidden rounded-2xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0px_12px_32px_rgba(0,0,0,0.08)]"
+    class="bg-surface-container-lowest group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0px_12px_32px_rgba(0,0,0,0.08)]"
   >
     <!-- Image Header with 16:9 Aspect Ratio -->
     <Link
       :href="route('recipe.show', id)"
       class="bg-surface-container relative aspect-video w-full overflow-hidden"
     >
-      <!-- Floating Cooked Status Badge -->
+      <!-- Floating Cooked Status Badge (Top Right) -->
       <div
         v-if="isPrepared"
         class="bg-surface-container-lowest/90 text-primary font-label-md text-label-md absolute top-3 right-3 z-10 flex items-center gap-1 rounded-full px-3 py-1 shadow-md backdrop-blur-sm"
@@ -65,29 +88,53 @@ const contentStateClass = computed(() =>
 
     <!-- Content Body -->
     <div :class="['flex flex-1 flex-col p-6', contentStateClass]">
-      <!-- Prominent Title with Consistent Height -->
       <h3
-        class="text-on-surface mb-4 line-clamp-2 min-h-[3.5rem] text-xl leading-snug font-bold tracking-tight md:text-2xl"
+        class="text-on-surface mb-4 line-clamp-2 min-h-14 text-xl leading-snug font-bold tracking-tight md:text-2xl"
       >
         {{ title }}
       </h3>
 
-      <!-- Structured Macro / Meta Pills -->
-      <div class="mb-6 flex flex-wrap items-center gap-2">
-        <div
-          class="bg-primary-50 text-primary-700 dark:bg-primary-950/50 dark:text-primary-300 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
-        >
-          <span class="material-symbols-outlined text-[18px]"
-            >local_fire_department</span
+      <!-- Structured Macro / Meta Pills + Favorite Button Row -->
+      <div class="mb-4 flex items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <div
+            class="bg-primary-50 text-primary-700 dark:bg-primary-950/50 dark:text-primary-300 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
           >
-          <span>{{ calories }} kcal</span>
+            <span class="material-symbols-outlined text-[18px]"
+              >local_fire_department</span
+            >
+            <span>{{ calories }} kcal</span>
+          </div>
+
+          <div
+            class="bg-surface-container-low text-on-surface-variant flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium"
+          >
+            <span class="material-symbols-outlined text-[18px]">schedule</span>
+            <span>{{ prepTime }} min</span>
+          </div>
         </div>
 
-        <div
-          class="bg-surface-container-low text-on-surface-variant flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium"
-        >
-          <span class="material-symbols-outlined text-[18px]">schedule</span>
-          <span>{{ prepTime }} min</span>
+        <!-- Like / Favorite Action with Hover Tooltip -->
+        <div class="relative flex items-center">
+          <button
+            type="button"
+            class="group/like relative flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95"
+            :class="favoriteButtonClass"
+            :aria-label="favoriteTooltipText"
+            @click.stop="emit('toggle-favorite')"
+          >
+            <UIcon
+              :name="favoriteIconName"
+              class="text-xl transition-transform duration-200 group-hover/like:scale-110"
+            />
+
+            <!-- Tooltip Text on Hover -->
+            <span
+              class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-0.5 text-xs whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover/like:opacity-100 dark:bg-gray-700"
+            >
+              {{ favoriteTooltipText }}
+            </span>
+          </button>
         </div>
       </div>
 

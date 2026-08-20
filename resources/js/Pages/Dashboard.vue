@@ -11,6 +11,7 @@ interface Meal {
   imageUrl: string;
   imageAlt: string;
   isPrepared: boolean;
+  isFavorite?: boolean;
 }
 
 const props = defineProps<{
@@ -21,6 +22,7 @@ const dayOffset = ref<number>(0);
 
 // Local state tracking for toggle actions across days
 const localPreparedStatus = ref<Record<number, boolean>>({});
+const localFavoriteStatus = ref<Record<number, boolean>>({});
 
 const getFormattedDate = (offset: number) => {
   const date = new Date();
@@ -71,12 +73,19 @@ const currentMeals = computed(() => {
   return list.map((meal) => ({
     ...meal,
     isPrepared: localPreparedStatus.value[meal.id] ?? meal.isPrepared,
+    isFavorite:
+      localFavoriteStatus.value[meal.id] ?? (meal.isFavorite || false),
   }));
 });
 
 const toggleMealStatus = (id: number) => {
   const current = localPreparedStatus.value[id] ?? false;
   localPreparedStatus.value[id] = !current;
+};
+
+const toggleFavoriteStatus = (id: number) => {
+  const current = localFavoriteStatus.value[id] ?? false;
+  localFavoriteStatus.value[id] = !current;
 };
 </script>
 
@@ -122,7 +131,9 @@ const toggleMealStatus = (id: number) => {
           :image-url="meal.imageUrl"
           :image-alt="meal.imageAlt"
           :is-prepared="meal.isPrepared"
+          :is-favorite="meal.isFavorite"
           @toggle-cooked="toggleMealStatus(meal.id)"
+          @toggle-favorite="toggleFavoriteStatus(meal.id)"
         />
       </div>
 
