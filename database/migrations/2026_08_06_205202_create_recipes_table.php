@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('recipes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('owner_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->text('instructions')->nullable();
             $table->integer('prep_time_minutes')->nullable();
@@ -26,6 +26,8 @@ return new class extends Migration
             $table->decimal('carbs')->nullable();
            
             $table->json('meal_types')->nullable();
+
+            $table->unsignedTinyInteger('servings')->default(1);
 
             $table->unsignedTinyInteger('servings')->default(1);
 
