@@ -14,11 +14,13 @@ return new class extends Migration
         Schema::create('user_settings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->json('goals')->nullable();
-            $table->unsignedInteger('household_size')->nullable();
+
+            // Preferences and operational settings
+            $table->json('goals')->nullable(); 
+            $table->unsignedInteger('household_size')->default(1);
             $table->string('prep_time_preference')->nullable();
+            $table->unsignedInteger('household_size')->default(1);
             $table->json('system_preferences')->nullable();
-            $table->timestamps();
         });
     }
 
