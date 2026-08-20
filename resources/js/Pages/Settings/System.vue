@@ -2,7 +2,6 @@
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 import { computed } from 'vue';
-import { route } from 'ziggy-js';
 
 const props = defineProps<{
   userSettings: {
