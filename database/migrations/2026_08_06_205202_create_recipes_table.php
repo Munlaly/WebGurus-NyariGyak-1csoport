@@ -29,8 +29,6 @@ return new class extends Migration
 
             $table->unsignedTinyInteger('servings')->default(1);
 
-            $table->unsignedTinyInteger('servings')->default(1);
-
             $table->timestamps();
 
             $table->index('user_id', 'idx_recipes_user');
