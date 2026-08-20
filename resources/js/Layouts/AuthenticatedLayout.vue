@@ -171,22 +171,22 @@ const navigation = [
         <div class="flex items-center gap-3">
           <!-- Primary Goal Badge -->
           <div
-            class="bg-primary/10 text-primary hidden items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold sm:flex"
+            class="bg-primary/10 text-primary hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold sm:flex"
           >
-            <span class="material-symbols-outlined text-[16px]">flag</span>
+            <span class="material-symbols-outlined text-[20px]">flag</span>
             <span class="capitalize">{{ primaryGoal }}</span>
           </div>
 
           <!-- Meals Cooked Progress Bar -->
           <div
-            class="bg-surface-container hidden items-center gap-2 rounded-full px-3 py-1 text-xs font-medium lg:flex"
+            class="bg-surface-container hidden items-center gap-2.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
           >
-            <span class="material-symbols-outlined text-primary text-[16px]"
+            <span class="material-symbols-outlined text-primary text-[20px]"
               >check_circle</span
             >
             <span>{{ mealsCooked.current }}/{{ mealsCooked.total }} Meals</span>
             <div
-              class="bg-outline-variant/30 h-1.5 w-16 overflow-hidden rounded-full"
+              class="bg-outline-variant/30 h-2 w-20 overflow-hidden rounded-full"
             >
               <div
                 class="bg-primary h-full rounded-full transition-all duration-300"
@@ -200,17 +200,17 @@ const navigation = [
         <div class="flex items-center gap-2 md:gap-3">
           <!-- Calories -->
           <div
-            class="bg-surface-container text-on-surface flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold md:px-3 md:text-sm"
+            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold"
           >
-            <span class="material-symbols-outlined text-primary text-[16px]"
+            <span class="material-symbols-outlined text-primary text-[20px]"
               >local_fire_department</span
             >
-            <span>{{ calories.current }}/{{ calories.target }} kcal</span>
+            <span>{{ calories.current }} / {{ calories.target }} kcal</span>
           </div>
 
           <!-- Protein -->
           <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium sm:flex"
+            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium sm:flex"
           >
             <span class="text-primary font-bold">P:</span>
             <span>{{ protein.current }}/{{ protein.target }}g</span>
@@ -218,7 +218,7 @@ const navigation = [
 
           <!-- Carbs -->
           <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium xl:flex"
+            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium xl:flex"
           >
             <span class="text-primary font-bold">C:</span>
             <span>{{ carbs.current }}/{{ carbs.target }}g</span>
@@ -226,7 +226,7 @@ const navigation = [
 
           <!-- Fat -->
           <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium xl:flex"
+            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium xl:flex"
           >
             <span class="text-primary font-bold">F:</span>
             <span>{{ fat.current }}/{{ fat.target }}g</span>
@@ -237,9 +237,9 @@ const navigation = [
             href="/logout"
             method="post"
             as="button"
-            class="text-on-surface-variant hover:text-primary ml-2 flex items-center gap-1 text-xs font-semibold transition-colors md:text-sm"
+            class="text-on-surface-variant hover:text-primary ml-2 flex items-center gap-1.5 px-2 py-1.5 text-sm font-semibold transition-colors"
           >
-            <span class="material-symbols-outlined text-[18px]">logout</span>
+            <span class="material-symbols-outlined text-[20px]">logout</span>
             <span class="hidden sm:inline">Log out</span>
           </Link>
         </div>
