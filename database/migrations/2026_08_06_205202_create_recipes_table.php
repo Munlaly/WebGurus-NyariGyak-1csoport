@@ -21,9 +21,10 @@ return new class extends Migration
             $table->string('image')->nullable();
 
             $table->integer('calories')->nullable();
-            $table->float('protein')->nullable();
-            $table->float('fat')->nullable();
-            $table->float('carbs')->nullable();
+            $table->decimal('protein')->nullable();
+            $table->decimal('fat')->nullable();
+            $table->decimal('carbs')->nullable();
+           
             $table->json('meal_types')->nullable();
 
             $table->unsignedTinyInteger('servings')->default(1);
