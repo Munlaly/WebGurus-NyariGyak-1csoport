@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('dietary_option_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+
+            $table->unique(['dietary_option_id', 'category_id']);
         });
     }
 
