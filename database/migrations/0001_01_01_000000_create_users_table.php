@@ -17,8 +17,12 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('sex', ['male', 'female']);
+            $table->date('birthdate')->nullable();
+            $table->unsignedDecimal('height_cm', 5, 2)->nullable();
+            $table->unsignedDecimal('weight_kg', 5, 2)->nullable();
+            $table->enum('baseline_activity', ['sedentary', 'lightly_active', 'moderately_active', 'very_active'])->default('sedentary');
             $table->rememberToken();
-            $table->integer('daily_calorie_target')->nullable();
             $table->timestamps();
         });
 
