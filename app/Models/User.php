@@ -18,7 +18,11 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'daily_calorie_target',
+        'sex',
+        'birthdate',
+        'height_cm',
+        'weight_cm',
+        'baseline_activity'
     ];
 
     protected $hidden = [
