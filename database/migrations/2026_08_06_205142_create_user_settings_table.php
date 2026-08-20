@@ -19,9 +19,11 @@ return new class extends Migration
             $table->json('meal_plan_preference')->nullable();
             $table->string('household_size')->nullable();
             $table->string('prep_time_preference')->nullable();
+            $table->integer('daily_calorie_target')->nullable();
 
             $table->json('custom_dislikes')->nullable();
             $table->enum('budget_or_comfort', ['budget_first', 'comfort_first'])->default('comfort_first');
+            $table->json('system_preferences')->nullable();
             $table->timestamps();
         });
     }

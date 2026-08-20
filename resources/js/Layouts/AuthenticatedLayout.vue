@@ -38,7 +38,7 @@ const navigation = [
   { name: 'My Inventory', icon: 'inventory_2', href: '#' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
-  { name: 'Settings/Goals', icon: 'settings', href: '#' },
+  { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
 </script>
 
@@ -155,7 +155,7 @@ const navigation = [
       </header>
 
       <!-- Content Canvas (Injected via Slot) -->
-      <main class="w-full flex-1 p-6 md:p-8">
+      <main class="flex w-full flex-1 flex-col p-6 md:p-8">
         <slot />
       </main>
     </div>
