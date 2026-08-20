@@ -69,14 +69,14 @@ const householdOptions = [
 ];
 
 const prepTimeOptions = [
-  { label: 'Lightning fast', value: 'fast', description: 'Under 20 minutes' },
-  { label: 'Normal pace', value: 'normal', description: '30-45 minutes' },
-  { label: 'Leisurely / Weekend', value: 'slow', description: 'Over 1 hour' },
+  { label: 'Lightning fast', value: 20, description: 'Under 20 minutes' },
+  { label: 'Normal pace', value: 45, description: '30-45 minutes' },
+  { label: 'Leisurely / Weekend', value: 60, description: 'Over 45 minutes' },
 ];
 
 const props = defineProps<{
   userSettings: {
-    prepTime: string;
+    prepTime: number;
     numberOfPeople: string;
     dietType: string;
     avoidedIngredients: string;
@@ -86,7 +86,7 @@ const props = defineProps<{
 const activeTab = 'rules';
 
 const form = useForm({
-  prepTime: props.userSettings?.prepTime || 'normal',
+  prepTime: props.userSettings?.prepTime ?? 45,
   numberOfPeople: props.userSettings?.numberOfPeople || '1_person',
   dietType: props.userSettings?.dietType || 'omnivore',
   avoidedIngredients: props.userSettings?.avoidedIngredients || '',

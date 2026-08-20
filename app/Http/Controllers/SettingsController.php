@@ -53,7 +53,7 @@ class SettingsController extends Controller
 
         return Inertia::render('Settings/Rules', [
             'userSettings' => [
-                'prepTime' => $settings->prep_time_preference ?? 'normal',
+                'prepTime' => (int) ($settings->prep_time_preference ?? 45),
                 'numberOfPeople' => $settings->household_size ?? '1_person',
                 'dietType' => !empty($diet) ? $diet[0] : 'omnivore',
                 'avoidedIngredients' => implode(', ', $dislikes), 
@@ -64,7 +64,7 @@ class SettingsController extends Controller
     public function updateRules(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'prepTime' => 'required|string',
+            'prepTime' => 'required|integer',
             'numberOfPeople' => 'required|string',
             'dietType' => 'required',
             'avoidedIngredients' => 'nullable|string',
