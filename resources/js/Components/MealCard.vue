@@ -48,10 +48,6 @@ const favoriteButtonClass = computed(() =>
     : 'bg-surface-container-low border-outline-variant/40 text-on-surface-variant hover:border-red-300 hover:bg-red-50/50 dark:hover:bg-red-950/20 hover:text-red-500',
 );
 
-const favoriteIconName = computed(() =>
-  props.isFavorite ? 'i-heroicons-heart-solid' : 'i-heroicons-heart',
-);
-
 const favoriteTooltipText = computed(() =>
   props.isFavorite ? 'Remove like' : 'Like this meal',
 );
@@ -123,10 +119,18 @@ const favoriteTooltipText = computed(() =>
             :aria-label="favoriteTooltipText"
             @click.stop="emit('toggle-favorite')"
           >
-            <UIcon
-              :name="favoriteIconName"
-              class="text-xl transition-transform duration-200 group-hover/like:scale-110"
-            />
+            <span
+              v-if="isFavorite"
+              class="material-symbols-outlined text-[20px] transition-transform duration-200 [font-variation-settings:'FILL'_1] group-hover/like:scale-110"
+            >
+              favorite
+            </span>
+            <span
+              v-else
+              class="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover/like:scale-110"
+            >
+              favorite
+            </span>
 
             <!-- Tooltip Text on Hover -->
             <span
