@@ -19,7 +19,6 @@ return new class extends Migration
             $table->json('goals')->nullable(); 
             $table->unsignedInteger('household_size')->default(1);
             $table->string('prep_time_preference')->nullable();
-            $table->unsignedInteger('household_size')->default(1);
             $table->json('system_preferences')->nullable();
         });
     }

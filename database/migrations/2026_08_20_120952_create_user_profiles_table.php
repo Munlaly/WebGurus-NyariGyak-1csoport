@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('user_profiles', function (Blueprint $table) {
             $table->id();
-            
+            $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
+
             // Metabolic inputs
             $table->enum('sex', ['male', 'female']);
             $table->date('birthdate')->nullable();
