@@ -75,7 +75,7 @@ function onSubmit() {
             Don't have an account?
             <Link
               class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors hover:underline"
-              :href="route('register')"
+              :href="route('index')"
             >
               Sign up
             </Link>
