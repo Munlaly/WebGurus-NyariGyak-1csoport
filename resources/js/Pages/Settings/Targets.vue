@@ -31,7 +31,12 @@ const form = useForm({
 });
 
 const submitGoal = () => {
-  form.put(route('settings.targets'), { preserveScroll: true });
+  form
+    .transform((data) => ({
+      ...data,
+      mainGoal: [data.mainGoal],
+    }))
+    .put(route('settings.targets'), { preserveScroll: true });
 };
 </script>
 

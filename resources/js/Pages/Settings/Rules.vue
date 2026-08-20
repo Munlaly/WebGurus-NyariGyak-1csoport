@@ -2,7 +2,6 @@
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 
-
 const dietOptions = [
   {
     label: 'Omnivore',
@@ -94,7 +93,12 @@ const form = useForm({
 });
 
 const submitRule = () => {
-  form.put(route('settings.rules'), { preserveScroll: true });
+  form
+    .transform((data) => ({
+      ...data,
+      dietType: [data.dietType],
+    }))
+    .put(route('settings.rules'), { preserveScroll: true });
 };
 </script>
 

@@ -17,7 +17,8 @@ class SettingsController extends Controller
 
         return Inertia::render('Settings/Targets', [
             'userSettings' => [
-                'mainGoal' => $goals['mainGoal'] ?? 'general',
+                // Safely read the first element for the current UI, or default to 'general'
+                'mainGoal' => !empty($goals) ? $goals[0] : 'general',
                 'calorieTarget' => $settings->daily_calorie_target ?? 2000,
             ]
         ]);
@@ -26,14 +27,16 @@ class SettingsController extends Controller
     public function updateTargets(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'mainGoal' => 'required|string|in:weightloss,weightgain,muscle,general',
+            'mainGoal' => 'required', 
             'calorieTarget' => 'required|integer|min:1000|max:10000',
         ]);
+
+        $goalsArray = is_array($validated['mainGoal']) ? $validated['mainGoal'] : [$validated['mainGoal']];
 
         $request->user()->settings()->updateOrCreate(
             ['user_id' => $request->user()->id],
             [
-                'goals' => ['mainGoal' => $validated['mainGoal']], 
+                'goals' => $goalsArray, 
                 'daily_calorie_target' => $validated['calorieTarget'] 
             ] 
         );
@@ -52,7 +55,7 @@ class SettingsController extends Controller
             'userSettings' => [
                 'prepTime' => $settings->prep_time_preference ?? 'normal',
                 'numberOfPeople' => $settings->household_size ?? '1_person',
-                'dietType' => $diet['dietType'] ?? 'omnivore',
+                'dietType' => !empty($diet) ? $diet[0] : 'omnivore',
                 'avoidedIngredients' => implode(', ', $dislikes), 
             ],
         ]);
@@ -63,10 +66,11 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'prepTime' => 'required|string',
             'numberOfPeople' => 'required|string',
-            'dietType' => 'required|string',
+            'dietType' => 'required',
             'avoidedIngredients' => 'nullable|string',
         ]);
 
+        $dietArray = is_array($validated['dietType']) ? $validated['dietType'] : [$validated['dietType']];
     
         $dislikesArray = $validated['avoidedIngredients'] 
             ? array_values(array_filter(array_map('trim', explode(',', $validated['avoidedIngredients']))))
@@ -77,7 +81,7 @@ class SettingsController extends Controller
             [
                 'prep_time_preference' => $validated['prepTime'],
                 'household_size' => $validated['numberOfPeople'],
-                'meal_plan_preference' => ['dietType' => $validated['dietType']],
+                'meal_plan_preference' => $dietArray, // Mentor's change: Saving as a flat array
                 'custom_dislikes' => $dislikesArray,
             ]
         );
@@ -90,7 +94,6 @@ class SettingsController extends Controller
     { 
         $settings = $request->user()->settings()->firstOrCreate([]);
         $sysPrefs = $settings->system_preferences ?? [];
-
 
        return Inertia::render('Settings/System', [
             'userSettings' => [
