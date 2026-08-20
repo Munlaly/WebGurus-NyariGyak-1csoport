@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('parent_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->integer('default_shelf_life_days')->nullable();
             $table->timestamps();
 
