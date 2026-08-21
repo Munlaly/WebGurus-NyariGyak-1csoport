@@ -38,7 +38,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function profile(): HasOne
+   public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
     }
@@ -48,7 +48,28 @@ class User extends Authenticatable
         return $this->hasOne(UserSetting::class);
     }
 
-    public function dislikedIngredients(): BelongsToMany {
-        return $this->belongsToMany(Ingredient::class,'user_disliked_ingredients');
+    public function recipes(): HasMany
+    {
+        return $this->hasMany(Recipe::class);
+    }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(UserInventory::class);
+    }
+
+    public function dailyPlans(): HasMany
+    {
+        return $this->hasMany(DailyPlan::class);
+    }
+
+    public function dietaryOptions(): BelongsToMany
+    {
+        return $this->belongsToMany(DietaryOption::class, 'user_dietary_options');
+    }
+
+    public function dislikedIngredients(): BelongsToMany 
+    {
+        return $this->belongsToMany(Ingredient::class, 'user_disliked_ingredients');
     }
 }
