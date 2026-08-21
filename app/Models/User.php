@@ -38,8 +38,15 @@ class User extends Authenticatable
             'onboarded_at' => 'datetime'
         ];
     }
-    public function settings() {
-        return $this->hasOne(UserSettings::class);
+
+    public function profile(): HasOne
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
+    public function settings(): HasOne
+    {
+        return $this->hasOne(UserSetting::class);
     }
     public function dislikedIngredients() {
         return $this->belongsToMany(Ingredient::class,'user_disliked_ingredients');
