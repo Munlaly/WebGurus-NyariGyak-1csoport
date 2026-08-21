@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('ingredient_id')->constrained()->cascadeOnDelete();
-            $table->decimal('amount_left')->nullable();
+            $table->decimal('amount_left', 8, 2)->default(0);
             $table->enum('status', ['FULL', 'OPENED', 'LOW'])->nullable();
             $table->date('expiration_date')->nullable();
             $table->boolean('is_frozen')->default(false);

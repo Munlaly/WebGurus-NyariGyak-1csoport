@@ -18,8 +18,8 @@ return new class extends Migration
             // Metabolic inputs
             $table->enum('sex', ['male', 'female']);
             $table->date('birthdate')->nullable();
-            $table->unsignedDecimal('height_cm', 5, 2)->nullable();
-            $table->unsignedDecimal('weight_kg', 5, 2)->nullable();
+            $table->decimal('height_cm', 5, 2)->nullable();
+            $table->decimal('weight_kg', 5, 2)->nullable();
             $table->enum('baseline_activity', [
                 'sedentary', 
                 'lightly_active', 

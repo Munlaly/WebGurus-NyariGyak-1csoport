@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('recipes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('owner_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->text('instructions')->nullable();
             $table->integer('prep_time_minutes')->nullable();
             $table->boolean('is_public')->default(true);
             $table->string('image')->nullable();
 
-            $table->integer('calories')->nullable();
+            $table->unsignedInteger('calories')->nullable();
             $table->decimal('protein')->nullable();
             $table->decimal('fat')->nullable();
             $table->decimal('carbs')->nullable();
