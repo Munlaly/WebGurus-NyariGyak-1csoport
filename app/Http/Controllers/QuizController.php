@@ -26,6 +26,6 @@ class QuizController extends Controller
 
         session(['quiz_preferences' => $validated]);
 
-        return redirect()->route('register');
+        return redirect()->route('index');
     }
 }
