@@ -45,7 +45,7 @@ class User extends Authenticatable
 
     public function settings(): HasOne
     {
-        return $this->hasOne(UserSettings::class);
+        return $this->hasOne(UserSetting::class);
     }
 
     public function dislikedIngredients(): BelongsToMany {
