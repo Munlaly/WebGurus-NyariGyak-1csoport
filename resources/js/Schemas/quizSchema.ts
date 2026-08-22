@@ -1,11 +1,13 @@
 import { z } from 'zod';
 
 export const stepGoalSchema = z.object({
-  goals: z.array(z.string()).min(1, 'Please select at least one goal'),
+  fitness_goal: z.enum(['loose_weight', 'mantain', 'gain_muscle'] as const, {
+    message: 'Please seelct a valid fitness goal',
+  }),
 });
 
 export const stepDietSchema = z.object({
-  meal_plan_preferences: z.array(z.string()),
+  meal_plan_preferences: z.array(z.number().int().positive()),
 });
 
 export const stepDislikedIngredientsSchema = z.object({
