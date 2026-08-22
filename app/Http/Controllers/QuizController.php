@@ -9,7 +9,7 @@ class QuizController extends Controller
 {
     //
     public function index(){
-        return Inertia::render('Quiz');
+        return Inertia::render('QuizMain');
     }
 
     public function saveSession(Request $request){
