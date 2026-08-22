@@ -12,6 +12,7 @@ class DietaryOption extends Model
     protected $fillable = [
         'name',
         'slug',
+        'description',
     ];
 
     public function users(): BelongsToMany
