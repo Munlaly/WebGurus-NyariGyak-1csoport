@@ -54,11 +54,11 @@ const form = useForm({
   disliked_ingredients: [],
   sex: '' as QuizFormData['sex'],
   birthdate: '',
-  height_cm: 0,
-  weight_kg: 0,
+  height_cm: '' as unknown as number,
+  weight_kg: '' as unknown as number,
   baseline_activity: '' as QuizFormData['baseline_activity'],
-  household_size: 0,
-  prep_time_preference: 0,
+  household_size: '' as unknown as number,
+  prep_time_preference: '' as unknown as number,
 });
 
 const progressPercentage = computed(() => {
