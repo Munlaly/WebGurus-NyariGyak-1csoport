@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
+import type { PageProps } from '@inertiajs/core';
 import {
   stepGoalSchema,
   stepDietSchema,
@@ -10,6 +11,20 @@ import {
   stepPrepTimeSchema,
   type QuizFormData,
 } from '../Schemas/quizSchema';
+
+import StepIntro from '../Components/QuizsSteps/StepIntro.vue';
+
+interface QuizPageProps extends PageProps {
+  auth: {
+    user: {
+      username: string;
+    } | null;
+  };
+}
+
+// Grab data from shared props
+const page = usePage<QuizPageProps>();
+const username = computed(() => page.props.auth?.user?.username || 'Guest');
 
 const stepConfig = [
   { type: 'intro', schema: null },
@@ -104,7 +119,11 @@ function submitQuiz() {
     </header>
 
     <!-- MAIN CONTENT AREA -->
-    <main></main>
+    <main
+      class="relative mx-auto mb-20 flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 py-12"
+    >
+      <StepIntro v-if="currentStep === 0" :username="username" />
+    </main>
 
     <!-- BOTTOM NAVIGATION -->
     <div
