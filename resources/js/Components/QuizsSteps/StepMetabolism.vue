@@ -1,9 +1,8 @@
 <script setup lang="ts">
 const sex = defineModel<'male' | 'female'>('sex', { required: true });
-// Kept as string to prevent v-model binding breakage on type="date"
 const birthdate = defineModel<string>('birthdate', { required: true });
-const height = defineModel<number>('height', { required: true });
-const weight = defineModel<number>('weight', { required: true });
+const height = defineModel<number | string>('height', { required: true });
+const weight = defineModel<number | string>('weight', { required: true });
 const activity = defineModel<
   'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
 >('activity', { required: true });

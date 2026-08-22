@@ -15,6 +15,7 @@ import {
 import StepIntro from '../Components/QuizsSteps/StepIntro.vue';
 import StepGoal from '../Components/QuizsSteps/StepGoal.vue';
 import StepMetabolism from '../Components/QuizsSteps/StepMetabolism.vue';
+import StepDiet from '../Components/QuizsSteps/StepDiet.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {
@@ -22,11 +23,13 @@ interface QuizPageProps extends PageProps {
       username: string;
     } | null;
   };
+  dietaryOptions: { id: number; name: string; description: string | null }[];
 }
 
 // Grab data from shared props
 const page = usePage<QuizPageProps>();
 const username = computed(() => page.props.auth?.user?.username || 'Guest');
+const dietaryOptions = computed(() => page.props.dietaryOptions || []);
 
 const stepConfig = [
   { type: 'intro', schema: null },
@@ -133,6 +136,12 @@ function submitQuiz() {
         v-model:height="form.height_cm"
         v-model:weight="form.weight_kg"
         v-model:activity="form.baseline_activity"
+      />
+
+      <StepDiet
+        v-else-if="currentStep === 3"
+        v-model="form.meal_plan_preferences"
+        :options="dietaryOptions"
       />
     </main>
 
