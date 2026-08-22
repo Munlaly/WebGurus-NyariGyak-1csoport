@@ -115,12 +115,7 @@ function submitQuiz() {
           </span>
         </div>
 
-        <UProgress
-          :value="progressPercentage"
-          color="primary"
-          class="h-2"
-          animation="none"
-        />
+        <UProgress v-model="progressPercentage" :max="100" />
       </div>
     </header>
 
