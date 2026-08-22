@@ -13,7 +13,8 @@ import {
 } from '../Schemas/quizSchema';
 
 import StepIntro from '../Components/QuizsSteps/StepIntro.vue';
-import GoalStep from '../Components/QuizsSteps/GoalStep.vue';
+import StepGoal from '../Components/QuizsSteps/StepGoal.vue';
+import StepMetabolism from '../Components/QuizsSteps/StepMetabolism.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {
@@ -124,7 +125,15 @@ function submitQuiz() {
       class="relative mx-auto mb-20 flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 py-12"
     >
       <StepIntro v-if="currentStep === 0" :username="username" />
-      <GoalStep v-else-if="currentStep === 1" v-model="form.fitness_goal" />
+      <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
+      <StepMetabolism
+        v-else-if="currentStep === 2"
+        v-model:sex="form.sex"
+        v-model:birthdate="form.birthdate"
+        v-model:height="form.height_cm"
+        v-model:weight="form.weight_kg"
+        v-model:activity="form.baseline_activity"
+      />
     </main>
 
     <!-- BOTTOM NAVIGATION -->

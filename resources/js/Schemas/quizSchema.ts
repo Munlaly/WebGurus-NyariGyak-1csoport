@@ -21,9 +21,17 @@ export const stepMetabolismSchema = z.object({
   birthdate: z.string().date('Please enter a valid birthdate (YYYY-MM-DD)'),
   height_cm: z.coerce.number().positive('Height must be a positive number'),
   weight_kg: z.coerce.number().positive('Weight must be a positive number'),
-  baseline_activity: z
-    .string()
-    .min(1, 'Please select a baseline activity level'),
+  baseline_activity: z.enum(
+    [
+      'sedentary',
+      'lightly_active',
+      'moderately_active',
+      'very_active',
+    ] as const,
+    {
+      message: 'Please seect your baseline activity',
+    },
+  ),
 });
 
 export const stepHouseholdSchema = z.object({
