@@ -13,6 +13,7 @@ import {
 } from '../Schemas/quizSchema';
 
 import StepIntro from '../Components/QuizsSteps/StepIntro.vue';
+import GoalStep from '../Components/QuizsSteps/GoalStep.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {
@@ -29,11 +30,11 @@ const username = computed(() => page.props.auth?.user?.username || 'Guest');
 const stepConfig = [
   { type: 'intro', schema: null },
   { type: 'question', schema: stepGoalSchema },
+  { type: 'question', schema: stepMetabolismSchema },
   { type: 'question', schema: stepDietSchema },
   { type: 'question', schema: stepDislikedIngredientsSchema },
-  { type: 'question', schema: stepMetabolismSchema },
-  { type: 'question', schema: stepHouseholdSchema },
   { type: 'question', schema: stepPrepTimeSchema },
+  { type: 'question', schema: stepHouseholdSchema },
   { type: 'summary', schema: null },
 ];
 
@@ -114,7 +115,12 @@ function submitQuiz() {
           </span>
         </div>
 
-        <UProgress :value="progressPercentage" color="primary" class="h-2" />
+        <UProgress
+          :value="progressPercentage"
+          color="primary"
+          class="h-2"
+          animation="none"
+        />
       </div>
     </header>
 
@@ -123,6 +129,7 @@ function submitQuiz() {
       class="relative mx-auto mb-20 flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 py-12"
     >
       <StepIntro v-if="currentStep === 0" :username="username" />
+      <GoalStep v-else-if="currentStep === 1" v-model="form.fitness_goal" />
     </main>
 
     <!-- BOTTOM NAVIGATION -->

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const stepGoalSchema = z.object({
-  fitness_goal: z.enum(['loose_weight', 'mantain', 'gain_muscle'] as const, {
+  fitness_goal: z.enum(['lose_weight', 'maintain', 'gain_muscle'] as const, {
     message: 'Please seelct a valid fitness goal',
   }),
 });
