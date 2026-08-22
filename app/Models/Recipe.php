@@ -19,16 +19,19 @@ class Recipe extends Model
         'calories',
         'protein',
         'fat',
-        'carbs'
+        'carbs',
+        'servings',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
         'prep_time_minutes' => 'integer',
         'calories'=> 'integer',
-        'protein'=> 'float',
-        'fat'=> 'float',
-        'carbs' => 'float'
+        'protein'=> 'decimal:2',
+        'fat'=> 'decimal:2',
+        'carbs' => 'decimal:2',
+        'servings' => 'integer',
+
     ];
 
     public function user(): BelongsTo {

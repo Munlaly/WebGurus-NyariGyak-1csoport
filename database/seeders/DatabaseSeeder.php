@@ -3,7 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\UserSettings;
+use App\Models\UserProfile;
+use App\Models\UserSetting;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -21,16 +22,18 @@ class DatabaseSeeder extends Seeder
             'username' => 'Test User',
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
-            'daily_calorie_target' => 2000,
         ]);
 
-        UserSettings::create([
+        UserProfile::create([
+            'user_id' => $user->id,
+            'sex' => 'male', 
+            'weekly_calorie_target' => 14000, 
+        ]);
+
+        UserSetting::create([
             'user_id'=> $user->id,
-            'goals' => ['lose weight'],
-            'meal_plan_preference' => ['vegan'],
-            'household_size' => '1 person',
+            'household_size' => '1',
             'prep_time_preference' => 'under 20 minutes',
-            'budget_or_comfort' => 'comfort_first',
         ]);
         
         $this->call ([

@@ -17,4 +17,8 @@ class RecipeIngredient extends Pivot
         'amount',
         'unit',
     ];
+
+    protected $casts = [
+        'amount' => 'decimal:2', 
+    ];
 }

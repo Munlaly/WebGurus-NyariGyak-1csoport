@@ -3,6 +3,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Category;
+use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
@@ -37,6 +38,9 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $categoryData) {
+
+            $categoryData['slug'] = Str::slug($categoryData['name']);
+
             Category::updateOrCreate(
                 ['name' => $categoryData['name']],
                 $categoryData
