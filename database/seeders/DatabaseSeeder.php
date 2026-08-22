@@ -32,7 +32,6 @@ class DatabaseSeeder extends Seeder
 
         UserSetting::create([
             'user_id'=> $user->id,
-            'goals' => ['lose weight'],
             'household_size' => '1',
             'prep_time_preference' => 'under 20 minutes',
         ]);
