@@ -1,8 +1,12 @@
 <script setup lang="ts">
 const sex = defineModel<'male' | 'female'>('sex', { required: true });
 const birthdate = defineModel<string>('birthdate', { required: true });
-const height = defineModel<number | string>('height', { required: true });
-const weight = defineModel<number | string>('weight', { required: true });
+const height = defineModel<number | string | undefined>('height', {
+  required: true,
+});
+const weight = defineModel<number | string | undefined>('weight', {
+  required: true,
+});
 const activity = defineModel<
   'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
 >('activity', { required: true });
@@ -62,10 +66,10 @@ const activityItems = [
       <!-- Group 1: Biological Data -->
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <UFormField label="Biological Sex" name="sex">
-          <URadioGroup
+          <USelect
             v-model="sex"
             :items="sexItems"
-            variant="table"
+            placeholder="Select your biological sex"
             class="mt-2"
           />
         </UFormField>

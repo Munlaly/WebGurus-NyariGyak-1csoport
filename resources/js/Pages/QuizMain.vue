@@ -16,6 +16,7 @@ import StepIntro from '../Components/QuizsSteps/StepIntro.vue';
 import StepGoal from '../Components/QuizsSteps/StepGoal.vue';
 import StepMetabolism from '../Components/QuizsSteps/StepMetabolism.vue';
 import StepDiet from '../Components/QuizsSteps/StepDiet.vue';
+import StepPrepTime from '../Components/QuizsSteps/StepPrepTime.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {
@@ -128,7 +129,9 @@ function submitQuiz() {
       class="relative mx-auto mb-20 flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 py-12"
     >
       <StepIntro v-if="currentStep === 0" :username="username" />
+
       <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
+
       <StepMetabolism
         v-else-if="currentStep === 2"
         v-model:sex="form.sex"
@@ -142,6 +145,11 @@ function submitQuiz() {
         v-else-if="currentStep === 3"
         v-model="form.meal_plan_preferences"
         :options="dietaryOptions"
+      />
+
+      <StepPrepTime
+        v-else-if="currentStep === 5"
+        v-model="form.prep_time_preference"
       />
     </main>
 
