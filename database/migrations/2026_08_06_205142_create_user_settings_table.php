@@ -15,10 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
 
-            // Preferences and operational settings
-            $table->json('goals')->nullable(); 
+            // Preferences and operational settings 
             $table->unsignedInteger('household_size')->default(1);
-            $table->string('prep_time_preference')->nullable();
+            $table->unsignedInteger('prep_time_preference')->nullable();
             $table->json('system_preferences')->nullable();
 
             $table->timestamps();
