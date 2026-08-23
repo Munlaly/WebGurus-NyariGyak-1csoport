@@ -81,7 +81,7 @@ const activityItems = [
 
       <!-- Group 2: Body Metrics -->
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <UFormField label="Height (cm)" name="height">
+        <UFormField label="Height (cm)" name="height_cm">
           <UInput
             v-model="height"
             type="number"
@@ -91,7 +91,7 @@ const activityItems = [
           />
         </UFormField>
 
-        <UFormField label="Weight (kg)" name="weight">
+        <UFormField label="Weight (kg)" name="weight_kg">
           <UInput
             v-model="weight"
             type="number"
@@ -103,7 +103,7 @@ const activityItems = [
       </div>
 
       <!-- Group 3: Baseline Activity -->
-      <UFormField label="Baseline Activity Level" name="activity">
+      <UFormField label="Baseline Activity Level" name="baseline_activity">
         <URadioGroup
           v-model="activity"
           :items="activityItems"

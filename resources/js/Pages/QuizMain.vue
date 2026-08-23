@@ -76,33 +76,27 @@ const progressPercentage = computed(() => {
   return Math.round((completedQuestions / totalQuestions.value) * 100);
 });
 
-const isNextDisabled = computed(() => {
-  const currentSchema = stepConfig[currentStep.value].schema;
-  if (!currentSchema) return false;
-
-  return !currentSchema.safeParse(form).success;
-});
-
-function nextStep() {
-  if (currentStep.value < stepConfig.length - 1 && !isNextDisabled.value) {
-    currentStep.value++;
-  }
-}
-
 function prevStep() {
   if (currentStep.value > 0) {
     currentStep.value--;
   }
 }
 
-function submitQuiz() {
-  form.post(route('quiz.store'));
+function handleNext() {
+  if (stepConfig[currentStep.value]?.type === 'summery') {
+    form.post(route('quiz.store'));
+  } else if (currentStep.value < stepConfig.length - 1) {
+    currentStep.value++;
+  }
 }
 </script>
 
 <template>
-  <div
+  <UForm
+    :state="form"
+    :schema="stepConfig[currentStep].schema || undefined"
     class="bg-background text-on-background flex min-h-screen flex-col antialiased"
+    @submit="handleNext"
   >
     <!-- HEADER & PROGRESS BAR -->
     <header
@@ -181,13 +175,11 @@ function submitQuiz() {
         <!-- Spacer -->
 
         <UButton
-          :disabled="isNextDisabled"
+          type="submit"
           color="primary"
           trailing-icon="i-heroicons-arrow-right"
           size="lg"
-          @click="nextStep"
         >
-          <!-- Look ahead to see if the next step is the summary -->
           {{
             stepConfig[currentStep + 1]?.type === 'summary'
               ? 'View Plan'
@@ -196,5 +188,5 @@ function submitQuiz() {
         </UButton>
       </nav>
     </div>
-  </div>
+  </UForm>
 </template>
