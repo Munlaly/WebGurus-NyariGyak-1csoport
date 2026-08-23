@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { parseDate } from '@internationalized/date';
+
 const sex = defineModel<'male' | 'female'>('sex', { required: true });
 const birthdate = defineModel<string>('birthdate', { required: true });
 const height = defineModel<number | string | undefined>('height', {
@@ -15,6 +18,20 @@ const sexItems = [
   { label: 'Male', value: 'male' },
   { label: 'Female', value: 'female' },
 ];
+
+const dateModel = computed({
+  get: () => {
+    if (!birthdate.value) return undefined;
+    try {
+      return parseDate(birthdate.value);
+    } catch {
+      return undefined;
+    }
+  },
+  set: (val) => {
+    birthdate.value = val ? val.toString() : '';
+  },
+});
 
 const activityItems = [
   {
@@ -42,6 +59,8 @@ const activityItems = [
       'Heavy physical labor or highly demanding manual work (e.g., construction or farming).',
   },
 ];
+
+const inputDate = useTemplateRef('inputDate');
 </script>
 
 <template>
@@ -75,7 +94,28 @@ const activityItems = [
         </UFormField>
 
         <UFormField label="Date of Birth" name="birthdate">
-          <UInput v-model="birthdate" type="date" size="lg" class="w-full" />
+          <UInputDate
+            ref="inputDate"
+            v-model="dateModel"
+            size="lg"
+            class="w-full"
+          >
+            <template #trailing>
+              <UPopover :reference="inputDate?.inputsRef[3]?.$el">
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  icon="i-lucide-calendar"
+                  aria-label="Select a date"
+                  class="px-0"
+                />
+                <template #content>
+                  <UCalendar v-model="dateModel" class="p-2" />
+                </template>
+              </UPopover>
+            </template>
+          </UInputDate>
         </UFormField>
       </div>
 

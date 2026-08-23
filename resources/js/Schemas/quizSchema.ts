@@ -18,7 +18,28 @@ export const stepMetabolismSchema = z.object({
   sex: z.enum(['male', 'female'] as const, {
     message: 'Please select your sex',
   }),
-  birthdate: z.string().date('Please enter a valid birthdate (YYYY-MM-DD)'),
+  birthdate: z
+    .string()
+    .date('Please enter a valid birthdate (YYYY-MM-DD)')
+    .refine(
+      (val) => {
+        const date = new Date(val);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const hundredYearsAgo = new Date(today);
+        hundredYearsAgo.setFullYear(today.getFullYear() - 100);
+
+        const oneYearAgo = new Date(today);
+        oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+        return date >= hundredYearsAgo && date < oneYearAgo;
+      },
+      {
+        message:
+          'Birthdate must be more than 1 year ago and within the last 100 years.',
+      },
+    ),
   height_cm: z.coerce.number().positive('Height must be a positive number'),
   weight_kg: z.coerce.number().positive('Weight must be a positive number'),
   baseline_activity: z.enum(
