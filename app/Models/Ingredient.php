@@ -22,7 +22,7 @@ class Ingredient extends Model
         return [
             'name' => 'string',
             'base_unit' => BaseUnit::class,
-        ]
+        ];
     }
 
     public function category(): BelongsTo
