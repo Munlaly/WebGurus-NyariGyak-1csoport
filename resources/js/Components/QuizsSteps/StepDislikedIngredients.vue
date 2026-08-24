@@ -40,6 +40,10 @@ watch(searchTerm, (query) => {
     }
   }, 300);
 });
+
+function removeIngredient(idToRemove: number) {
+  model.value = model.value.filter((item) => item.id !== idToRemove);
+}
 </script>
 
 <template>
@@ -71,6 +75,25 @@ watch(searchTerm, (query) => {
           class="w-full"
         />
       </UFormField>
+
+      <!-- Selected Items Badges -->
+      <div v-if="model.length > 0" class="mt-4 flex flex-wrap gap-2">
+        <span
+          v-for="item in model"
+          :key="item.id"
+          class="bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+        >
+          {{ item.label }}
+          <button
+            type="button"
+            class="text-primary hover:text-primary-focus focus:outline-none"
+            aria-label="Remove ingredient"
+            @click="removeIngredient(item.id)"
+          >
+            <UIcon name="i-lucide-x" class="h-4 w-4" />
+          </button>
+        </span>
+      </div>
     </div>
   </div>
 </template>
