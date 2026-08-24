@@ -73,4 +73,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Ingredient::class, 'user_disliked_ingredients');
     }
+
+    public function exerciseSchedules(): HasMany{
+        return $this->hasMany(UserExerciseSchedule::class);
+    } 
 }

@@ -19,7 +19,6 @@ return new class extends Migration
             $table->unsignedInteger('household_size')->default(1);
             $table->unsignedInteger('prep_time_preference')->nullable();
             $table->json('system_preferences')->nullable();
-
             $table->timestamps();
         });
     }
