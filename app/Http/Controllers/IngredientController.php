@@ -9,10 +9,10 @@ class IngredientController extends Controller
 {
     //
     public function search(Request $request){
-        $query = $request->input('q');
+        $query = $request->query('q');
 
         if(empty($query)){
-            return response()->json[[]];
+            return response()->json([]);
         }
 
         $ingredients = Ingredient::select('id', 'name')

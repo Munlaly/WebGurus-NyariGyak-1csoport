@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import type { PageProps } from '@inertiajs/core';
 import {
@@ -18,6 +18,7 @@ import StepMetabolism from '../Components/QuizsSteps/StepMetabolism.vue';
 import StepDiet from '../Components/QuizsSteps/StepDiet.vue';
 import StepPrepTime from '../Components/QuizsSteps/StepPrepTime.vue';
 import StepHousehold from '../Components/QuizsSteps/StepHousehold.vue';
+import StepDislikedIngredients from '../Components/QuizsSteps/StepDislikedIngredients.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {
@@ -27,6 +28,16 @@ interface QuizPageProps extends PageProps {
   };
   dietaryOptions: { id: number; name: string; description: string | null }[];
 }
+
+const dislikedIngredientsObjects = ref<{ id: number; name: string }[]>([]);
+
+watch(
+  dislikedIngredientsObjects,
+  (newSelection) => {
+    form.disliked_ingredients = newSelection.map((item) => item.id);
+  },
+  { deep: true },
+);
 
 // Grab data from shared props
 const page = usePage<QuizPageProps>();
@@ -52,8 +63,8 @@ const totalQuestions = computed(
 
 const form = useForm({
   fitness_goal: '' as QuizFormData['fitness_goal'],
-  meal_plan_preferences: [],
-  disliked_ingredients: [],
+  meal_plan_preferences: [] as number[],
+  disliked_ingredients: [] as number[],
   sex: '' as QuizFormData['sex'],
   birthdate: '',
   height_cm: '' as unknown as number,
@@ -83,7 +94,7 @@ function prevStep() {
 }
 
 function handleNext() {
-  if (stepConfig[currentStep.value]?.type === 'summery') {
+  if (stepConfig[currentStep.value]?.type === 'summary') {
     form.post(route('quiz.store'));
   } else if (currentStep.value < stepConfig.length - 1) {
     currentStep.value++;
@@ -140,6 +151,11 @@ function handleNext() {
         v-else-if="currentStep === 3"
         v-model="form.meal_plan_preferences"
         :options="dietaryOptions"
+      />
+
+      <StepDislikedIngredients
+        v-else-if="currentStep === 4"
+        v-model="dislikedIngredientsObjects"
       />
 
       <StepPrepTime

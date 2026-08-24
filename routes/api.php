@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 
 use App\Http\Controllers\UserInventoryController;
 use Illuminate\Support\Facades\Route;
@@ -20,3 +21,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user/settings', [SettingsController::class, 'show']);
     Route::put('user/settings', [SettingsController::class, 'update']);
 });
+=======
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\IngredientController;
+
+Route::middleware('guest')->group(function (){
+    Route::get('/api/ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
+});
+>>>>>>> 58ed983 (Created frontend and route for StepDislikedIngredients)
