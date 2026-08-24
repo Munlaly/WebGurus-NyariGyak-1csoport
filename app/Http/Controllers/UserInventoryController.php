@@ -14,13 +14,14 @@ class UserInventoryController extends Controller
         $now = Carbon::now();
         $oneWeekFromNow = $now->copy()->addDays(7);
 
+        $settings = UserSettings::where("user_id", $user->id)->first();
+
         $expiredItems = UserInventory::where('user_id', $user->id)
             ->whereNotNull('expiration_date')
             ->whereDate('expiration_date', '<', $now->toDateString())
             ->get();
 
         if($expiredItems->isNotEmpty()) {
-            $settings = UserSettings::where('user_id', $user->id)->first();
             $pointsToDeduct = 0;
 
             foreach($expiredItems as $item) {
