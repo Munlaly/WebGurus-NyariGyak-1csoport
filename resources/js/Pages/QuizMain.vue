@@ -9,6 +9,7 @@ import {
   stepMetabolismSchema,
   stepHouseholdSchema,
   stepPrepTimeSchema,
+  stepExerciseSchema,
   type QuizFormData,
 } from '../Schemas/quizSchema';
 
@@ -19,6 +20,7 @@ import StepDiet from '../Components/QuizsSteps/StepDiet.vue';
 import StepPrepTime from '../Components/QuizsSteps/StepPrepTime.vue';
 import StepHousehold from '../Components/QuizsSteps/StepHousehold.vue';
 import StepDislikedIngredients from '../Components/QuizsSteps/StepDislikedIngredients.vue';
+import StepExercise from '../Components/QuizsSteps/StepExercise.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {
@@ -48,6 +50,7 @@ const stepConfig = [
   { type: 'intro', schema: null },
   { type: 'question', schema: stepGoalSchema },
   { type: 'question', schema: stepMetabolismSchema },
+  { type: 'question', schema: stepExerciseSchema },
   { type: 'question', schema: stepDietSchema },
   { type: 'question', schema: stepDislikedIngredientsSchema },
   { type: 'question', schema: stepPrepTimeSchema },
@@ -72,6 +75,15 @@ const form = useForm({
   baseline_activity: '' as QuizFormData['baseline_activity'],
   household_size: '' as unknown as number,
   prep_time_preference: '' as unknown as number,
+  exercise_schedule: {
+    monday: 'rest',
+    tuesday: 'rest',
+    wednesday: 'rest',
+    thursday: 'rest',
+    friday: 'rest',
+    saturday: 'rest',
+    sunday: 'rest',
+  } as QuizFormData['exercise_schedule'],
 });
 
 const progressPercentage = computed(() => {
@@ -147,24 +159,29 @@ function handleNext() {
         v-model:activity="form.baseline_activity"
       />
 
-      <StepDiet
+      <StepExercise
         v-else-if="currentStep === 3"
+        v-model="form.exercise_schedule"
+      />
+
+      <StepDiet
+        v-else-if="currentStep === 4"
         v-model="form.meal_plan_preferences"
         :options="dietaryOptions"
       />
 
       <StepDislikedIngredients
-        v-else-if="currentStep === 4"
+        v-else-if="currentStep === 5"
         v-model="dislikedIngredientsObjects"
       />
 
       <StepPrepTime
-        v-else-if="currentStep === 5"
+        v-else-if="currentStep === 6"
         v-model="form.prep_time_preference"
       />
 
       <StepHousehold
-        v-else-if="currentStep === 6"
+        v-else-if="currentStep === 7"
         v-model="form.household_size"
       />
     </main>

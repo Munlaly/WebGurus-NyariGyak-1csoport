@@ -69,12 +69,29 @@ export const stepPrepTimeSchema = z.object({
     .min(1, 'Please select prep time preference'),
 });
 
+const exerciseLevelEnum = z.enum(['rest', 'moderate', 'heavy'], {
+  message: 'Invalid exercise level selected',
+});
+
+export const stepExerciseSchema = z.object({
+  exercise_schedule: z.object({
+    monday: exerciseLevelEnum,
+    tuesday: exerciseLevelEnum,
+    wednesday: exerciseLevelEnum,
+    thursday: exerciseLevelEnum,
+    friday: exerciseLevelEnum,
+    saturday: exerciseLevelEnum,
+    sunday: exerciseLevelEnum,
+  }),
+});
+
 export const quizFormSchema = stepGoalSchema
   .merge(stepDietSchema)
   .merge(stepDislikedIngredientsSchema)
   .merge(stepMetabolismSchema)
   .merge(stepHouseholdSchema)
-  .merge(stepPrepTimeSchema);
+  .merge(stepPrepTimeSchema)
+  .merge(stepExerciseSchema);
 
 export type QuizFormData = z.infer<typeof quizFormSchema>;
 
