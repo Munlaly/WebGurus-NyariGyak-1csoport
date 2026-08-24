@@ -6,7 +6,7 @@ use App\Http\Controllers\MealPlanController;
 use App\Http\Controllers\UserRecipeController;
 use App\Http\Controllers\SettingsController;
 
-Route::middleware('guest')->group(function (){
+Route::middleware('auth')->group(function (){
     Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
 });
 
