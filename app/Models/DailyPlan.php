@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\EntityStatus;
+use App\Enums\ExerciseIntensity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +23,8 @@ class DailyPlan extends Model
 
     protected $casts = [
         'date' => 'date',
+        'day-type' => ExerciseIntensity::class,
+        'status' => EntityStatus::class,
         'target_calories' => 'integer',
         'target_protein_g' => 'integer',
         'target_carbs_g' => 'integer',

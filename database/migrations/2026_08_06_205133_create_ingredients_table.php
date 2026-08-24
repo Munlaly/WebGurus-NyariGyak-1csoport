@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->enum('base_unit', ['g', 'ml', 'db']);
+            $table->enum('base_unit', ['g', 'ml', 'pcs']);
             $table->timestamps();
 
             $table->index('category_id', 'idx_ingredients_category');

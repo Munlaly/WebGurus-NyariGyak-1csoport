@@ -1,6 +1,9 @@
 <?php
 namespace App\Models;
 
+use App\Enums\BaselineActivity;
+use App\Enums\FitnessGoal;
+use App\Enums\UserSex;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -20,6 +23,9 @@ class UserProfile extends Model
     ];
 
     protected $casts = [
+        'sex' => UserSex::class,
+        'baseline-activity' => BaselineActivity::class,
+        'fitness_goal' => FitnessGoal::class,
         'birthdate' => 'date',
         'height_cm' => 'decimal:2',
         'weight_kg' => 'decimal:2',
