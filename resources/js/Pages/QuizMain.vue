@@ -24,6 +24,8 @@ import StepDislikedIngredients from '../Components/QuizSteps/StepDislikedIngredi
 import StepExercise from '../Components/QuizSteps/StepExercise.vue';
 import StepSummary from '../Components/QuizSteps/StepSummary.vue';
 
+import vegetables_bg from '../../images/verdant_bg.jpg';
+
 interface QuizPageProps extends PageProps {
   auth: {
     user: {
@@ -142,81 +144,95 @@ function handleNext() {
     class="bg-background text-on-background flex min-h-screen flex-col antialiased"
     @submit="handleNext"
   >
-    <!-- HEADER & PROGRESS BAR -->
-    <header
-      v-if="stepConfig[currentStep].type === 'question'"
-      class="px-gutter max-w-container-max relative z-10 mx-auto mt-4 flex w-full shrink-0 flex-col items-center pt-8 md:mt-8"
-    >
-      <div class="w-full max-w-3xl">
-        <div class="mb-2 flex items-center justify-between">
-          <span
-            class="font-label-md text-label-md text-on-surface-variant tracking-wider uppercase"
-          >
-            Step {{ currentStep }} of {{ totalQuestions }}
-          </span>
-          <span class="font-label-md text-label-md text-primary font-bold">
-            {{ progressPercentage }}%
-          </span>
-        </div>
+    <!-- The Background Layer -->
+    <div class="absolute inset-0 z-0 overflow-hidden bg-gray-900">
+      <img
+        :src="vegetables_bg"
+        alt="Fresh healthy food"
+        class="h-full w-full object-cover opacity-90"
+      />
 
-        <UProgress v-model="progressPercentage" :max="100" />
-      </div>
-    </header>
+      <div class="absolute inset-0 bg-black/20"></div>
+    </div>
 
-    <!-- MAIN CONTENT AREA -->
+    <!-- 2. The Centered Glass Card -->
     <main
-      class="relative mx-auto mb-20 flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-4 py-12"
+      class="relative z-10 flex flex-1 items-center justify-center px-4 py-24"
     >
-      <StepIntro v-if="currentStep === 0" :username="username" />
+      <!-- Increased opacity to 80/90 and forced high-contrast text -->
+      <div
+        class="w-full max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-white/80 p-8 text-slate-900 shadow-2xl backdrop-blur-2xl md:p-14 dark:bg-gray-900/80 dark:text-white"
+      >
+        <!-- Header & Progress Bar -->
+        <header
+          v-if="stepConfig[currentStep].type === 'question'"
+          class="mb-10 w-full"
+        >
+          <div class="mb-3 flex items-center justify-between">
+            <span
+              class="font-label-md text-label-md tracking-wider uppercase opacity-80"
+            >
+              Step {{ currentStep }} of {{ totalQuestions }}
+            </span>
+            <span class="font-label-md text-label-md text-primary font-bold">
+              {{ progressPercentage }}%
+            </span>
+          </div>
+          <UProgress v-model="progressPercentage" :max="100" color="primary" />
+        </header>
 
-      <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
+        <!-- Dynamic Step Components -->
+        <div class="min-h-100">
+          <StepIntro v-if="currentStep === 0" :username="username" />
+          <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
 
-      <StepMetabolism
-        v-else-if="currentStep === 2"
-        v-model:sex="form.sex"
-        v-model:birthdate="form.birthdate"
-        v-model:height="form.height_cm"
-        v-model:weight="form.weight_kg"
-        v-model:activity="form.baseline_activity"
-      />
+          <StepMetabolism
+            v-else-if="currentStep === 2"
+            v-model:sex="form.sex"
+            v-model:birthdate="form.birthdate"
+            v-model:height="form.height_cm"
+            v-model:weight="form.weight_kg"
+            v-model:activity="form.baseline_activity"
+          />
 
-      <StepExercise
-        v-else-if="currentStep === 3"
-        v-model="form.exercise_schedule"
-      />
+          <StepExercise
+            v-else-if="currentStep === 3"
+            v-model="form.exercise_schedule"
+          />
 
-      <StepDiet
-        v-else-if="currentStep === 4"
-        v-model="form.meal_plan_preferences"
-        :options="dietaryOptions"
-      />
+          <StepDiet
+            v-else-if="currentStep === 4"
+            v-model="form.meal_plan_preferences"
+            :options="dietaryOptions"
+          />
 
-      <StepDislikedIngredients
-        v-else-if="currentStep === 5"
-        v-model="dislikedIngredientsObjects"
-      />
+          <StepDislikedIngredients
+            v-else-if="currentStep === 5"
+            v-model="dislikedIngredientsObjects"
+          />
 
-      <StepPrepTime
-        v-else-if="currentStep === 6"
-        v-model="form.prep_time_preference"
-      />
+          <StepPrepTime
+            v-else-if="currentStep === 6"
+            v-model="form.prep_time_preference"
+          />
 
-      <StepHousehold
-        v-else-if="currentStep === 7"
-        v-model="form.household_size"
-      />
+          <StepHousehold
+            v-else-if="currentStep === 7"
+            v-model="form.household_size"
+          />
 
-      <StepSummary
-        v-else-if="currentStep === 8"
-        :form="form"
-        :dietary-options="dietaryOptions"
-        :disliked-ingredients="dislikedIngredientsObjects"
-      />
+          <StepSummary
+            v-else-if="currentStep === 8"
+            :form="form"
+            :dietary-options="dietaryOptions"
+            :disliked-ingredients="dislikedIngredientsObjects"
+          />
+        </div>
+      </div>
     </main>
-
     <!-- BOTTOM NAVIGATION -->
     <div
-      class="bg-surface border-surface-container-highest fixed bottom-0 left-0 z-50 w-full shrink-0 border-t shadow-sm"
+      class="fixed bottom-0 left-0 z-50 w-full shrink-0 border-t border-white/20 bg-white/70 shadow-lg backdrop-blur-xl dark:bg-gray-900/70"
     >
       <nav
         class="px-gutter max-w-container-max mx-auto flex h-20 items-center justify-between py-4"
