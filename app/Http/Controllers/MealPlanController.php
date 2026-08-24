@@ -393,14 +393,15 @@ class MealPlanController extends Controller
     public function savePlan(Request $request) {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        $plan = $request->input('plan');
 
-        if(!$plan) {
-            return response()->json([
-                'success'=> false,
-                'message' => 'No plan data provided. '
-            ], 400);
-        }
+        $validated = $request->validate([
+            'plan' => 'required|array',
+            'plan.*.meals' => 'required|array',
+            'plan.*.meals.*.id' => 'required|integer|exists:recipes,id',
+
+        ]);
+
+        $plan = $validated['plan'];
 
         MealPlan::where('user_id', $user->id)
             ->where('status', 'DRAFT')
