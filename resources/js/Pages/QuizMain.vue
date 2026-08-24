@@ -14,15 +14,15 @@ import {
   quizFormSchema,
 } from '../Schemas/quizSchema';
 
-import StepIntro from '../Components/QuizsSteps/StepIntro.vue';
-import StepGoal from '../Components/QuizsSteps/StepGoal.vue';
-import StepMetabolism from '../Components/QuizsSteps/StepMetabolism.vue';
-import StepDiet from '../Components/QuizsSteps/StepDiet.vue';
-import StepPrepTime from '../Components/QuizsSteps/StepPrepTime.vue';
-import StepHousehold from '../Components/QuizsSteps/StepHousehold.vue';
-import StepDislikedIngredients from '../Components/QuizsSteps/StepDislikedIngredients.vue';
-import StepExercise from '../Components/QuizsSteps/StepExercise.vue';
-import StepSummary from '../Components/QuizsSteps/StepSummary.vue';
+import StepIntro from '../Components/QuizSteps/StepIntro.vue';
+import StepGoal from '../Components/QuizSteps/StepGoal.vue';
+import StepMetabolism from '../Components/QuizSteps/StepMetabolism.vue';
+import StepDiet from '../Components/QuizSteps/StepDiet.vue';
+import StepPrepTime from '../Components/QuizSteps/StepPrepTime.vue';
+import StepHousehold from '../Components/QuizSteps/StepHousehold.vue';
+import StepDislikedIngredients from '../Components/QuizSteps/StepDislikedIngredients.vue';
+import StepExercise from '../Components/QuizSteps/StepExercise.vue';
+import StepSummary from '../Components/QuizSteps/StepSummary.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {

@@ -1,13 +1,31 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 const model = defineModel<number[]>({ required: true });
 
-defineProps<{
+const props = defineProps<{
   options: {
     id: number;
     name: string;
     description: string | null;
   }[];
 }>();
+
+// map the data for UCheckboxGroup
+const dietaryItems = computed(() => {
+  return props.options.map((diet) => ({
+    value: String(diet.id),
+    label: diet.name,
+    description: diet.description || undefined,
+  }));
+});
+
+// Converts UI's string array to number array
+const stringModel = computed({
+  get: () => model.value.map(String),
+  set: (val: string[]) => {
+    model.value = val.map(Number);
+  },
+});
 </script>
 
 <template>
@@ -29,15 +47,11 @@ defineProps<{
     <div class="w-full max-w-md text-left">
       <UFormField name="meal_plan_preferences">
         <div class="mt-2 space-y-4">
-          <UCheckbox
-            v-for="diet in options"
-            :key="diet.id"
-            v-model="model"
-            :value="diet.id"
-            :label="diet.name"
-            :description="diet.description || undefined"
+          <UCheckboxGroup
+            v-model="stringModel"
+            :items="dietaryItems"
             size="lg"
-            class="hover:bg-surface-container-lowest rounded-xl border-2 border-transparent p-2 transition-all"
+            class="mt-2"
           />
         </div>
       </UFormField>
