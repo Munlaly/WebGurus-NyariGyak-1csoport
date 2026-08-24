@@ -141,27 +141,27 @@ function handleNext() {
   <UForm
     :state="form"
     :schema="stepConfig[currentStep].schema || undefined"
-    class="bg-background text-on-background flex min-h-screen flex-col antialiased"
+    class="flex min-h-screen flex-col antialiased"
     @submit="handleNext"
   >
-    <!-- The Background Layer -->
-    <div class="absolute inset-0 z-0 overflow-hidden bg-gray-900">
+    <!-- 1. Background fixed to viewport to prevent scroll cutoff -->
+    <div class="fixed inset-0 z-0 overflow-hidden bg-gray-900">
       <img
         :src="vegetables_bg"
         alt="Fresh healthy food"
         class="h-full w-full object-cover opacity-90"
       />
-
-      <div class="absolute inset-0 bg-black/20"></div>
+      <!-- A very subtle dark wash to keep contrast -->
+      <div class="absolute inset-0 bg-black/10"></div>
     </div>
 
-    <!-- 2. The Centered Glass Card -->
+    <!-- 2. Added pb-32 (padding-bottom) to ensure the card clears the fixed navbar -->
     <main
-      class="relative z-10 flex flex-1 items-center justify-center px-4 py-24"
+      class="relative z-10 flex flex-1 items-center justify-center px-4 pt-12 pb-32 md:pt-24 md:pb-40"
     >
-      <!-- Increased opacity to 80/90 and forced high-contrast text -->
+      <!-- Lowered opacity to 40%, frosted the border, added the 'glass-card' class -->
       <div
-        class="w-full max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-white/80 p-8 text-slate-900 shadow-2xl backdrop-blur-2xl md:p-14 dark:bg-gray-900/80 dark:text-white"
+        class="glass-card w-full max-w-4xl overflow-hidden rounded-3xl border border-white/40 bg-white/40 p-6 text-slate-900 shadow-2xl backdrop-blur-xl md:p-14 dark:border-gray-700/50 dark:bg-gray-900/50 dark:text-white"
       >
         <!-- Header & Progress Bar -->
         <header
@@ -182,7 +182,7 @@ function handleNext() {
         </header>
 
         <!-- Dynamic Step Components -->
-        <div class="min-h-100">
+        <div class="min-h-[400px]">
           <StepIntro v-if="currentStep === 0" :username="username" />
           <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
 
@@ -230,9 +230,10 @@ function handleNext() {
         </div>
       </div>
     </main>
-    <!-- BOTTOM NAVIGATION -->
+
+    <!-- 3. Made the navbar more transparent so the background bleeds through -->
     <div
-      class="fixed bottom-0 left-0 z-50 w-full shrink-0 border-t border-white/20 bg-white/70 shadow-lg backdrop-blur-xl dark:bg-gray-900/70"
+      class="fixed bottom-0 left-0 z-50 w-full shrink-0 border-t border-white/30 bg-white/40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-xl dark:border-gray-800/50 dark:bg-gray-900/50"
     >
       <nav
         class="px-gutter max-w-container-max mx-auto flex h-20 items-center justify-between py-4"
@@ -262,3 +263,36 @@ function handleNext() {
     </div>
   </UForm>
 </template>
+
+<style>
+.glass-card {
+  color: #0f172a !important;
+}
+
+.glass-card h1,
+.glass-card h2,
+.glass-card h3,
+.glass-card .text-on-surface {
+  color: #020617 !important;
+}
+
+.glass-card .text-gray-500,
+.glass-card .text-on-surface-variant {
+  color: #334155 !important;
+}
+
+/* Dark mode fallbacks */
+.dark .glass-card {
+  color: #f8fafc !important;
+}
+.dark .glass-card h1,
+.dark .glass-card h2,
+.dark .glass-card h3,
+.dark .glass-card .text-on-surface {
+  color: #ffffff !important;
+}
+.dark .glass-card .text-gray-500,
+.dark .glass-card .text-on-surface-variant {
+  color: #cbd5e1 !important;
+}
+</style>
