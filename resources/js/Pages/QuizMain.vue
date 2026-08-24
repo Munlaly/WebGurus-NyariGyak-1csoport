@@ -29,7 +29,7 @@ interface QuizPageProps extends PageProps {
   dietaryOptions: { id: number; name: string; description: string | null }[];
 }
 
-const dislikedIngredientsObjects = ref<{ id: number; name: string }[]>([]);
+const dislikedIngredientsObjects = ref<{ id: number; label: string }[]>([]);
 
 watch(
   dislikedIngredientsObjects,

@@ -7,7 +7,7 @@ use App\Http\Controllers\UserRecipeController;
 use App\Http\Controllers\SettingsController;
 
 Route::middleware('guest')->group(function (){
-    Route::get('/api/ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
+    Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
 });
 
 
