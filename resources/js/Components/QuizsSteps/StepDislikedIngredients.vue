@@ -1,25 +1,45 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue';
+
 const model = defineModel<{ id: number; label: string }[]>({ required: true });
 
-// Async search function triggered by user typing
-async function searchIngredients(query: string) {
-  if (!query) return [];
+const searchTerm = ref('');
+const items = ref<{ id: number; label: string }[]>([]);
+const loading = ref(false);
 
-  try {
-    const response = await fetch(route('ingredients.search', { q: query }));
-    if (!response.ok) throw new Error('Search failed');
+let debounceTimeout: ReturnType<typeof setTimeout>;
 
-    const data = await response.json();
+watch(searchTerm, (query) => {
+  clearTimeout(debounceTimeout);
 
-    return data.map((item: { id: number; name: string }) => ({
-      id: item.id,
-      label: item.name,
-    }));
-  } catch (error) {
-    console.error(error);
-    return [];
+  if (!query) {
+    items.value = [];
+    return;
   }
-}
+
+  // Wait 300ms after the user stops typing before hitting the backend
+  debounceTimeout = setTimeout(async () => {
+    loading.value = true;
+
+    try {
+      const response = await fetch(route('ingredients.search', { q: query }));
+      if (!response.ok) throw new Error('Search failed');
+
+      const data = await response.json();
+
+      // Map backend 'name' to the 'label' that Nuxt UI v4 expects
+      items.value = data.map((item: { id: number; name: string }) => ({
+        id: item.id,
+        label: item.name,
+      }));
+    } catch (error) {
+      console.error(error);
+      items.value = [];
+    } finally {
+      loading.value = false;
+    }
+  }, 300);
+});
 </script>
 
 <template>
@@ -42,11 +62,11 @@ async function searchIngredients(query: string) {
       <UFormField name="disliked_ingredients">
         <USelectMenu
           v-model="model"
-          :search="searchIngredients"
+          v-model:search-term="searchTerm"
+          :items="items"
+          :loading="loading"
           multiple
           placeholder="e.g., mushrooms, cilantro..."
-          searchable-placeholder="Search ingredients..."
-          by="id"
           size="lg"
           class="w-full"
         />
