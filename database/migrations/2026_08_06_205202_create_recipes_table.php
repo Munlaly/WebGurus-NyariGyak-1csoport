@@ -24,7 +24,7 @@ return new class extends Migration
             $table->float('protein')->nullable();
             $table->float('fat')->nullable();
             $table->float('carbs')->nullable();
-            $table->string('meal_types')->nullable();
+            $table->json('meal_types')->nullable();
 
             $table->timestamps();
 
