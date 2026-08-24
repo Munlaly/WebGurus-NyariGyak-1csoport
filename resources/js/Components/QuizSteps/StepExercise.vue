@@ -55,6 +55,7 @@ const activityOptions = [
               :items="activityOptions"
               size="lg"
               class="w-full"
+              :ui="{ content: 'z-[100]' }"
             />
           </UFormField>
         </div>

@@ -73,6 +73,7 @@ function removeIngredient(idToRemove: number) {
           placeholder="e.g., mushrooms, cilantro..."
           size="lg"
           class="w-full"
+          :ui="{ content: 'z-[100]' }"
         />
       </UFormField>
 

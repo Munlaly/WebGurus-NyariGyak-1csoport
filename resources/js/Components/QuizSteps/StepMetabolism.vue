@@ -90,6 +90,7 @@ const inputDate = useTemplateRef('inputDate');
             :items="sexItems"
             placeholder="Select your biological sex"
             class="mt-2"
+            :ui="{ content: 'z-[100]' }"
           />
         </UFormField>
 
@@ -101,7 +102,10 @@ const inputDate = useTemplateRef('inputDate');
             class="w-full"
           >
             <template #trailing>
-              <UPopover :reference="inputDate?.inputsRef[3]?.$el">
+              <UPopover
+                :reference="inputDate?.inputsRef[3]?.$el"
+                :ui="{ content: 'z-[100]' }"
+              >
                 <UButton
                   color="neutral"
                   variant="link"
