@@ -59,10 +59,10 @@ class QuizController extends Controller
             'exercise_schedule.sunday' => 'required|in:rest,moderate,heavy',
         ]);
 
-       // Transaction to prevent corrupted db state
+      // Transaction to prevent corrupted db state
         DB::transaction(function () use ($user, $validated) {
             
-            //  Save Profile Data
+            // Save Profile Data
             $user->profile()->create([
                 'sex' => $validated['sex'],
                 'birthdate' => $validated['birthdate'],
@@ -78,14 +78,34 @@ class QuizController extends Controller
                 'prep_time_preference' => $validated['prep_time_preference'],
             ]);
 
-            // Save Exercise Schedule
-            $user->exerciseSchedules()->create($validated['exercise_schedule']);
+            // Map string days to integer values for the DB
+            $dayMapping = [
+                'monday' => 1,
+                'tuesday' => 2,
+                'wednesday' => 3,
+                'thursday' => 4,
+                'friday' => 5,
+                'saturday' => 6,
+                'sunday' => 7,
+            ];
 
-            //  Sync Many-to-Many Relationships
+            // Transform the data into individual records
+            $exerciseRecords = [];
+            foreach ($validated['exercise_schedule'] as $day => $intensity) {
+                $exerciseRecords[] = [
+                    'day_of_week' => $dayMapping[$day],
+                    'intensity' => $intensity,
+                ];
+            }
+
+            // Save Exercise Schedule using createMany
+            $user->exerciseSchedules()->createMany($exerciseRecords);
+
+            // Sync Many-to-Many Relationships
             $user->dietaryOptions()->sync($validated['meal_plan_preferences']);
             $user->dislikedIngredients()->sync($validated['disliked_ingredients']);
 
-            //  Mark as Onboarded so cannot fill the quiz again
+            // Mark as Onboarded so cannot fill the quiz again
             $user->update(['onboarded_at' => now()]);
         });
 
