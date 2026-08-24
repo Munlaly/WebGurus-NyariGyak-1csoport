@@ -9,9 +9,6 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SettingsController;
 
 
-Route::get('/quiz', [QuizController::class, 'index'])->name('quiz.index');
-Route::post('/quiz/save-session', [QuizController::class, 'saveSession'])->name('quiz.save-session');
-
 
 Route::middleware('auth')->group(function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -27,6 +24,11 @@ Route::middleware('auth')->group(function(){
         
         Route::get('system', [SettingsController::class, 'system'])->name('system');
         Route::put('system', [SettingsController::class, 'updateSystem']);
+    });
+
+    Route::prefix('quiz')->name('quiz.')->group(function (){
+        Route::get('index', [QuizController::class, 'index'])->name('index');
+        Route::post('store', [QuizController::class, 'store'])->name('store');
     });
 });
 

@@ -32,6 +32,11 @@ class AuthenticatedSessionController extends Controller
         // Regenerate session to prevent fixation
         $request->session()->regenerate();
 
+        // Check if the user abandoned the quiz previously
+        if (is_null($request->user()->onboarded_at)) {
+            return redirect()->route('quiz.index');
+        }
+
         return redirect()->intended(route('dashboard'));
     }
 
