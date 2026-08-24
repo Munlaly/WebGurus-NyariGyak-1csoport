@@ -11,6 +11,7 @@ import {
   stepPrepTimeSchema,
   stepExerciseSchema,
   type QuizFormData,
+  quizFormSchema,
 } from '../Schemas/quizSchema';
 
 import StepIntro from '../Components/QuizsSteps/StepIntro.vue';
@@ -21,6 +22,7 @@ import StepPrepTime from '../Components/QuizsSteps/StepPrepTime.vue';
 import StepHousehold from '../Components/QuizsSteps/StepHousehold.vue';
 import StepDislikedIngredients from '../Components/QuizsSteps/StepDislikedIngredients.vue';
 import StepExercise from '../Components/QuizsSteps/StepExercise.vue';
+import StepSummary from '../Components/QuizsSteps/StepSummary.vue';
 
 interface QuizPageProps extends PageProps {
   auth: {
@@ -55,7 +57,7 @@ const stepConfig = [
   { type: 'question', schema: stepDislikedIngredientsSchema },
   { type: 'question', schema: stepPrepTimeSchema },
   { type: 'question', schema: stepHouseholdSchema },
-  { type: 'summary', schema: null },
+  { type: 'summary', schema: quizFormSchema },
 ];
 
 const currentStep = ref(0);
@@ -97,6 +99,25 @@ const progressPercentage = computed(() => {
     .filter((s) => s.type === 'question').length;
 
   return Math.round((completedQuestions / totalQuestions.value) * 100);
+});
+
+const nextButtonLabel = computed(() => {
+  if (stepConfig[currentStep.value].type === 'summary') return 'Submit';
+  if (stepConfig[currentStep.value + 1]?.type === 'summary') return 'View Plan';
+  return 'Next';
+});
+
+const nextButtonIcon = computed(() => {
+  return stepConfig[currentStep.value].type === 'summary'
+    ? 'i-heroicons-check'
+    : 'i-heroicons-arrow-right';
+});
+
+const isSubmitDisabled = computed(() => {
+  if (stepConfig[currentStep.value].type === 'summary') {
+    return !quizFormSchema.safeParse(form).success;
+  }
+  return false;
 });
 
 function prevStep() {
@@ -184,11 +205,17 @@ function handleNext() {
         v-else-if="currentStep === 7"
         v-model="form.household_size"
       />
+
+      <StepSummary
+        v-else-if="currentStep === 8"
+        :form="form"
+        :dietary-options="dietaryOptions"
+        :disliked-ingredients="dislikedIngredientsObjects"
+      />
     </main>
 
     <!-- BOTTOM NAVIGATION -->
     <div
-      v-if="stepConfig[currentStep].type !== 'summary'"
       class="bg-surface border-surface-container-highest fixed bottom-0 left-0 z-50 w-full shrink-0 border-t shadow-sm"
     >
       <nav
@@ -205,19 +232,15 @@ function handleNext() {
           Back
         </UButton>
         <div v-else></div>
-        <!-- Spacer -->
 
         <UButton
           type="submit"
           color="primary"
-          trailing-icon="i-heroicons-arrow-right"
+          :trailing-icon="nextButtonIcon"
           size="lg"
+          :disabled="isSubmitDisabled"
         >
-          {{
-            stepConfig[currentStep + 1]?.type === 'summary'
-              ? 'View Plan'
-              : 'Next'
-          }}
+          {{ nextButtonLabel }}
         </UButton>
       </nav>
     </div>
