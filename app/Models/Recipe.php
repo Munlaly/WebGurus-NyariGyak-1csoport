@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * @property array|null $meal_types
  * @property array|null $diets
- * @property \Illuminate\Database\Eloquent\Collection $ingredients
+ * @property \Illuminate\Database\Eloquent\Collection<int, Ingredient> $ingredients
  */
 class Recipe extends Model
 {
