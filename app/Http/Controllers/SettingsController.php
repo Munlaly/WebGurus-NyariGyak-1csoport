@@ -8,6 +8,9 @@ use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use App\Models\DietaryOption;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Hash;
 
 class SettingsController extends Controller
 {
@@ -222,6 +225,49 @@ class SettingsController extends Controller
 
     // --- Security ---
     public function security(Request $request){
-        return Inertia::render('Settings/Security');
+        return Inertia::render('Settings/Security', [
+            'user' => [
+                'username' => $request->user()->username, 
+                'email' => $request->user()->email,       
+            ]
+        ]);
+    }
+
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)], 
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+        ]); 
+
+        $user->fill($validated);
+
+        if ($user->isDirty('email')) {
+
+            $user->email_verified_at = null; 
+            
+           // TODO add email verification
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Profile details updated.');
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'], 
+            
+            'password' => ['required', Password::defaults(), 'confirmed'], 
+        ]);
+
+        $request->user()->update([
+            'password' => Hash::make($validated['password']), 
+        ]);
+
+        return back()->with('success', 'Password updated successfully.');
     }
 }

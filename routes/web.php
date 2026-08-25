@@ -33,7 +33,7 @@ Route::middleware('auth')->group(function(){
 
         Route::get('logistics', [SettingsController::class, 'logistics'])->name('logistics');
 
-        Route::get('security', [SettingsController::class, 'biometrics'])->name('security');
+        Route::get('security', [SettingsController::class, 'security'])->name('security');
     });
     });
     
