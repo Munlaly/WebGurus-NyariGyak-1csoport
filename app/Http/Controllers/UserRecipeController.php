@@ -98,7 +98,7 @@ class UserRecipeController extends Controller
             if($recipe->image) {
                 Storage::delete($recipe->image);
             }
-            $recipe->image = $request->file('image')->store('private_recipes');
+            $recipe->image = $request->file('image')->store('private_recipes', 'public');
         }
 
         $updateData = collect($validated)->except([
