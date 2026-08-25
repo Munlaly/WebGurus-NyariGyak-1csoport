@@ -342,11 +342,6 @@ class MealPlanController extends Controller
         ]);
 
         $plan = $validated['plan'];
-
-        MealPlan::where('user_id', $user->id)
-            ->where('status', 'DRAFT')
-            ->delete();
-
         $startOfWeek = Carbon::now()->startOfWeek();
 
         $dayMapping = [
@@ -361,27 +356,33 @@ class MealPlanController extends Controller
 
         $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
     
+        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $mealTypesArray) {
+            // Delete old drafts
+            MealPlan::where('user_id', $user->id)
+                ->where('status', 'DRAFT')
+                ->delete();
 
-        foreach($plan as $dayName => $dayData) {
-            $dayOffset = $dayMapping[$dayName] ?? 0;
-            $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
+            // Insert new plan
+            foreach($plan as $dayName => $dayData) {
+                $dayOffset = $dayMapping[$dayName] ?? 0;
+                $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
-            foreach($dayData['meals'] as $index => $meal) {
-                $mealType = $meal['meal_type'] ?? ($mealTypesArray[$index] ?? 'snack');
+                foreach($dayData['meals'] as $index => $meal) {
+                    $mealType = $meal['meal_type'] ?? ($mealTypesArray[$index] ?? 'snack');
 
-                MealPlan::create([
-                    'user_id' => $user->id,
-                    'recipe_id' => $meal['id'],
-                    'scheduled_date' => $scheduledDate,
-                    'meal_type' => $mealType,
-                    'status' => 'DRAFT',
-                ]);
+                    MealPlan::create([
+                        'user_id' => $user->id,
+                        'recipe_id' => $meal['id'],
+                        'scheduled_date' => $scheduledDate,
+                        'meal_type' => $mealType,
+                        'status' => 'DRAFT',
+                    ]);
+                }
             }
-        }
-
+        });
         return response()->json([
             'success' => true,
             'message' => 'Weekly plan saved to your clendar succesfully!'
-        ]);
+        ]);     
     }
 }
