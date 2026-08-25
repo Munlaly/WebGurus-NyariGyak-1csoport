@@ -11,39 +11,75 @@ use App\Models\DietaryOption;
 
 class SettingsController extends Controller
 {
+    private const DAY_MAP = [
+        1 => 'monday', 
+        2 => 'tuesday', 
+        3 => 'wednesday', 
+        4 => 'thursday', 
+        5 => 'friday', 
+        6 => 'saturday', 
+        7 => 'sunday'
+    ];
+
     // --- TARGETS ---
     public function targets(Request $request): Response
     {
-        $settings = $request->user()->settings()->firstOrCreate([]);
-        $goals = $settings->goals ?? [];
+        $user = $request->user();
+        $profile = $user->profile()->firstOrCreate([]);
+        $schedules = $user->exerciseSchedules()->get();
+
+        $scheduleData = [
+            'monday' => 'rest', 'tuesday' => 'rest', 'wednesday' => 'rest',
+            'thursday' => 'rest', 'friday' => 'rest', 'saturday' => 'rest', 'sunday' => 'rest',
+        ];
+
+        foreach ($schedules as $schedule) {
+            if (isset(self::DAY_MAP[$schedule->day_of_week])) {
+                $dayString = self::DAY_MAP[$schedule->day_of_week];
+                $scheduleData[$dayString] = $schedule->intensity;
+            }
+        }
 
         return Inertia::render('Settings/Targets', [
-            'userSettings' => [
-                // Safely read the first element for the current UI, or default to 'general'
-                'mainGoal' => !empty($goals) ? $goals[0] : 'general',
-                'calorieTarget' => $settings->daily_calorie_target ?? 2000,
-            ]
+            'profile' => [
+                'fitness_goal' => $profile->fitness_goal ?? 'maintain',
+            ],
+            'schedule' => $scheduleData,
         ]);
     }
 
     public function updateTargets(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'mainGoal' => 'required', 
-            'calorieTarget' => 'required|integer|min:1000|max:10000',
+            'fitness_goal' => 'required|string|in:lose_weight,maintain,gain_muscle',
+            'schedule' => 'required|array',
+            'schedule.*' => 'require|string|in:rest,moderate,heavy',
         ]);
 
-        $goalsArray = is_array($validated['mainGoal']) ? $validated['mainGoal'] : [$validated['mainGoal']];
+        DB::transaction(function () use ($request, $validated) {
+            $user = $request->user();
 
-        $request->user()->settings()->updateOrCreate(
-            ['user_id' => $request->user()->id],
-            [
-                'goals' => $goalsArray, 
-                'daily_calorie_target' => $validated['calorieTarget'] 
-            ] 
-        );
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['fitness_goal' => $validated['fitness_goal']]
+            );
 
-        return back();
+            $reverseDayMap = array_flip(self::DAY_MAP);
+
+            foreach ($validated['schedule'] as $dayString => $intensity) {
+                $dayInt = $reverseDayMap[$dayString];
+                
+                $user->exerciseSchedules()->updateOrCreate(
+                    ['day_of_week' => $dayInt], 
+                    ['intensity' => $intensity] 
+                );
+            }
+
+            // TODO Recalculate weekly calorie target
+
+        });
+
+         return back()->with('success', 'Targets and schedule updated successfully.');
     }
 
     // --- RULES ---
