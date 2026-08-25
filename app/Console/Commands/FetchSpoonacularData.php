@@ -11,10 +11,6 @@ use Illuminate\Support\Facades\Cache;
 
 class FetchSpoonacularData extends Command
 {
-    /**
-     * Execute the console command.
-     */
-
     protected $signature = 'spoonacular:fetch';
     protected $description = 'Sequentually fetches recipees from Spoonacular and saves unique ones to JSON and DB ';
     public function handle()
@@ -22,8 +18,6 @@ class FetchSpoonacularData extends Command
         $this->info('Starting fetch...');
 
         $limit = 50;
-        $apiKey = config('services.spoonacular.key');
-        $limit = 150;
         $apiKey = config('services.spoonacular.key');
 
         if(!$apiKey) {
@@ -129,6 +123,41 @@ class FetchSpoonacularData extends Command
                 ?? $recipeData["summary"]
                 ?? 'No instructions provided';
                 
+            // Since the API doesn't have a nut-free dietary option it is provided manually
+
+            $currentDiets = $recipeData['diets'] ?? [];
+            $nutKeyWords = ['nut', 'nuts', 'peanut' , 'peanuts', 'almond', 'almonds', 'cashew', 'cashews', 'walnut', 'walnuts', 'pecan', 'pecans', 'hazelnut', 'hazelnuts',
+                            'macademia', 'macademias', 'pistachio', 'pistachios'];
+
+            $isNutFree = true;
+
+            // check ingredient list
+            if(!empty($recipeData['extendedIngredients'])) {
+                foreach($recipeData['extendedIngredients'] as $ingredient) {
+                    $ingredientName = strtolower($ingredient['name'] ?? '');
+                    foreach($nutKeyWords as $nut) {
+                        if(preg_match('/\b' . preg_quote($nut, '/') . '\b/i', $ingredientName)) {
+                            $isNutFree = false;
+                            break 2;
+                        }
+                    } 
+                }
+            }
+
+            // check title and instructions
+            if($isNutFree) {
+                $recipeText = strtolower($recipeData['title'] . ' ' . $finalInstructions);
+                foreach($nutKeyWords as $nut) {
+                    if(preg_match('/\b' . preg_quote($nut, '/') . '\b/i', $recipeText)) {
+                            $isNutFree = false;
+                            break;
+                        }
+                }
+            }
+
+            if($isNutFree && !in_array('nut free', $currentDiets)) {
+                $currentDiets[] = 'nut free';
+            }
 
             if(!$exist) {
                 // Saving to DB
@@ -146,14 +175,14 @@ class FetchSpoonacularData extends Command
                     'protein' => $macros['protein'] !== null ? (float) $macros['protein'] : null,
                     'fat' => $macros['fat'] !== null ? (float) $macros['fat'] : null,
                     'carbs' => $macros['carbs'] !== null ? (float) $macros['carbs'] : null,
-
+                    'diets' => $currentDiets,
                 ]);
                 $newRecipes[] = [
                     'title' => $recipeData['title'],
                     'prep_time' => $recipeData['readyInMinutes'] ?? null,
                     'servings' => $recipeData['servings'] ?? null,
                     'macros' => $macros,
-                    'diets' => $recipeData['diets'] ?? null,
+                    'diets' => $currentDiets,
                     'instructions' => $finalInstructions,
                     'meal_types' => $finalMealTypes,
                     'image' => $cleanImage,

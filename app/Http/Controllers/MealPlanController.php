@@ -37,40 +37,7 @@ class MealPlanController extends Controller
                 $preferences = $settings->meal_plan_preference;
 
                 if(in_array('nut_free', $preferences)) {
-                    $validRecipes->where(function($q) {
-                        $q->whereDoesntHave('ingredients', function($subQ) {
-                            $subQ->where('name', 'like', '%nut%')
-                                ->orWhere('name', 'like', '%peanut%')
-                                ->orWhere('name', 'like', '%almond%')
-                                ->orWhere('name', 'like', '%cashew%')
-                                ->orWhere('name', 'like', '%walnut%')
-                                ->orWhere('name', 'like', '%pecan%')
-                                ->orWhere('name', 'like', '%hazelnut%')
-                                ->orWhere('name', 'like', '%macadamia%')
-                                ->orWhere('name', 'like', '%pistachio%');
-                        })
-                            ->where('name', 'not like', '% nut %')
-                            ->where('name', 'not like', '%nuts%')
-                            ->where('name', 'not like', '%peanut%')
-                            ->where('name', 'not like', '%almond%')
-                            ->where('name', 'not like', '%cashew%')
-                            ->where('name', 'not like', '%walnut%')
-                            ->where('name', 'not like', '%pecan%')
-                            ->where('name', 'not like', '%hazelnut%')
-                            ->where('name', 'not like', '%macadamia%')
-                            ->where('name', 'not like', '%pistachio%')
-
-                            ->where('instructions', 'not like', '% nut %')
-                            ->where('instructions', 'not like', '%nuts%')
-                            ->where('instructions', 'not like', '%peanut%')
-                            ->where('instructions', 'not like', '%almond%')
-                            ->where('instructions', 'not like', '%cashew%')
-                            ->where('instructions', 'not like', '%walnut%')
-                            ->where('instructions', 'not like', '%pecan%')
-                            ->where('instructions', 'not like', '%hazelnut%')
-                            ->where('instructions', 'not like', '%macadamia%')
-                            ->where('instructions', 'not like', '%pistachio%');
-                    });
+                    $validRecipes->whereJsonContains('diets', 'nut free');
                     $preferences = array_diff($preferences, ['nut_free']);
                 }
                 if(!empty($preferences)) {
