@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
 const props = defineProps<{
   userSettings: {
@@ -20,6 +20,18 @@ const form = useForm({
   inAppAlerts: props.userSettings?.inAppAlerts ?? true,
   emailDigests: props.userSettings?.emailDigests ?? false,
 });
+
+watch(
+  () => form.theme,
+  (newTheme) => {
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  },
+  { immediate: true },
+);
 
 const themeButtonClasses = computed(() => {
   const base =
