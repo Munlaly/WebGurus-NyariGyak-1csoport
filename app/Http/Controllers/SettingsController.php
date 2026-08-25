@@ -149,7 +149,41 @@ class SettingsController extends Controller
 
     // --- Biometrics ---
     public function biometrics(Request $request){
-        return Inertia::render('Settings/Biometrics');
+        $user = $request->user();
+
+        $profile = $user->profile()->firstOrCreate([]);
+
+        return Inertia::render('Settings/Biometrics', [
+            'profile' => [
+                'sex' => $profile->sex ?? 'male',
+                'birthdate' => $profile->birthdate,
+                'height_cm' => $profile->height_cm ? (float) $profile->height_cm : null,
+                'weight_kg' => $profile->weight_kg ? (float) $profile->weight_kg : null,
+                'baseline_activity' => $profile->baseline_activity ?? 'sedentary',
+            ]
+        ]);
+    }
+
+    public function updateBiometrics(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'sex' => 'required|string|in:male,female',
+            'birthdate' => 'required|date|before:today',
+            'height_cm' => 'required|numeric|min:50|max:300',
+            'weight_kg' => 'required|numeric|min:30|max:500',
+            'baseline_activity' => 'required|string|in:sedentary,lightly_active,moderately_active,very_active',
+        ]);
+
+        $user = $request->user();
+
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            $validated
+        );
+
+        // TODO Update the weekly calorie target
+
+        return back()->with('success', 'Biometrics updated. Caloric targets recalculated.');
     }
 
     // --- Logistics ---
