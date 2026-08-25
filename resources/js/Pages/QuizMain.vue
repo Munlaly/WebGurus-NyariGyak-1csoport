@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm, usePage, Link } from '@inertiajs/vue3';
 import type { PageProps } from '@inertiajs/core';
 import {
   stepGoalSchema,
@@ -160,6 +160,22 @@ function handleNext() {
       <div
         class="my-auto w-full max-w-4xl rounded-3xl border border-white/40 bg-amber-50 p-6 text-slate-900 shadow-2xl backdrop-blur-xl md:p-14 md:px-14 md:py-8 lg:py-14 dark:border-gray-700/50 dark:bg-gray-900/50 dark:text-white"
       >
+        <div class="mb-2 flex w-full justify-end">
+          <Link
+            :href="route('logout')"
+            method="post"
+            as="button"
+            class="group flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          >
+            <span class="underline-offset-4 group-hover:underline"
+              >Log Out</span
+            >
+            <UIcon
+              name="i-heroicons-arrow-right-on-rectangle"
+              class="h-5 w-5 transition-transform group-hover:translate-x-0.5"
+            />
+          </Link>
+        </div>
         <!-- Header & Progress Bar -->
         <header
           v-if="stepConfig[currentStep].type === 'question'"
