@@ -225,38 +225,34 @@ function handleNext() {
             :disliked-ingredients="dislikedIngredientsObjects"
           />
         </div>
+        <footer>
+          <nav
+            class="mt-10 flex items-center justify-between border-t border-slate-200 pt-6"
+          >
+            <UButton
+              v-if="currentStep > 0"
+              variant="ghost"
+              color="gray"
+              icon="i-heroicons-arrow-left"
+              size="lg"
+              @click="prevStep"
+            >
+              Back
+            </UButton>
+            <div v-else></div>
+
+            <UButton
+              type="submit"
+              color="primary"
+              :trailing-icon="nextButtonIcon"
+              size="lg"
+              :disabled="isSubmitDisabled"
+            >
+              {{ nextButtonLabel }}
+            </UButton>
+          </nav>
+        </footer>
       </div>
     </main>
-
-    <!-- Navbar -->
-    <div
-      class="fixed bottom-0 left-0 z-50 w-full shrink-0 border-t border-white/30 bg-white/40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-xl dark:border-gray-800/50 dark:bg-gray-900/50"
-    >
-      <nav
-        class="px-gutter max-w-container-max mx-auto flex h-16 items-center justify-between py-3 md:h-20"
-      >
-        <UButton
-          v-if="currentStep > 0"
-          variant="ghost"
-          color="gray"
-          icon="i-heroicons-arrow-left"
-          size="lg"
-          @click="prevStep"
-        >
-          Back
-        </UButton>
-        <div v-else></div>
-
-        <UButton
-          type="submit"
-          color="primary"
-          :trailing-icon="nextButtonIcon"
-          size="lg"
-          :disabled="isSubmitDisabled"
-        >
-          {{ nextButtonLabel }}
-        </UButton>
-      </nav>
-    </div>
   </UForm>
 </template>
