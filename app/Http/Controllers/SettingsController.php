@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use App\Models\DietaryOption;
 
 class SettingsController extends Controller
 {
@@ -47,46 +49,33 @@ class SettingsController extends Controller
     // --- RULES ---
     public function rules(Request $request): Response
     {
-        $settings = $request->user()->settings()->firstOrCreate([]);
-        $diet = $settings->meal_plan_preference ?? [];
-        $dislikes = $settings->custom_dislikes ?? [];
+        $user = $request->user();
 
-        return Inertia::render('Settings/Rules', [
-            'userSettings' => [
-                'prepTime' => (int) ($settings->prep_time_preference ?? 45),
-                'numberOfPeople' => $settings->household_size ?? '1_person',
-                'dietType' => !empty($diet) ? $diet[0] : 'omnivore',
-                'avoidedIngredients' => implode(', ', $dislikes), 
-            ],
+        return Inertia::render('Settings/DietaryRules', [
+            'activeDiets' => $user->dietaryOptions()->pluck('dietary_options.id')->toArray(),
+            'dislikedIngredients' => $user->dislikedIngredients()
+                ->select('ingredients.id', 'ingredients.name as label')
+                ->get(),
+            'availableDietOptions' => DietaryOption::select('id', 'name', 'description')->get(),
         ]);
     }
 
     public function updateRules(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'prepTime' => 'required|integer',
-            'numberOfPeople' => 'required|string',
-            'dietType' => 'required',
-            'avoidedIngredients' => 'nullable|string',
+        'activeDiets' => 'present|array',
+        'activeDiets.*' => 'integer|exists:dietary_options,id',
+        'dislikedIngredients' => 'present|array',
+        'dislikedIngredients.*' => 'integer|exists:ingredients,id',
         ]);
 
-        $dietArray = is_array($validated['dietType']) ? $validated['dietType'] : [$validated['dietType']];
-    
-        $dislikesArray = $validated['avoidedIngredients'] 
-            ? array_values(array_filter(array_map('trim', explode(',', $validated['avoidedIngredients']))))
-            : [];
+        DB::transaction(function () use ($request, $validated) {
+        $user = $request->user();
+        $user->dietaryOptions()->sync($validated['activeDiets']);
+        $user->dislikedIngredients()->sync($validated['dislikedIngredients']);
+        });
 
-        $request->user()->settings()->updateOrCreate(
-            ['user_id' => $request->user()->id],
-            [
-                'prep_time_preference' => $validated['prepTime'],
-                'household_size' => $validated['numberOfPeople'],
-                'meal_plan_preference' => $dietArray, 
-                'custom_dislikes' => $dislikesArray,
-            ]
-        );
-
-        return back();
+        return back()->with('success', 'Dietary rules updated.');
     }
 
     // --- SYSTEM ---
