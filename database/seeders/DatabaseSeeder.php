@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\UserSettings;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\UserSettings;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -36,6 +36,8 @@ class DatabaseSeeder extends Seeder
         $this->call ([
             CategorySeeder::class,
             RecipeSeeder::class,
+            UserSeeder::class,
+            UserInventorySeeder::class,
         ]);
     }
 }

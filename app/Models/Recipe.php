@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property array|null $meal_types
+ * @property array|null $diets
+ * @property \Illuminate\Database\Eloquent\Collection<int, Ingredient> $ingredients
+ */
 class Recipe extends Model
 {
     protected $fillable = [
@@ -19,16 +24,14 @@ class Recipe extends Model
         'calories',
         'protein',
         'fat',
-        'carbs'
+        'carbs',
+        'meal_types',
+        'diets',
     ];
 
     protected $casts = [
-        'is_public' => 'boolean',
-        'prep_time_minutes' => 'integer',
-        'calories'=> 'integer',
-        'protein'=> 'float',
-        'fat'=> 'float',
-        'carbs' => 'float'
+        'meal_types' => 'array',
+        'diets' => 'array',
     ];
 
     public function user(): BelongsTo {

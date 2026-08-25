@@ -11,10 +11,6 @@ use Illuminate\Support\Facades\Cache;
 
 class FetchSpoonacularData extends Command
 {
-    /**
-     * Execute the console command.
-     */
-
     protected $signature = 'spoonacular:fetch';
     protected $description = 'Sequentually fetches recipees from Spoonacular and saves unique ones to JSON and DB ';
     public function handle()
@@ -26,7 +22,7 @@ class FetchSpoonacularData extends Command
 
         if(!$apiKey) {
             $this->error('Spoonacular API key is missing in .env');
-            return Command::FAILURE;    
+            return self::FAILURE;    
         }
 
         $offset = Cache::get('spoonacular_fetch_offset', 0);
@@ -46,14 +42,14 @@ class FetchSpoonacularData extends Command
         if($response->failed()) {
             $this->error('Failed to connect to Spoonacular API');
             Log::error('Spoonacular API Error', ['response' => $response->body()]);
-            return Command::FAILURE;
+            return self::FAILURE;
         }
 
         $recipes = $response->json('results');
 
         if(empty($recipes)) {
             $this->warn('No recipes returned from API');
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         $titles = array_column($recipes, 'title');
@@ -84,7 +80,7 @@ class FetchSpoonacularData extends Command
             
             $mappedTypes = array_unique($mappedTypes);
             if (empty($mappedTypes)) {
-                continue; 
+                continue;
             }
             
             $finalMealTypes = array_values($mappedTypes);
@@ -127,6 +123,41 @@ class FetchSpoonacularData extends Command
                 ?? $recipeData["summary"]
                 ?? 'No instructions provided';
                 
+            // Since the API doesn't have a nut-free dietary option it is provided manually
+
+            $currentDiets = $recipeData['diets'] ?? [];
+            $nutKeyWords = ['nut', 'nuts', 'peanut' , 'peanuts', 'almond', 'almonds', 'cashew', 'cashews', 'walnut', 'walnuts', 'pecan', 'pecans', 'hazelnut', 'hazelnuts',
+                            'macadamia', 'macadamias', 'pistachio', 'pistachios'];
+
+            $isNutFree = true;
+
+            // check ingredient list
+            if(!empty($recipeData['extendedIngredients'])) {
+                foreach($recipeData['extendedIngredients'] as $ingredient) {
+                    $ingredientName = strtolower($ingredient['name'] ?? '');
+                    foreach($nutKeyWords as $nut) {
+                        if(preg_match('/\b' . preg_quote($nut, '/') . '\b/i', $ingredientName)) {
+                            $isNutFree = false;
+                            break 2;
+                        }
+                    } 
+                }
+            }
+
+            // check title and instructions
+            if($isNutFree) {
+                $recipeText = strtolower($recipeData['title'] . ' ' . $finalInstructions);
+                foreach($nutKeyWords as $nut) {
+                    if(preg_match('/\b' . preg_quote($nut, '/') . '\b/i', $recipeText)) {
+                            $isNutFree = false;
+                            break;
+                        }
+                }
+            }
+
+            if($isNutFree && !in_array('nut free', $currentDiets)) {
+                $currentDiets[] = 'nut free';
+            }
 
             if(!$exist) {
                 // Saving to DB
@@ -144,14 +175,14 @@ class FetchSpoonacularData extends Command
                     'protein' => $macros['protein'] !== null ? (float) $macros['protein'] : null,
                     'fat' => $macros['fat'] !== null ? (float) $macros['fat'] : null,
                     'carbs' => $macros['carbs'] !== null ? (float) $macros['carbs'] : null,
-
+                    'diets' => $currentDiets,
                 ]);
                 $newRecipes[] = [
                     'title' => $recipeData['title'],
                     'prep_time' => $recipeData['readyInMinutes'] ?? null,
                     'servings' => $recipeData['servings'] ?? null,
                     'macros' => $macros,
-                    'diets' => $recipeData['diets'] ?? null,
+                    'diets' => $currentDiets,
                     'instructions' => $finalInstructions,
                     'meal_types' => $finalMealTypes,
                     'image' => $cleanImage,
@@ -174,7 +205,7 @@ class FetchSpoonacularData extends Command
             $this->info('No new data added');
         }
         Cache::put('spoonacular_fetch_offset', $offset + $limit);
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     private function appendToJsonFile(array $newRecipes) {
@@ -188,8 +219,14 @@ class FetchSpoonacularData extends Command
             $existingData = json_decode($fileContent, true) ?? [];
         }
 
-        $mergeData = array_merge($existingData, $newRecipes);
+        $existinTitles = array_column($existingData, 'title');
+
+        foreach($newRecipes as $newRecipe) {
+            if(!in_array($newRecipe['title'], $existinTitles)) {
+                $existingData[] = $newRecipe;
+            }
+        }
         
-        $disk->put($fileName, json_encode($mergeData, JSON_PRETTY_PRINT));
+        $disk->put($fileName, json_encode($existingData, JSON_PRETTY_PRINT));
     }
 }

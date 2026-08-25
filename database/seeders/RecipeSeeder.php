@@ -30,6 +30,34 @@ class RecipeSeeder extends Seeder {
             $carbs = $data['macros']['carbs'] ?? null;
             $protein = $data['macros']['protein'] ?? null;
 
+            $spoonacularDiets = $data['diets'] ?? [];
+            $standardizedDiets = [];
+            foreach($spoonacularDiets as $diet) {
+                $diet = strtolower($diet);
+
+                if(str_contains($diet, 'vegan')) {
+                    $standardizedDiets[] = 'vegan';
+                    $standardizedDiets[] = 'vegetarian';
+                    $standardizedDiets[] = 'dairy_free';
+                }
+                if(str_contains($diet, 'vegetarian')) {
+                    $standardizedDiets[] = 'vegetarian';
+                }
+                if(str_contains($diet, 'dairy free')) {
+                    $standardizedDiets[] = 'dairy_free';
+                }
+                if(str_contains($diet, 'gluten free')) {
+                    $standardizedDiets[] = 'gluten_free';
+                }
+                if(str_contains($diet,'keto') || str_contains($diet, 'ketogenic')) {
+                    $standardizedDiets[] = 'keto';
+                }
+                if (str_contains($diet, 'pescatarian')) {
+                    $standardizedDiets[] = 'pescatarian';
+                }
+            }
+            
+
             $recipe = Recipe::firstOrCreate(
                 ['name' => $data['title']],
                 [
@@ -42,6 +70,8 @@ class RecipeSeeder extends Seeder {
                     'protein'=> $protein,
                     'fat' => $fat,
                     'carbs'=> $carbs,
+                    'meal_types' => $data['meal_types'] ?? [],
+                    'diets' => array_unique($standardizedDiets),
                 ]
             );
 
