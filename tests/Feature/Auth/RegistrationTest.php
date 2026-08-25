@@ -30,8 +30,8 @@ class RegistrationTest extends TestCase
             'email' => 'test@example.com',
         ]);
 
-        // 3. Assert the user is redirected to the welcome page
-        $response->assertRedirect(route('dashboard'));
+        // 3. Assert the user is redirected to the quiz page
+        $response->assertRedirect(route('quiz.index'));
     }
 
     public function test_users_cannot_register_with_invalid_emails(): void
