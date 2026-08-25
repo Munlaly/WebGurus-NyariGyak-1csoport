@@ -30,10 +30,14 @@ Route::middleware('auth')->group(function(){
         Route::put('system', [SettingsController::class, 'updateSystem']);
 
         Route::get('biometrics', [SettingsController::class, 'biometrics'])->name('biometrics');
+        Route::put('biometrics', [SettingsController::class, 'updateBiometrics']);
 
         Route::get('logistics', [SettingsController::class, 'logistics'])->name('logistics');
+        Route::put('logistics', [SettingsController::class, 'updateLogistics']);
 
         Route::get('security', [SettingsController::class, 'security'])->name('security');
+        Route::patch('security/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
+        Route::put('security/password', [SettingsController::class, 'updatePassword'])->name('password.update');
     });
     });
     
