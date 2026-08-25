@@ -114,6 +114,8 @@ class MealPlanController extends Controller
             // sort by highest protein, keep the top 70%, and re-index the collection
             $poolOfAllowedMeals = $poolOfAllowedMeals->sortByDesc('protein')->take($cutoffThreshold)->values();
         }
+
+        $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70);
         
         if(in_array('eat_healthy', $goals) && $cutoffThreshold >= 3) {
             // sort by lowest fat, keep the top 70%, and re-index the collection
