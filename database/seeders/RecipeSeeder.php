@@ -71,7 +71,7 @@ class RecipeSeeder extends Seeder {
                     'fat' => $fat,
                     'carbs'=> $carbs,
                     'meal_types' => $data['meal_types'] ?? [],
-                    'diets' => $standardizedDiets,
+                    'diets' => array_unique($standardizedDiets),
                 ]
             );
 
