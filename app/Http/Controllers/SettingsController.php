@@ -81,7 +81,7 @@ class SettingsController extends Controller
             [
                 'prep_time_preference' => $validated['prepTime'],
                 'household_size' => $validated['numberOfPeople'],
-                'meal_plan_preference' => $dietArray, // Mentor's change: Saving as a flat array
+                'meal_plan_preference' => $dietArray, 
                 'custom_dislikes' => $dislikesArray,
             ]
         );
@@ -120,5 +120,20 @@ class SettingsController extends Controller
         );
 
         return back();
+    }
+
+    // --- Biometrics ---
+    public function biometrics(Request $request){
+        return Inertia::render('Settings/Biometrics');
+    }
+
+    // --- Logistics ---
+    public function logistics(Request $request){
+        return Inertia::render('Settings/Logistics');
+    }
+
+    // --- Security ---
+    public function security(Request $request){
+        return Inertia::render('Settings/Security');
     }
 }

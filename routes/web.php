@@ -28,6 +28,12 @@ Route::middleware('auth')->group(function(){
         
         Route::get('system', [SettingsController::class, 'system'])->name('system');
         Route::put('system', [SettingsController::class, 'updateSystem']);
+
+        Route::get('biometrics', [SettingsController::class, 'biometrics'])->name('biometrics');
+
+        Route::get('logistics', [SettingsController::class, 'logistics'])->name('logistics');
+
+        Route::get('security', [SettingsController::class, 'biometrics'])->name('security');
     });
     });
     
