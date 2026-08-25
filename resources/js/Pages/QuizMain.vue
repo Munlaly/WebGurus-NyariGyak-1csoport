@@ -155,10 +155,10 @@ function handleNext() {
     </div>
 
     <main
-      class="relative z-10 flex flex-1 items-center justify-center px-4 pt-12 pb-32 md:pt-24 md:pb-40"
+      class="relative z-10 flex flex-1 items-start justify-center px-4 pt-8 pb-24 lg:pt-16 lg:pb-28"
     >
       <div
-        class="w-full max-w-4xl rounded-3xl border border-white/40 bg-amber-50 p-6 text-slate-900 shadow-2xl backdrop-blur-xl md:p-14 dark:border-gray-700/50 dark:bg-gray-900/50 dark:text-white"
+        class="my-auto w-full max-w-4xl rounded-3xl border border-white/40 bg-amber-50 p-6 text-slate-900 shadow-2xl backdrop-blur-xl md:p-14 md:px-14 md:py-8 lg:py-14 dark:border-gray-700/50 dark:bg-gray-900/50 dark:text-white"
       >
         <!-- Header & Progress Bar -->
         <header
@@ -179,7 +179,7 @@ function handleNext() {
         </header>
 
         <!-- Dynamic Step Components -->
-        <div class="min-h-100">
+        <div class="min-h-[40dvh] lg:min-h-[50dvh]">
           <StepIntro v-if="currentStep === 0" :username="username" />
           <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
 
@@ -233,7 +233,7 @@ function handleNext() {
       class="fixed bottom-0 left-0 z-50 w-full shrink-0 border-t border-white/30 bg-white/40 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-xl dark:border-gray-800/50 dark:bg-gray-900/50"
     >
       <nav
-        class="px-gutter max-w-container-max mx-auto flex h-20 items-center justify-between py-4"
+        class="px-gutter max-w-container-max mx-auto flex h-16 items-center justify-between py-3 md:h-20"
       >
         <UButton
           v-if="currentStep > 0"
