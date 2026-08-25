@@ -16,27 +16,6 @@ class UserInventoryController extends Controller
 
         $settings = UserSettings::where("user_id", $user->id)->first();
 
-        $expiredItems = UserInventory::where('user_id', $user->id)
-            ->whereNotNull('expiration_date')
-            ->whereDate('expiration_date', '<', $now->toDateString())
-            ->get();
-
-        if($expiredItems->isNotEmpty()) {
-            $pointsToDeduct = 0;
-
-            foreach($expiredItems as $item) {
-                $pointsToDeduct += 15;
-                $item->delete();
-            }
-
-            if($settings) {
-                $currentScore = $settings->zero_waste_score ?? 0;
-                $settings->update([
-                    'zero_waste_score' => max(0, $currentScore - $pointsToDeduct)
-                ]);
-            }
-        }
-
         $inventory = UserInventory::with('ingredient')
             ->where('user_id', $request->user()->id)
             ->orderBy('expiration_date', 'asc')
