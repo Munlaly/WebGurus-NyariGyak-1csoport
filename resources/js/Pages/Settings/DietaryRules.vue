@@ -136,10 +136,10 @@ const onSubmit = () => {
       <!-- Avoided Ingredients Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Excluded Ingredients
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Search for specific ingredients you strongly dislike or are allergic
             to. They will never appear in your meal plans.
           </p>

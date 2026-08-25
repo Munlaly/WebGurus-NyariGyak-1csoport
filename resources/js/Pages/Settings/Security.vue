@@ -47,10 +47,10 @@ const updatePassword = () => {
           @submit.prevent="updateProfile"
         >
           <div class="md:col-span-1">
-            <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+            <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
               Account Details
             </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
               Update your account's username and email address.
             </p>
           </div>
@@ -118,10 +118,10 @@ const updatePassword = () => {
           @submit.prevent="updatePassword"
         >
           <div class="md:col-span-1">
-            <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+            <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
               Update Password
             </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
               Ensure your account is using a long, random password to stay
               secure.
             </p>

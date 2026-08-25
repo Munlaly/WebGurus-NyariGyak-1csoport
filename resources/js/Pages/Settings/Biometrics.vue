@@ -80,10 +80,10 @@ const submitBiometrics = () => {
       <!-- Biological Data Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Biological Profile
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Used to calculate your Base Metabolic Rate (BMR) with the Mifflin-St
             Jeor equation.
           </p>
@@ -136,10 +136,10 @@ const submitBiometrics = () => {
       <!-- Body Metrics Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Body Metrics
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Update your weight dynamically to keep your caloric targets
             accurate.
           </p>
@@ -183,10 +183,10 @@ const submitBiometrics = () => {
       <!-- Baseline Activity Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Baseline Activity
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Reflects your daily life and work routine, strictly excluding
             dedicated exercise.
           </p>

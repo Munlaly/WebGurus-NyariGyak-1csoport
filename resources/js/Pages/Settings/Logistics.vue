@@ -51,10 +51,10 @@ const submitLogistics = () => {
       <!-- Household Size Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Household Size
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             How many people will you be cooking for? We use this metric to scale
             recipe portions and accurately calculate your weekly grocery list.
           </p>
@@ -77,10 +77,10 @@ const submitLogistics = () => {
       <!-- Prep Time Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Preparation Time
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Set a strict limit on how much time you are willing to spend
             preparing a single meal.
           </p>

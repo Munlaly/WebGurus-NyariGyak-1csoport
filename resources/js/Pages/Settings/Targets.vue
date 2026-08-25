@@ -61,10 +61,10 @@ const submitTargets = () => {
       <!-- Main Objective Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Primary Objective
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Your weekly caloric target will be dynamically calibrated based on
             this selection.
           </p>
@@ -83,10 +83,10 @@ const submitTargets = () => {
       <!-- Weekly Training Schedule Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Training Schedule
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Adjust the days you actively train. We use this to calculate daily
             caloric fluctuations.
           </p>
