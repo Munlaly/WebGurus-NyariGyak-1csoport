@@ -188,7 +188,36 @@ class SettingsController extends Controller
 
     // --- Logistics ---
     public function logistics(Request $request){
-        return Inertia::render('Settings/Logistics');
+        $user = $request->user();
+
+        $settings = $user->settings()->firstOrCreate([]);
+
+        return Inertia::render('Settings/Logistics', [
+            'settings' => [
+                'household_size' => (int) ($settings->household_size ?? 1),
+                'prep_time_preference' => $settings->prep_time_preference ? (int) $settings->prep_time_preference : 45,
+            ]
+        ]);
+    }
+
+    public function updateLogistics(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'household_size' => 'required|integer|min:1|max:20',
+            'prep_time_preference' => 'required|integer|in:15,30,45,60',
+        ]);
+
+        $user = $request->user();
+
+        $user->settings()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'household_size' => $validated['household_size'],
+                'prep_time_preference' => $validated['prep_time_preference'],
+            ]
+        );
+
+        return back()->with('success', 'Kitchen logistics updated successfully.');
     }
 
     // --- Security ---
