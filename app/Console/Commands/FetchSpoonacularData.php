@@ -127,7 +127,7 @@ class FetchSpoonacularData extends Command
 
             $currentDiets = $recipeData['diets'] ?? [];
             $nutKeyWords = ['nut', 'nuts', 'peanut' , 'peanuts', 'almond', 'almonds', 'cashew', 'cashews', 'walnut', 'walnuts', 'pecan', 'pecans', 'hazelnut', 'hazelnuts',
-                            'macademia', 'macademias', 'pistachio', 'pistachios'];
+                            'macadamia', 'macadamias', 'pistachio', 'pistachios'];
 
             $isNutFree = true;
 
