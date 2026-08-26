@@ -6,7 +6,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use App\Models\UserInventory;
-use App\Models\UserSettings;
+use App\Models\UserSetting;
 use Illuminate\Support\Carbon;
 
 class CleanExpiredInventory extends Command
@@ -37,7 +37,7 @@ class CleanExpiredInventory extends Command
             UserInventory::whereIn('id', $items->pluck('id'))->delete();
 
             // Update zero waste score
-            $settings = UserSettings::where('user_id', $userId)->first();
+            $settings = UserSetting::where('user_id', $userId)->first();
             if($settings) {
                 $currentScore = $settings->zero_waste_score ?? 0;
                 $settings->update([

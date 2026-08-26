@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\UserInventory;
 use Illuminate\Support\Carbon;
-use App\Models\UserSettings;
+use App\Models\UserSetting;
 
 class UserInventoryController extends Controller
 {
@@ -14,7 +14,7 @@ class UserInventoryController extends Controller
         $now = Carbon::now();
         $oneWeekFromNow = $now->copy()->addDays(7);
 
-        $settings = UserSettings::where("user_id", $user->id)->first();
+        $settings = UserSetting::where("user_id", $user->id)->first();
 
         $inventory = UserInventory::with('ingredient')
             ->where('user_id', $request->user()->id)
