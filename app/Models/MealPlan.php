@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MealPlan extends Model
 {
     protected $fillable = [
-        'user_id',
         'daily_plan_id',
         'recipe_id',
         'meal_type',
