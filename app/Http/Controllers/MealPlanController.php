@@ -161,7 +161,10 @@ class MealPlanController extends Controller
         $minCalories = $targetCalories * 0.85;
         $maxCalories = $targetCalories * 1.15;
 
-        $userInventory = UserInventory::where('user_id', $user->id)->get()->keyBy('ingredient_id');
+        $userInventory = UserInventory::where('user_id', $user->id)
+            ->orderBy('expiration_date', 'asc')
+            ->get()
+            ->keyBy('ingredient_id');
         $now = Carbon::now();
         $oneWeekFromNow = $now->copy()->addDays(7);
 
