@@ -7,15 +7,15 @@ use App\Models\UserSetting;
 use App\Models\Recipe;
 use Illuminate\Support\Facades\DB;
 use App\Models\MealPlan;
-use App\Models\User;
 use Illuminate\Support\Carbon;
+use App\Models\DailyPlan;
 
 class MealPlanController extends Controller
 {
     private function calculateNutritionalTargets(UserSettings $settings) {
-        $weight = (float) ($settings->weight ?? 70);
-        $height = (float) ($settings->height ?? 170);
-        $age = $settings->date_of_birth ? Carbon::parse($settings->date_of_birth)->age : 30;
+        $weight = (float) ($settings->weight_kg ?? 70);
+        $height = (float) ($settings->height_cm ?? 170);
+        $age = $settings->birthdate ? Carbon::parse($settings->birthdate)->age : 30;
         $sex = strtolower($settings->sex ?? 'male');
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
@@ -30,7 +30,7 @@ class MealPlanController extends Controller
             'very_active' => 1.725,
         ];
 
-        $activity = strtolower($settings->activity_level ?? 'sedentary');
+        $activity = strtolower($settings->baseline_activity ?? 'sedentary');
         // Total Daily Energy Expenditure
         $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
 
@@ -53,7 +53,7 @@ class MealPlanController extends Controller
         ];
     }
 
-    private function getFilteredRecipes(int $userId, ?UserSettings $settings) {
+    private function getFilteredRecipes(int $userId, ?UserSettings $settings, array $dietSlugs) {
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
             ->pluck('ingredient_id')
@@ -74,12 +74,12 @@ class MealPlanController extends Controller
                 });
             }
 
-            if($settings && !empty($settings->meal_plan_preference) && !in_array('omnivore', $settings->meal_plan_preference)) {
-                $preferences = $settings->meal_plan_preference;
+            if(!empty($dietSlugs) && !in_array('omnivore', $dietSlugs)) {
+                $preferences = $dietSlugs;
 
-                if(in_array('nut_free', $preferences)) {
+                if(in_array('nut_free', $preferences) || in_array('nut-free', $preferences)) {
                     $validRecipes->whereJsonContains('diets', 'nut free');
-                    $preferences = array_diff($preferences, ['nut_free']);
+                    $preferences = array_diff($preferences, ['nut_free', 'nut-free']);
                 }
                 if(!empty($preferences)) {
                     $validRecipes->where(function($query) use ($preferences) {
@@ -98,13 +98,20 @@ class MealPlanController extends Controller
         $user = $request->user();
 
         $settings = UserSetting::where('user_id', $user->id)->first();
+        $profile = UserProfile::where('user_id', $user->id)->first();
 
-        $nutritionTargets = $this->calculateNutritionalTargets($settings);
+        $dietSlugs = DB::table('user_dietary_options')
+            ->join('dietary_options', 'user_dietary_options.dietary_options_id', '=', 'dietary_option.id')
+            ->where('user_dietary_options.user_id', $user->id)
+            ->pluck('dietary_options.slug')
+            ->toArray();
+
+        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile) : ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
         $targetCalories = $nutritionTargets['calories'];
         $macroTargets = $nutritionTargets['macros'];
 
         // PHASE 1: HARD FILTERS
-        $validRecipes = $this->getFilteredRecipes($user->id, $settings);
+        $validRecipes = $this->getFilteredRecipes($user->id, $settings, $dietSlugs);
         $poolOfAllowedMeals = $validRecipes->get();
 
         if($poolOfAllowedMeals->count() < 3) {
@@ -117,7 +124,7 @@ class MealPlanController extends Controller
 
         // PHASE 1.5: GOAL-BASED PRUNING
 
-        $goal = strtolower($settings->primary_goal ?? 'maintain');
+        $goal = $profile ? strtolower($profile->fitness_goal ?? 'maintain') : 'maintain';
         $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70); // Keep the top 70 %
 
         if ($cutoffThreshold >= 3) {
@@ -307,6 +314,12 @@ class MealPlanController extends Controller
         $user = $request->user();
         $settings = UserSetting::where('user_id', $user->id)->first();
 
+        $dietSlugs = DB::table('user_dietary_options')
+            ->join('dietary_options', 'user_dietary_options.dietary_option_id', '=', 'dietary_options.id')
+            ->where('user_dietary_options.user_id', $user->id)
+            ->pluck('dietary_options.slug')
+            ->toArray();
+
         $mealType = $request->input('meal_type');
 
         if(!in_array($mealType, ['breakfast', 'lunch', 'dinner', 'snack'])) {
@@ -316,7 +329,7 @@ class MealPlanController extends Controller
             ], 400);
         }
 
-        $validRecipes = $this->getFilteredRecipes($user->id, $settings);
+        $validRecipes = $this->getFilteredRecipes($user->id, $settings, $dietSlugs);
 
         $poolOfAllowedMeals = $validRecipes->get();
 
@@ -351,6 +364,8 @@ class MealPlanController extends Controller
 
         $plan = $validated['plan'];
         $startOfWeek = Carbon::now()->startOfWeek();
+        $profile = UserProfile::where('user_id', $user->id)->first();
+        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile): ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];;
 
         $dayMapping = [
             'Monday' => 0,
@@ -364,24 +379,36 @@ class MealPlanController extends Controller
 
         $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
     
-        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $mealTypesArray) {
+        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $mealTypesArray, $nutritionTargets) {
             // Delete old drafts
-            MealPlan::where('user_id', $user->id)
-                ->where('status', 'DRAFT')
-                ->delete();
+            $oldDailyPlans = DailyPlan::where('user_id', $user->id)->where('status', 'DRAFT')->get();
+            MealPlan::whereIn('daily_plan_id', $oldDailyPlans->pluck('id'))->delete();
+            foreach($oldDailyPlans as $dp) {
+                $dp->delete();
+            }
 
             // Insert new plan
             foreach($plan as $dayName => $dayData) {
                 $dayOffset = $dayMapping[$dayName] ?? 0;
                 $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
+                $dailyPlan = DailyPlan::create([
+                    'user_id' => $user->id,
+                    'date' => $scheduledDate,
+                    'day_type' => 'regular',
+                    'target_calories' => $nutritionTargets['calories'],
+                    'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
+                    'target_carbs_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['carbs'] / 100)) / 4),
+                    'target_fat_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['fat'] / 100)) / 9),
+                    'status' => 'DRAFT',
+                ]);
+
                 foreach($dayData['meals'] as $index => $meal) {
                     $mealType = $meal['meal_type'] ?? ($mealTypesArray[$index] ?? 'snack');
 
                     MealPlan::create([
-                        'user_id' => $user->id,
+                        'daily_plan_id' => $dailyPlan->id,
                         'recipe_id' => $meal['id'],
-                        'scheduled_date' => $scheduledDate,
                         'meal_type' => $mealType,
                         'status' => 'DRAFT',
                     ]);
@@ -390,7 +417,7 @@ class MealPlanController extends Controller
         });
         return response()->json([
             'success' => true,
-            'message' => 'Weekly plan saved to your clendar succesfully!'
+            'message' => 'Weekly plan saved to your calendar successfully!'
         ]);     
     }
 }
