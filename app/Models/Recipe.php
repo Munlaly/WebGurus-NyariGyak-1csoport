@@ -26,7 +26,8 @@ class Recipe extends Model
         'fat',
         'carbs',
         'servings',
-        'meal_types'
+        'meal_types',
+        'diets',
     ];
 
     protected $casts = [
@@ -37,6 +38,8 @@ class Recipe extends Model
         'fat'=> 'decimal:2',
         'carbs' => 'decimal:2',
         'servings' => 'integer',
+        'meal_types' => 'array', 
+        'diets' => 'array',
 
     ];
 
