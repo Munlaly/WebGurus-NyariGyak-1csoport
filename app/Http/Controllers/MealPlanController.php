@@ -12,7 +12,48 @@ use Illuminate\Support\Carbon;
 
 class MealPlanController extends Controller
 {
-    private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
+    private function calculateNutritionalTargets(UserSettings $settings) {
+        $weight = (float) ($settings->weight ?? 70);
+        $height = (float) ($settings->height ?? 170);
+        $age = $settings->date_of_birth ? Carbon::parse($settings->date_of_birth)->age : 30;
+        $sex = strtolower($settings->sex ?? 'male');
+
+        // calculate Basal Metabolic Rate (Mifflin-St Jeor)
+        $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
+        $bmr += ($sex === 'female') ? -161 : 5;
+
+        // apply activity multiplier
+        $multipliers = [
+            'sedentary' => 1.2,
+            'lightly_active' => 1.375,
+            'moderately_active' => 1.55,
+            'very_active' => 1.725,
+        ];
+
+        $activity = strtolower($settings->activity_level ?? 'sedentary');
+        // Total Daily Energy Expenditure
+        $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
+
+        $goal = strtolower($settings->primary_goal ?? 'maintain');
+
+        $targetCalories = $tdee;
+        $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
+
+        if(in_array($goal, ['lose_weight', 'lose weight'])) {
+            $targetCalories = $tdee - 500;
+            $macros = ['protein' => 40, 'carbs' => 30, 'fat' => 30];
+        } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+            $targetCalories = $tdee + 500;
+            $macros = ['protein' => 30, 'carbs' => 50, 'fat' => 20];
+        }
+
+        return [
+            'calories' => (int) round($targetCalories),
+            'macros' => $macros,
+        ];
+    }
+
+    private function getFilteredRecipes(int $userId, ?UserSettings $settings) {
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
             ->pluck('ingredient_id')
@@ -58,10 +99,12 @@ class MealPlanController extends Controller
 
         $settings = UserSetting::where('user_id', $user->id)->first();
 
+        $nutritionTargets = $this->calculateNutritionalTargets($settings);
+        $targetCalories = $nutritionTargets['calories'];
+        $macroTargets = $nutritionTargets['macros'];
+
         // PHASE 1: HARD FILTERS
-
         $validRecipes = $this->getFilteredRecipes($user->id, $settings);
-
         $poolOfAllowedMeals = $validRecipes->get();
 
         if($poolOfAllowedMeals->count() < 3) {
@@ -74,19 +117,17 @@ class MealPlanController extends Controller
 
         // PHASE 1.5: GOAL-BASED PRUNING
 
-        $goals = $settings->goals ?? [];
+        $goal = strtolower($settings->primary_goal ?? 'maintain');
         $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70); // Keep the top 70 %
 
-        if (in_array('build_muscle', $goals) && $cutoffThreshold >= 3) {
-            // sort by highest protein, keep the top 70%, and re-index the collection
-            $poolOfAllowedMeals = $poolOfAllowedMeals->sortByDesc('protein')->take($cutoffThreshold)->values();
-        }
-
-        $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70);
-        
-        if(in_array('eat_healthy', $goals) && $cutoffThreshold >= 3) {
-            // sort by lowest fat, keep the top 70%, and re-index the collection
-            $poolOfAllowedMeals = $poolOfAllowedMeals->sortBy('fat')->take($cutoffThreshold)->values();
+        if ($cutoffThreshold >= 3) {
+            if(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+                // sort by highest protein, keep the top 70%, and re-index the collection
+                $poolOfAllowedMeals = $poolOfAllowedMeals->sortByDesc('protein')->take($cutoffThreshold)->values();
+            } elseif(in_array($goal, ['lose_weight', 'lose weight'])) {
+                // sort by lowest fat, keep the top 70%, and re-index the collection
+                $poolOfAllowedMeals = $poolOfAllowedMeals->sortBy('calories')->sortBy('fat')->take($cutoffThreshold)->values();
+            }
         }
 
         // PHASE 2: CALORIE & ZERO-WASTE ENGINE
@@ -108,8 +149,6 @@ class MealPlanController extends Controller
                 ]
             ], 400);
         }
-
-        $targetCalories = $settings->daily_calorie_target ?? 2000;
 
         $minCalories = $targetCalories * 0.85;
         $maxCalories = $targetCalories * 1.15;
