@@ -12,11 +12,11 @@ use App\Models\DailyPlan;
 
 class MealPlanController extends Controller
 {
-    private function calculateNutritionalTargets(UserSettings $settings) {
-        $weight = (float) ($settings->weight_kg ?? 70);
-        $height = (float) ($settings->height_cm ?? 170);
-        $age = $settings->birthdate ? Carbon::parse($settings->birthdate)->age : 30;
-        $sex = strtolower($settings->sex ?? 'male');
+    private function calculateNutritionalTargets(UserProfile $profile) {
+        $weight = (float) ($profile->weight_kg ?? 70);
+        $height = (float) ($profile->height_cm ?? 170);
+        $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
+        $sex = strtolower($profile->sex ?? 'male');
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -30,11 +30,11 @@ class MealPlanController extends Controller
             'very_active' => 1.725,
         ];
 
-        $activity = strtolower($settings->baseline_activity ?? 'sedentary');
+        $activity = strtolower($profile->baseline_activity ?? 'sedentary');
         // Total Daily Energy Expenditure
         $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
 
-        $goal = strtolower($settings->primary_goal ?? 'maintain');
+        $goal = strtolower($profile->fitness_goal ?? 'maintain');
 
         $targetCalories = $tdee;
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
@@ -101,7 +101,7 @@ class MealPlanController extends Controller
         $profile = UserProfile::where('user_id', $user->id)->first();
 
         $dietSlugs = DB::table('user_dietary_options')
-            ->join('dietary_options', 'user_dietary_options.dietary_options_id', '=', 'dietary_option.id')
+            ->join('dietary_options', 'user_dietary_options.dietary_option_id', '=', 'dietary_options.id')
             ->where('user_dietary_options.user_id', $user->id)
             ->pluck('dietary_options.slug')
             ->toArray();
@@ -302,7 +302,7 @@ class MealPlanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Weekly plan succesfully generated.',
+            'message' => 'Weekly plan successfully generated.',
             'target_calories' => $targetCalories,
             'macro_targets' => $macroTargets,
             'plan' => $weeklyPlan,
@@ -365,7 +365,7 @@ class MealPlanController extends Controller
         $plan = $validated['plan'];
         $startOfWeek = Carbon::now()->startOfWeek();
         $profile = UserProfile::where('user_id', $user->id)->first();
-        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile): ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];;
+        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile): ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
 
         $dayMapping = [
             'Monday' => 0,
