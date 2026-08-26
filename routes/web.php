@@ -8,6 +8,7 @@ use App\Http\Controllers\QuizController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Middleware\EnsureUserIsOnboarded;
+use App\Http\Controllers\IngredientController;
 
 
 
@@ -35,6 +36,10 @@ Route::middleware('auth')->group(function(){
         Route::get('index', [QuizController::class, 'index'])->name('index');
         Route::post('store', [QuizController::class, 'store'])->name('store');
     });
+
+    
+    Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
+
 });
 
 require __DIR__.'/auth.php';
