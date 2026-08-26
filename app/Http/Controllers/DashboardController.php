@@ -3,18 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Recipe;
+use App\Models\DailyPlan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $recipes = Recipe::whereIn('id', range(1, 9))->get()->keyBy('id');
+        $user = $request->user();
 
-        $formatMeal = function (?Recipe $recipe) {
-            if (!$recipe) {
+        $formatMeal = function ($mealPlan) {
+            $recipe = $mealPlan->recipe;
+            if(!$recipe) {
                 return null;
             }
 
@@ -27,20 +30,47 @@ class DashboardController extends Controller
 
             return [
                 'id' => $recipe->id,
+                'meal_plan_id' => $mealPlan->id,
                 'title' => $recipe->name,
                 'calories' => $recipe->calories ?? 0,
                 'prepTime' => $recipe->prep_time_minutes ?? 0,
                 'imageUrl' => $imageUrl,
                 'imageAlt' => $recipe->name,
-                'isPrepared' => false,
+                'isPrepared' => $mealPlan->status === 'EATEN',
             ];
         };
 
+        $dailyPlans = DailyPlan::where('user_id', $user->id)
+            ->with(['mealPlans.recipe.ingredients'])
+            ->get();
+ 
         $mealsByOffset = [
-            '-1' => array_values(array_filter([$formatMeal($recipes->get(1)), $formatMeal($recipes->get(2)), $formatMeal($recipes->get(3))])),
-            '0'  => array_values(array_filter([$formatMeal($recipes->get(4)), $formatMeal($recipes->get(5)), $formatMeal($recipes->get(6))])),
-            '1'  => array_values(array_filter([$formatMeal($recipes->get(7)), $formatMeal($recipes->get(8)), $formatMeal($recipes->get(9))])),
+            '-1' => [],
+            '0' => [],
+            '1' => [],
         ];
+
+        $todayString = Carbon::now()->toDateString();
+        $yesterdayString = Carbon::now()->subDay()->toDateString();
+        $tomorrowString = Carbon::now()->addDay()->toDateString();
+
+        foreach($dailyPlans as $dailyPlan) {
+            $offset = match ($dailyPlan->date) {
+                $yesterdayString => '-1',
+                $todayString => '0',
+                $tomorrowString => '1',
+                default => null,
+            };
+
+            if($offset !== null) {
+                foreach($dailyPlan->mealPlans as $mealPlan) {
+                    $formatted = $formatMeal($mealPlan);
+                    if($formatted) {
+                        $mealsByOffset[$offset][] = $formatted;
+                    }
+                }
+            }
+        }
 
         return Inertia::render('Dashboard', [
             'mealsByOffset' => $mealsByOffset,
