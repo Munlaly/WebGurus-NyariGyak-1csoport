@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\MealPlan;
 use Illuminate\Support\Carbon;
 use App\Models\DailyPlan;
+use App\Models\UserInventory;
 
 class MealPlanController extends Controller
 {
@@ -160,6 +161,10 @@ class MealPlanController extends Controller
         $minCalories = $targetCalories * 0.85;
         $maxCalories = $targetCalories * 1.15;
 
+        $userInventory = UserInventory::where('user_id', $user->id)->get()->keyBy('ingredient_id');
+        $now = Carbon::now();
+        $oneWeekFromNow = $now->copy()->addDays(7);
+
         $weeklyPlan = [];
         $allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -180,18 +185,43 @@ class MealPlanController extends Controller
             $attempts = 0;
             $maxAttempts = 150;  // don't let the server loop forever
 
-            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients) {
-                if(empty($weeklyActiveIngredients)) {
+            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients, $userInventory, $now, $oneWeekFromNow) {
+                $score = 0;
+                if(empty($weeklyActiveIngredients) && $userInventory->isEmpty()) {
                     return mt_rand(1, 100); // Randomize the first day
                 }
 
-                $score = 0;
                 /** @var \App\Models\Ingredient $ingredient */
                 foreach($meal->ingredients as $ingredient) {
-                    if(in_array($ingredient->id, $weeklyActiveIngredients)) {
+                    $ingId = $ingredient->id;
+                    $amount = (float) ($ingredient->pivot->amount ?? 1);
+
+                    if(in_array($ingId, $weeklyActiveIngredients)) {
                         $score += 15; // Reward for using an ingredient already in the plan
-                        $amount = (float) ($ingredient->pivot->amount ?? 1);
                         $score += $amount;
+                    }
+
+                    if($userInventory->has($ingId)) {
+                        $inventoryItem = $userInventory->get($ingId);
+
+                        $score += 25;
+                        if(in_array($inventoryItem->status, ['OPENED', 'LOW'])) {
+                            $score += 35;
+                        }
+
+                        if($inventoryItem->expiration_date) {
+                            $expDate = Carbon::parse($inventoryItem->expiration_date)->startOfDay();
+                            $today = Carbon::now()->startOfDay();
+                            $tomorrow = Carbon::now()->addDay()->startOfDay();
+
+                            if($expDate->isBefore($today)) {
+                                $score -= 50; // expired: penalize recipes using this so it doesn't get picked
+                            } elseif($expDate->equalTo($today) || $expDate->equalTo($tomorrow)) {
+                                $score += 100; // critical: use today or tomorrow
+                            } elseif($expDate->isBetween($tomorrow, $oneWeekFromNow)) {
+                                $score += 60; // urgent: expiring soon
+                            }
+                        }
                     }
                 }
                 return $score;
