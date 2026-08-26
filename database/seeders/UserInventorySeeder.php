@@ -4,10 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
-<<<<<<< HEAD
 use App\Models\User;
-=======
->>>>>>> d608328 (Add UserInventoryController, seeder, and routes for managing user inventory. Update User and UserInventory models, and modify migrations for users and personal access tokens.)
 
 class UserInventorySeeder extends Seeder
 {
@@ -19,7 +16,6 @@ class UserInventorySeeder extends Seeder
         // 1. Clear the table first so we don't duplicate data on re-runs
         DB::table('user_inventories')->truncate();
 
-<<<<<<< HEAD
         $user = User::where('email', 'test@example.com')->first();
 
         if(! $user) {
@@ -27,8 +23,6 @@ class UserInventorySeeder extends Seeder
         }
 
 
-=======
->>>>>>> d608328 (Add UserInventoryController, seeder, and routes for managing user inventory. Update User and UserInventory models, and modify migrations for users and personal access tokens.)
         // 2. These are the exact required amounts from your screenshot
         $recipeRequirements = [
             1 => 8, 2 => 3, 3 => 3, 4 => 2, 5 => 0.5, 6 => 6, 
@@ -40,11 +34,7 @@ class UserInventorySeeder extends Seeder
         // 3. Loop through and give the user enough of each ingredient
         foreach ($recipeRequirements as $ingredientId => $requiredAmount) {
             $inventoryData[] = [
-<<<<<<< HEAD
                 'user_id' => $user->id,
-=======
-                'user_id' => 1, 
->>>>>>> d608328 (Add UserInventoryController, seeder, and routes for managing user inventory. Update User and UserInventory models, and modify migrations for users and personal access tokens.)
                 'ingredient_id' => $ingredientId, 
                 // We add 10 to the required amount so the user has leftovers after cooking
                 'amount_left' => $requiredAmount + 10, 

@@ -15,55 +15,58 @@ class CookMealController extends Controller
         $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
 
-        $missingIngredients = [];
-        $availableIngredients = [];
+        return DB::transaction(function() use ($recipe, $user, $scale) {
+            $missingIngredients = [];
+            $availableIngredients = [];
+            $itemsToProcess = [];
 
-        foreach($recipe->ingredients as $recipeIngredient) {
-            /** @var \App\Models\Ingredient $recipeIngredient */
-            $baseAmount = $recipeIngredient->pivot->amount ?? 1;
-            $requiredAmount = $baseAmount * $scale;
-
-            $totalAvailable = UserInventory::where('user_id', $user->id)
-                ->where('ingredient_id', $recipeIngredient->id)
-                ->sum('amount_left');
-
-            $ingredientDetails = [
-                    'ingredient' => $recipeIngredient->name ?? 'Unknown Ingredient',
-                    'required' => $requiredAmount,
-                    'available' => $totalAvailable
-                ];           
-
-            if($totalAvailable < $requiredAmount) {
-                $missingIngredients[] = $ingredientDetails;
-            } else {
-                $availableIngredients[] = $ingredientDetails;
-            }
-        }
-        
-        if(!empty($missingIngredients)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Not enough ingredients for this meal!',
-                'summary' => [
-                    'have' => $availableIngredients,
-                    'missing' => $missingIngredients
-                ]
-            ], 400);
-        }
-
-        $usedIngredients = [];
-        DB::transaction(function() use ($recipe, $user, $scale, &$usedIngredients) {
             foreach($recipe->ingredients as $recipeIngredient) {
                 /** @var \App\Models\Ingredient $recipeIngredient */
                 $baseAmount = $recipeIngredient->pivot->amount ?? 1;
-                $remainingToDeduct = $baseAmount * $scale;
-                $inventoryItem = UserInventory::where('user_id', $user->id)
+                $requiredAmount = $baseAmount * $scale;
+
+                $inventoryItems = UserInventory::where('user_id', $user->id)
                     ->where('ingredient_id', $recipeIngredient->id)
                     ->orderBy('expiration_date', 'asc')
                     ->lockForUpdate()
                     ->get();
 
-                foreach($inventoryItem as $item) {
+                $totalAvailable = $inventoryItems->sum('amount_left');
+
+                $ingredientDetails = [
+                        'ingredient' => $recipeIngredient->name ?? 'Unknown Ingredient',
+                        'required' => $requiredAmount,
+                        'available' => $totalAvailable
+                    ];           
+
+                if($totalAvailable < $requiredAmount) {
+                    $missingIngredients[] = $ingredientDetails;
+                } else {
+                    $availableIngredients[] = $ingredientDetails;
+
+                    $itemsToProcess[] = [
+                        'items' => $inventoryItems,
+                        'remainingToDeduct' => $requiredAmount,
+                    ];
+                }
+            }
+
+            if(!empty($missingIngredients)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough ingredients for this meal!',
+                    'summary' => [
+                        'have' => $availableIngredients,
+                        'missing' => $missingIngredients
+                    ]
+                ], 400);
+            }
+
+            $usedIngredients = [];
+            foreach($itemsToProcess as $processData) {
+                $remainingToDeduct = $processData['remainingToDeduct'];
+
+                foreach($processData['items'] as $item) {
                     /** @var UserInventory $item */
                     if ($remainingToDeduct <= 0) {
                         break; 
@@ -83,11 +86,11 @@ class CookMealController extends Controller
                     }
                 }
             }
+            return response()->json([
+                'success' => true,
+                'message' => 'Meal cooked! Inventory has been automatically updated.',
+                'details' => $usedIngredients
+            ]);
         });
-        return response()->json([
-            'success' => true,
-            'message' => 'Meal cooked! Inventory has been automatically updated.',
-            'details' => $usedIngredients
-        ]);
     }
 }
