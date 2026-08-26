@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('meal_plans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('daily_plan_id')->constrained()->cascadeOnDelete();
             $table->foreignId('recipe_id')->constrained()->cascadeOnDelete();
             $table->enum('meal_type', ['breakfast', 'lunch', 'dinner', 'snack']);
             $table->enum('status', ['DRAFT', 'COMMITTED', 'EATEN', 'SKIPPED'])->default('DRAFT');
