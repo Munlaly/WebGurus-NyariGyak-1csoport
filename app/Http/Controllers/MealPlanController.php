@@ -140,9 +140,9 @@ class MealPlanController extends Controller
         if($breakfasts->isEmpty() || $lunches->isEmpty() || $dinners->isEmpty()) {
             return response()->json([
                 'success'=> false,
-                'message' => 'Your filters are too strict! We could not find enough meals for every cathegory.',
+                'message' => 'Your filters are too strict! We could not find enough meals for every category.',
                 'summary' => [
-                    'breakfasts_fount' => $breakfasts->count(),
+                    'breakfasts_found' => $breakfasts->count(),
                     'lunches_found' => $lunches->count(),
                     'dinners_found' => $dinners->count(),
                     'snacks_found' => $snacks->count(),
@@ -183,7 +183,6 @@ class MealPlanController extends Controller
                 foreach($meal->ingredients as $ingredient) {
                     if(in_array($ingredient->id, $weeklyActiveIngredients)) {
                         $score += 15; // Reward for using an ingredient already in the plan
-                
                         $amount = (float) ($ingredient->pivot->amount ?? 1);
                         $score += $amount;
                     }
@@ -298,6 +297,7 @@ class MealPlanController extends Controller
             'success' => true,
             'message' => 'Weekly plan succesfully generated.',
             'target_calories' => $targetCalories,
+            'macro_targets' => $macroTargets,
             'plan' => $weeklyPlan,
         ]);
     }
