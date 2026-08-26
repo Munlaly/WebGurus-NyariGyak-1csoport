@@ -6,16 +6,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Recipe;
 use App\Models\UserInventory;
+use App\Models\MealPlan;
+
 class CookMealController extends Controller
 {
     public function cook(Request $request, $recipeId) {
         $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
         $user = $request->user();
+        $mealPlanId = $request->input('meal_plan_id');
 
         $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
 
-        return DB::transaction(function() use ($recipe, $user, $scale) {
+        return DB::transaction(function() use ($recipe, $user, $scale, $mealPlanId) {
             $missingIngredients = [];
             $availableIngredients = [];
             $itemsToProcess = [];
@@ -86,6 +89,11 @@ class CookMealController extends Controller
                     }
                 }
             }
+
+            if($mealPlanId) {
+                MealPlan::where('id', $mealPlanId)->update(['status' => 'EATEN']);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Meal cooked! Inventory has been automatically updated.',
