@@ -55,7 +55,8 @@ const dateModel = computed({
   get: () => {
     if (!form.birthdate) return undefined;
     try {
-      return parseDate(form.birthdate);
+      const dateOnly = form.birthdate.split('T')[0];
+      return parseDate(dateOnly);
     } catch {
       return undefined;
     }

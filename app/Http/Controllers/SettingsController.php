@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use App\Models\DietaryOption;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
 
 class SettingsController extends Controller
@@ -29,6 +29,7 @@ class SettingsController extends Controller
     {
         $user = $request->user();
         $profile = $user->profile()->firstOrCreate([]);
+        /** @var \Illuminate\Database\Eloquent\Collection<\App\Models\UserExerciseSchedule> $schedules */
         $schedules = $user->exerciseSchedules()->get();
 
         $scheduleData = [
@@ -56,7 +57,7 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'fitness_goal' => 'required|string|in:lose_weight,maintain,gain_muscle',
             'schedule' => 'required|array',
-            'schedule.*' => 'require|string|in:rest,moderate,heavy',
+            'schedule.*' => 'required|string|in:rest,moderate,heavy',
         ]);
 
         DB::transaction(function () use ($request, $validated) {
@@ -154,6 +155,7 @@ class SettingsController extends Controller
     public function biometrics(Request $request){
         $user = $request->user();
 
+        /** @var \App\Models\UserProfile $profile */
         $profile = $user->profile()->firstOrCreate([]);
 
         return Inertia::render('Settings/Biometrics', [
@@ -193,6 +195,7 @@ class SettingsController extends Controller
     public function logistics(Request $request){
         $user = $request->user();
 
+        /** @var \App\Models\UserSetting $settings */
         $settings = $user->settings()->firstOrCreate([]);
 
         return Inertia::render('Settings/Logistics', [
