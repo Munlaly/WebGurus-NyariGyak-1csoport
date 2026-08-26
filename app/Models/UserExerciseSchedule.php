@@ -17,7 +17,7 @@ class UserExerciseSchedule extends Model
 
    protected function casts(){
     return [
-'       intensity' => ExerciseIntensity::class, 
+        'intensity' => ExerciseIntensity::class, 
         'day_of_week' => 'integer',
     ];
    }

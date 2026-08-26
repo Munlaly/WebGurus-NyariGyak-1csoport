@@ -24,7 +24,7 @@ class UserProfile extends Model
 
     protected $casts = [
         'sex' => UserSex::class,
-        'baseline-activity' => BaselineActivity::class,
+        'baseline_activity' => BaselineActivity::class,
         'fitness_goal' => FitnessGoal::class,
         'birthdate' => 'date',
         'height_cm' => 'decimal:2',

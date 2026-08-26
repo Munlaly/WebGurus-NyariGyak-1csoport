@@ -9,14 +9,13 @@ class MealPlan extends Model
 {
     protected $fillable = [
         'user_id',
+        'daily_plan_id',
         'recipe_id',
-        'scheduled_date',
         'meal_type',
         'status',
     ];
 
     protected $casts = [
-        'scheduled_date' => 'date',
     ];
 
     public function dailyPlan(): BelongsTo

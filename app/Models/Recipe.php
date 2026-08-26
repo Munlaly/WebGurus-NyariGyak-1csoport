@@ -26,6 +26,7 @@ class Recipe extends Model
         'fat',
         'carbs',
         'servings',
+        'meal_types'
     ];
 
     protected $casts = [

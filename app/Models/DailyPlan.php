@@ -23,7 +23,7 @@ class DailyPlan extends Model
 
     protected $casts = [
         'date' => 'date',
-        'day-type' => ExerciseIntensity::class,
+        'day_type' => ExerciseIntensity::class,
         'status' => EntityStatus::class,
         'target_calories' => 'integer',
         'target_protein_g' => 'integer',
