@@ -20,3 +20,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user/settings', [SettingsController::class, 'show']);
     Route::put('user/settings', [SettingsController::class, 'update']);
 });
+    
