@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\UserSettings;
+use App\Models\UserSetting;
 use App\Models\Recipe;
 use Illuminate\Support\Facades\DB;
 use App\Models\MealPlan;
@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 
 class MealPlanController extends Controller
 {
-    private function getFilteredRecipes(int $userId, ?UserSettings $settings) {
+    private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
             ->pluck('ingredient_id')
@@ -56,7 +56,7 @@ class MealPlanController extends Controller
         /** @var \App\Models\User $user */
         $user = $request->user();
 
-        $settings = UserSettings::where('user_id', $user->id)->first();
+        $settings = UserSetting::where('user_id', $user->id)->first();
 
         // PHASE 1: HARD FILTERS
 
@@ -266,7 +266,7 @@ class MealPlanController extends Controller
     public function regenerateMeal(Request $request) {
         /** @var \App\Models\User $user */
         $user = $request->user();
-        $settings = UserSettings::where('user_id', $user->id)->first();
+        $settings = UserSetting::where('user_id', $user->id)->first();
 
         $mealType = $request->input('meal_type');
 

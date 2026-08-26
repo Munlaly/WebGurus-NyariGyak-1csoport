@@ -13,15 +13,11 @@ return new class extends Migration
     {
         Schema::create('meal_plans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('recipe_id')->constrained()->cascadeOnDelete();
-            $table->date('scheduled_date');
             $table->enum('meal_type', ['breakfast', 'lunch', 'dinner', 'snack']);
             $table->enum('status', ['DRAFT', 'COMMITTED', 'EATEN', 'SKIPPED'])->default('DRAFT');
             $table->timestamps();
 
-            // Heti nézet index
-            $table->index(['user_id', 'scheduled_date'], 'idx_meal_plans_weekly');
         });
     }
 

@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\UserSettings;
+use App\Models\UserSetting;
 use App\Models\Ingredient;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -27,16 +27,13 @@ class UserSeeder extends Seeder
         $user->tokens()->delete(); // Clear old ones if running multiple times
         $user->createToken('vue-test-token')->plainTextToken;
 
-        UserSettings::updateOrCreate(
+        UserSetting::updateOrCreate(
             ['user_id' => $user->id],
             [
-                'goals' => ['lose_weight', 'eat_healthy'],
-                'meal_plan_preference' => ['omnivore'], 
                 'household_size' => 1, 
                 'prep_time_preference' => 45,
-                'daily_calorie_target' => 2200,
-                'budget_or_comfort' => 'comfort_first',
-                'custom_dislikes' => [],
+                'zero_waste_score' => 0,
+                
             ]
         );
 

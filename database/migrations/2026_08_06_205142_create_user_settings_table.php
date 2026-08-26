@@ -15,14 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
 
-            $table->json('goals')->nullable();
-            $table->json('meal_plan_preference')->nullable();
-            $table->integer('household_size')->nullable();
-            $table->integer('prep_time_preference')->nullable();
-            $table->integer('daily_calorie_target')->nullable();
-
-            $table->json('custom_dislikes')->nullable();
-            $table->enum('budget_or_comfort', ['budget_first', 'comfort_first'])->default('comfort_first');
+            // Preferences and operational settings 
+            $table->unsignedInteger('household_size')->default(1);
+            $table->unsignedInteger('prep_time_preference')->nullable();
             $table->json('system_preferences')->nullable();
             $table->timestamps();
         });

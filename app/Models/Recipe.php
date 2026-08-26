@@ -25,13 +25,22 @@ class Recipe extends Model
         'protein',
         'fat',
         'carbs',
+        'servings',
         'meal_types',
         'diets',
     ];
 
     protected $casts = [
-        'meal_types' => 'array',
+        'is_public' => 'boolean',
+        'prep_time_minutes' => 'integer',
+        'calories'=> 'integer',
+        'protein'=> 'decimal:2',
+        'fat'=> 'decimal:2',
+        'carbs' => 'decimal:2',
+        'servings' => 'integer',
+        'meal_types' => 'array', 
         'diets' => 'array',
+
     ];
 
     public function user(): BelongsTo {

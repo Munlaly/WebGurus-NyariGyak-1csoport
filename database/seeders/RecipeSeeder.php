@@ -150,6 +150,6 @@ class RecipeSeeder extends Seeder {
             return 'ml';
         }
 
-        return 'db';
+        return 'pcs';
     }
 }
