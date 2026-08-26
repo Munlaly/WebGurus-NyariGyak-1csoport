@@ -249,40 +249,43 @@ const navigation = [
         <!-- NATIVE SLIDEOVER MENU -->
         <div
           :class="[
-            'bg-background/95 absolute inset-0 z-40 flex flex-col overflow-y-auto p-6 pb-24 backdrop-blur-md transition-transform duration-300 ease-in-out md:hidden',
+            'fixed inset-0 top-16 z-40 flex flex-col overflow-y-auto bg-white p-6 pb-28 shadow-2xl transition-transform duration-300 ease-in-out md:hidden dark:bg-gray-950',
             mobileMenuTransformClass,
           ]"
         >
           <!-- Header (Profile) -->
-          <div class="mb-8 flex items-center gap-3">
+          <div
+            class="mb-8 flex items-center gap-4 border-b border-gray-200 pb-6 dark:border-gray-800"
+          >
             <img
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
-              class="border-outline-variant h-12 w-12 rounded-full border object-cover"
+              class="h-14 w-14 rounded-full border border-gray-200 object-cover shadow-sm"
             />
             <div class="flex flex-col">
-              <span class="text-primary text-lg font-bold"
+              <span
+                class="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100"
                 >Smart Meal Plan</span
               >
-              <span class="text-on-surface-variant text-xs"
+              <span class="text-sm font-medium text-gray-500 dark:text-gray-400"
                 >Personal Nutrition</span
               >
             </div>
           </div>
 
-          <!-- Full Navigation List  -->
-          <div class="flex flex-1 flex-col gap-2">
+          <!-- Full Navigation List -->
+          <div class="flex flex-1 flex-col justify-between gap-2.5">
             <Link
               v-for="item in navigation"
               :key="item.name"
               :href="item.href"
-              class="active:bg-surface-container-low text-on-surface flex items-center gap-4 rounded-xl p-4 transition-all active:scale-95"
+              class="flex items-center gap-4 rounded-2xl bg-gray-50 px-5 py-4 font-semibold text-gray-900 shadow-sm transition-all hover:bg-gray-100 active:scale-[0.98] dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
               @click="isMobileMenuOpen = false"
             >
               <span
-                class="material-symbols-outlined text-primary text-[24px]"
+                class="material-symbols-outlined text-[26px] text-green-600 dark:text-green-500"
                 >{{ item.icon }}</span
               >
-              <span class="text-lg font-medium">{{ item.name }}</span>
+              <span class="text-base tracking-wide">{{ item.name }}</span>
             </Link>
           </div>
         </div>
@@ -291,44 +294,46 @@ const navigation = [
 
     <!-- MOBILE BOTTOM NAVIGATION -->
     <nav
-      class="border-surface-container bg-background/95 fixed bottom-0 left-0 z-50 flex w-full justify-around border-t px-2 py-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur-md md:hidden"
+      class="fixed bottom-0 left-0 z-50 flex w-full justify-around border-t border-gray-200 bg-white px-2 py-3 pb-[max(env(safe-area-inset-bottom),1rem)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] md:hidden dark:border-gray-800 dark:bg-gray-950"
     >
       <!-- Today's Plans -->
       <Link
         href="/dashboard"
-        class="text-on-surface-variant hover:text-primary flex flex-col items-center gap-1 transition-all active:scale-95"
+        class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
         @click="isMobileMenuOpen = false"
       >
-        <span class="material-symbols-outlined text-[24px]"
+        <span class="material-symbols-outlined text-[26px]"
           >calendar_today</span
         >
-        <span class="text-[10px] font-medium">Today</span>
+        <span class="text-[11px] font-bold">Today</span>
       </Link>
 
       <!-- Weekly Planner -->
       <Link
         href="#"
-        class="text-on-surface-variant hover:text-primary flex flex-col items-center gap-1 transition-all active:scale-95"
+        class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
         @click="isMobileMenuOpen = false"
       >
-        <span class="material-symbols-outlined text-[24px]">event_note</span>
-        <span class="text-[10px] font-medium">Weekly</span>
+        <span class="material-symbols-outlined text-[26px]">event_note</span>
+        <span class="text-[11px] font-bold">Weekly</span>
       </Link>
 
       <!-- More / Burger Menu Trigger -->
       <button
         :class="[
-          'flex flex-col items-center gap-1 transition-all active:scale-95',
+          'flex flex-col items-center gap-1.5 transition-all active:scale-95',
           isMobileMenuOpen
-            ? 'text-primary'
-            : 'text-on-surface-variant hover:text-primary',
+            ? 'text-green-600'
+            : 'text-gray-500 hover:text-green-600',
         ]"
         @click="toggleMobileMenu"
       >
-        <span class="material-symbols-outlined text-[24px]">{{
-          isMobileMenuOpen ? 'menu_open' : 'menu'
+        <span class="material-symbols-outlined text-[26px]">{{
+          isMobileMenuOpen ? 'close' : 'menu'
         }}</span>
-        <span class="text-[10px] font-medium">More</span>
+        <span class="text-[11px] font-bold">{{
+          isMobileMenuOpen ? 'Close' : 'More'
+        }}</span>
       </button>
     </nav>
   </div>
