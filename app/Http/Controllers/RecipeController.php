@@ -27,11 +27,14 @@ class RecipeController extends Controller
             explode("\n", $recipe->instructions)
         )));
 
-        $formattedIngredients = $recipe->ingredients->map(fn($ingredient) => [
-            'name' => $ingredient->name,
-            'amount' => (float) $ingredient->pivot->amount,
-            'unit' => $ingredient->pivot->unit 
-        ]);
+        $formattedIngredients = $recipe->ingredients->map(function ($ingredient) {
+            /** @var \App\Models\Ingredient $ingredient */
+            return [
+                'name' => $ingredient->name,
+                'amount' => (float) $ingredient->pivot->amount,
+                'unit' => $ingredient->pivot->unit 
+            ];
+        });
 
         $imageUrl = 'https://placehold.co/600x400?text=No+Image';
 

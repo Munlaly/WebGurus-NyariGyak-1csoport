@@ -7,11 +7,11 @@ use App\Models\UserSettings;
 use App\Models\Recipe;
 use Illuminate\Support\Facades\DB;
 use App\Models\MealPlan;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 
 class MealPlanController extends Controller
 {
-
     private function getFilteredRecipes(int $userId, ?UserSettings $settings) {
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
