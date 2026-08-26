@@ -14,6 +14,7 @@ class UserSetting extends Model
         'household_size',
         'prep_time_preference',
         'system_preferences',
+        'zero_waste_score',
     ];
 
     protected $casts = [

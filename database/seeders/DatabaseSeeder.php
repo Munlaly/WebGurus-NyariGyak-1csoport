@@ -32,8 +32,9 @@ class DatabaseSeeder extends Seeder
 
         UserSetting::create([
             'user_id'=> $user->id,
-            'household_size' => '1',
-            'prep_time_preference' => 'under 20 minutes',
+            'household_size' => 1,
+            'prep_time_preference' => 20, 
+            'zero_waste_score' => 0,
         ]);
         
         $this->call ([

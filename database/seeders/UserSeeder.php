@@ -30,13 +30,10 @@ class UserSeeder extends Seeder
         UserSetting::updateOrCreate(
             ['user_id' => $user->id],
             [
-                'goals' => ['lose_weight', 'eat_healthy'],
-                'meal_plan_preference' => ['omnivore'], 
                 'household_size' => 1, 
                 'prep_time_preference' => 45,
-                'daily_calorie_target' => 2200,
-                'budget_or_comfort' => 'comfort_first',
-                'custom_dislikes' => [],
+                'zero_waste_score' => 0,
+                
             ]
         );
 
