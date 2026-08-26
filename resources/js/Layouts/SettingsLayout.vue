@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from './AuthenticatedLayout.vue';
 
 const props = defineProps<{
@@ -47,6 +47,7 @@ const baseTabs = [
   },
 ];
 
+// Desktop Tab Data
 const navigationTabs = computed(() => {
   return baseTabs.map((tab) => {
     const isActive = props.activeTab === tab.value;
@@ -63,6 +64,24 @@ const navigationTabs = computed(() => {
     };
   });
 });
+
+// Mobile Dropdown Data & Routing Logic
+const mobileDropdownItems = baseTabs.map((tab) => ({
+  label: tab.name,
+  value: tab.value,
+  url: route(tab.routeName),
+}));
+
+const currentMobileTab = ref(props.activeTab);
+
+watch(currentMobileTab, (newValue) => {
+  if (newValue !== props.activeTab) {
+    const target = mobileDropdownItems.find((t) => t.value === newValue);
+    if (target) {
+      router.get(target.url);
+    }
+  }
+});
 </script>
 
 <template>
@@ -77,10 +96,23 @@ const navigationTabs = computed(() => {
         </p>
       </header>
 
+      <!-- Mobile Nav: Routing Dropdown -->
       <div
-        class="hide-scrollbar overflow-x-auto border-b border-gray-200 dark:border-gray-800"
+        class="block border-b border-gray-200 pb-6 md:hidden dark:border-gray-800"
       >
-        <nav class="-mb-px flex min-w-max space-x-8" aria-label="Tabs">
+        <USelect
+          v-model="currentMobileTab"
+          :items="mobileDropdownItems"
+          size="lg"
+          class="w-full"
+        />
+      </div>
+
+      <!-- Desktop Nav: Traditional Tabs -->
+      <div
+        class="hidden border-b border-gray-200 md:block dark:border-gray-800"
+      >
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
           <Link
             v-for="tab in navigationTabs"
             :key="tab.value"
@@ -104,13 +136,3 @@ const navigationTabs = computed(() => {
     </div>
   </AuthenticatedLayout>
 </template>
-
-<style scoped>
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-</style>
