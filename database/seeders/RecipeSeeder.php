@@ -102,7 +102,7 @@ class RecipeSeeder extends Seeder {
                         ['name' => $ingredientName],
                         [
                             'category_id' => $categoryId,
-                            'base_unit' => $this->mapUnit($rawUnit, $ingData['aisle'] ?? 'Uncategorized'),
+                            'base_unit' => !empty($rawUnit) ? strtolower(trim($rawUnit)) : 'pcs',
                         ]
                     );
 
@@ -113,43 +113,12 @@ class RecipeSeeder extends Seeder {
                         ],
                         [
                             'amount' => $ingData['amount'] ?? 0,
-                            'unit'   => !empty($rawUnit) ? trim($rawUnit) : null,
+                            'unit'   => !empty($rawUnit) ? trim($rawUnit) : 'pcs',
                         ]
                     );
                 }
             }
         }
         $this->command->info('Recipes and Ingredients seeded succesfully');
-    }
-
-    private function mapUnit($unit, $aisle) {
-        $unit = strtolower(trim($unit));
-        $aisle = strtolower(trim($aisle));
-
-        if(in_array($unit, ['ml', 'l', 'fluid ounce', 'fl oz'])) {
-            return 'ml';
-        }
-        if (in_array($unit, ['g', 'gram', 'grams', 'oz', 'ounce', 'ounces', 'lb', 'lbs', 'pound', 'pounds'])) {
-            return 'g';
-        }
-
-        $weightAisles = [
-            'meat', 'seafood', 'pasta and rice', 'baking', 'cereal', 
-            'savory snacks', 'sweet snacks', 'cheese', 'health foods', 
-            'nut butters', 'jams and honey', 'canned and jarred'
-        ];
-        if(in_array($aisle, $weightAisles)) {
-            return 'g';
-        }
-
-        $volumeAisles = [
-            'oil, vinegar, salad dressing', 'beverages', 
-            'alcoholic beverages', 'milk, eggs, other dairy', 'condiments'
-        ];
-        if(in_array($aisle, $volumeAisles)) {
-            return 'ml';
-        }
-
-        return 'pcs';
     }
 }
