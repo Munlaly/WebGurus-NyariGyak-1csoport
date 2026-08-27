@@ -1,10 +1,14 @@
 <?php
-
-use App\Http\Controllers\UserInventoryController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\UserInventoryController;
 use App\Http\Controllers\MealPlanController;
 use App\Http\Controllers\UserRecipeController;
 use App\Http\Controllers\SettingsController;
+
+
+
+
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/inventory', [UserInventoryController::class, 'index']);

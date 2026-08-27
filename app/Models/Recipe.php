@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
+ * @property int|null $user_id
+ * @property bool $is_public
  * @property array|null $meal_types
  * @property array|null $diets
  * @property \Illuminate\Database\Eloquent\Collection<int, Ingredient> $ingredients

@@ -19,21 +19,40 @@ class LoginTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_users_can_authenticate_using_valid_credentials(): void
+   public function test_new_users_are_redirected_to_quiz_after_login(): void
     {
         $user = User::factory()->create([
-            'username' => 'testuser',
+            'username' => 'newuser',
             'password' => bcrypt('password123'),
+            'onboarded_at' => null, 
         ]);
 
         $response = $this->post('/login', [
-            'username' => 'testuser',
+            'username' => 'newuser',
+            'password' => 'password123',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(route('quiz.index'));
+    }
+
+    public function test_onboarded_users_are_redirected_to_dashboard_after_login(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'veteranuser',
+            'password' => bcrypt('password123'),
+            'onboarded_at' => now(), 
+        ]);
+
+        $response = $this->post('/login', [
+            'username' => 'veteranuser',
             'password' => 'password123',
         ]);
 
         $this->assertAuthenticatedAs($user);
         $response->assertRedirect(route('dashboard'));
     }
+    
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {

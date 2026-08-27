@@ -45,7 +45,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return to_route('dashboard');
+        return redirect()->route('quiz.index');
      }
 
 }
