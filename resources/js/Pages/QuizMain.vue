@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import type { PageProps } from '@inertiajs/core';
 import {
@@ -90,6 +90,45 @@ const form = useForm({
   } as QuizFormData['exercise_schedule'],
 });
 
+const STORAGE_KEY = 'meal_plan_quiz_progress';
+
+// Load saved state
+onMounted(() => {
+  const saved = sessionStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+
+      if (parsed.currentStep !== undefined) {
+        currentStep.value = parsed.currentStep;
+      }
+
+      if (parsed.dislikedIngredientsObjects) {
+        dislikedIngredientsObjects.value = parsed.dislikedIngredientsObjects;
+      }
+
+      if (parsed.form) {
+        Object.assign(form, parsed.form);
+      }
+    } catch (e) {
+      console.error('Failed to parse session storage for quiz', e);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  }
+});
+
+watch(
+  () => ({
+    form: form.data(),
+    currentStep: currentStep.value,
+    dislikedIngredientsObjects: dislikedIngredientsObjects.value,
+  }),
+  (newState) => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+  },
+  { deep: true },
+);
+
 const progressPercentage = computed(() => {
   const step = stepConfig[currentStep.value];
 
@@ -130,7 +169,11 @@ function prevStep() {
 
 function handleNext() {
   if (stepConfig[currentStep.value]?.type === 'summary') {
-    form.post(route('quiz.store'));
+    form.post(route('quiz.store'), {
+      onSuccess: () => {
+        sessionStorage.removeItem(STORAGE_KEY);
+      },
+    });
   } else if (currentStep.value < stepConfig.length - 1) {
     currentStep.value++;
   }
