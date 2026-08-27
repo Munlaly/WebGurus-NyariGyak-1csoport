@@ -1,5 +1,6 @@
+<!-- WeeklyPlanner.vue -->
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
@@ -30,14 +31,27 @@ const props = defineProps<{
 
 // State
 const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
-const daysOfWeek = computed(() => Object.keys(weeklyPlan.value));
+
+// Define days with short names for mobile layout
+const allDays = [
+  { full: 'Monday', short: 'Mon' },
+  { full: 'Tuesday', short: 'Tue' },
+  { full: 'Wednesday', short: 'Wed' },
+  { full: 'Thursday', short: 'Thu' },
+  { full: 'Friday', short: 'Fri' },
+  { full: 'Saturday', short: 'Sat' },
+  { full: 'Sunday', short: 'Sun' },
+];
+
 const activeDay = ref<string>('');
 const isSaving = ref(false);
 
 onMounted(() => {
-  if (daysOfWeek.value.length > 0) {
-    activeDay.value = daysOfWeek.value[0];
-  } else {
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const isValidDay = allDays.find((d) => d.full === today);
+  activeDay.value = isValidDay ? today : 'Monday';
+
+  if (Object.keys(weeklyPlan.value).length === 0) {
     fetchInitialPlan();
   }
 });
@@ -50,12 +64,8 @@ const fetchInitialPlan = async () => {
   try {
     const response = await axios.post('/meal-plan/generate');
     weeklyPlan.value = response.data.plan;
-    if (Object.keys(response.data.plan).length > 0) {
-      activeDay.value = Object.keys(response.data.plan)[0];
-    }
   } catch (error) {
     console.error('Failed to fetch plan:', error);
-    // TODO: Handle 400 Strict Filter errors
   }
 };
 
@@ -107,7 +117,6 @@ const rerollMeal = async (
 };
 
 const regenerateUnpinned = async () => {
-  // Fire parallel requests for all unpinned meals
   const promises: Promise<void>[] = [];
 
   for (const [dayName, dayData] of Object.entries(weeklyPlan.value)) {
@@ -146,48 +155,52 @@ const acceptAndFinalize = () => {
 
 <template>
   <AuthenticatedLayout>
-    <div class="flex h-full flex-col">
+    <div class="flex h-full w-full min-w-0 flex-col">
       <!-- 1. Sticky Action Bar -->
       <div
-        class="bg-background/90 border-outline-variant/30 sticky top-0 z-40 -mx-4 mb-6 flex flex-col gap-4 border-b px-4 pt-2 pb-4 backdrop-blur-md md:-mx-8 md:flex-row md:items-center md:justify-between md:px-8"
+        class="bg-background/90 border-outline-variant/30 sticky top-0 z-40 mb-6 flex flex-col gap-4 border-b pt-2 pb-4 backdrop-blur-md md:flex-row md:items-center md:justify-between"
       >
-        <div>
-          <h1 class="font-headline-md text-on-surface text-2xl font-bold">
+        <div class="shrink-0">
+          <h1
+            class="font-headline-md text-on-surface text-xl font-bold md:text-2xl"
+          >
             Review Generated Menu
           </h1>
-          <p class="text-on-surface-variant text-sm">
+          <p class="text-on-surface-variant text-xs md:text-sm">
             Pin your favorites, mark the rest for recalculation.
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
+        <div
+          class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap md:w-auto md:gap-3"
+        >
           <button
             disabled
-            class="bg-surface-container-low text-on-surface-variant flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold opacity-60 md:flex-none"
+            class="bg-surface-container-low text-on-surface-variant flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold opacity-60 sm:flex-1 md:w-auto"
           >
-            <span class="material-symbols-outlined text-[20px]">lock</span>
+            <span class="material-symbols-outlined text-[18px]">lock</span>
             Shopping List
           </button>
 
           <button
-            class="text-primary hover:bg-primary-50 border-primary flex flex-1 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors md:flex-none"
+            class="text-primary hover:bg-primary-50 border-primary flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
             @click="regenerateUnpinned"
           >
-            <span class="material-symbols-outlined text-[20px]">sync</span>
+            <span class="material-symbols-outlined text-[18px]">sync</span>
             Regenerate Unpinned
           </button>
 
           <button
             :disabled="isSaving"
-            class="bg-primary text-on-primary hover:bg-primary-600 flex flex-1 items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-70 md:flex-none"
+            class="bg-primary text-on-primary hover:bg-primary-600 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-70 sm:w-full md:w-auto"
             @click="acceptAndFinalize"
           >
             <span
               v-if="isSaving"
-              class="material-symbols-outlined animate-spin text-[20px]"
+              class="material-symbols-outlined animate-spin text-[18px]"
               >progress_activity</span
             >
-            <span v-else class="material-symbols-outlined text-[20px]"
+            <span v-else class="material-symbols-outlined text-[18px]"
               >check_circle</span
             >
             Accept & Finalize
@@ -195,47 +208,56 @@ const acceptAndFinalize = () => {
         </div>
       </div>
 
-      <!-- 2. Mobile Day Navigation (Tabs) -->
+      <!-- 2. Full Week Navigation (Tabs) - Horizontal Scrolling -->
       <div
-        class="scrollbar-hide border-outline-variant/30 -mx-4 mb-6 flex overflow-x-auto border-b px-4 md:hidden"
+        class="scrollbar-hide border-outline-variant/30 mb-6 flex w-full overflow-x-auto border-b"
       >
         <button
-          v-for="day in daysOfWeek"
-          :key="day"
+          v-for="day in allDays"
+          :key="day.full"
           :class="[
-            'border-b-2 px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors',
-            activeDay === day
+            'border-b-2 px-3 py-3 text-sm font-bold whitespace-nowrap transition-colors sm:px-4 md:px-6',
+            activeDay === day.full
               ? 'border-primary text-primary'
               : 'text-on-surface-variant hover:text-on-surface border-transparent',
           ]"
-          @click="setActiveDay(day)"
+          @click="setActiveDay(day.full)"
         >
-          {{ day }}
+          <span class="hidden sm:inline">{{ day.full }}</span>
+          <span class="sm:hidden">{{ day.short }}</span>
         </button>
       </div>
 
       <!-- 3. Planner Content Canvas -->
-      <!-- Desktop: flex container scrolling horizontally. Mobile: standard block -->
-      <div class="flex flex-1 md:overflow-x-auto md:pb-8">
-        <div class="flex w-full flex-col gap-6 md:w-auto md:flex-row md:gap-8">
-          <template v-for="(dayData, dayName) in weeklyPlan" :key="dayName">
-            <!-- Render rules: Hide on mobile if not active. Always show on md+ -->
-            <div
-              :class="[
-                'w-full shrink-0 md:block',
-                activeDay === dayName ? 'block' : 'hidden',
-              ]"
+      <div class="flex w-full flex-1 flex-col pb-8">
+        <template v-if="weeklyPlan[activeDay]">
+          <PlannerDayColumn
+            :day-name="activeDay"
+            :total-calories="weeklyPlan[activeDay].total_calories"
+            :perfect-match="weeklyPlan[activeDay].perfect_match"
+            :meals="weeklyPlan[activeDay].meals"
+            @toggle-pin="togglePin"
+            @reroll="rerollMeal"
+          />
+        </template>
+
+        <!-- Empty State -->
+        <div
+          v-else
+          class="border-outline-variant/50 text-on-surface-variant flex flex-1 items-center justify-center rounded-2xl border border-dashed p-8 sm:p-12"
+        >
+          <div class="flex flex-col items-center gap-3 text-center">
+            <span
+              class="material-symbols-outlined text-4xl opacity-40 sm:text-5xl"
+              >event_busy</span
             >
-              <PlannerDayColumn
-                :day-name="String(dayName)"
-                :total-calories="dayData.total_calories"
-                :perfect-match="dayData.perfect_match"
-                :meals="dayData.meals"
-                @toggle-pin="togglePin"
-                @reroll="rerollMeal"
-              />
-            </div>
-          </template>
+            <p class="text-base font-semibold sm:text-lg">
+              No meals planned for {{ activeDay }}
+            </p>
+            <p class="text-xs opacity-70 sm:text-sm">
+              Your algorithm generated plans starting from today onwards.
+            </p>
+          </div>
         </div>
       </div>
     </div>

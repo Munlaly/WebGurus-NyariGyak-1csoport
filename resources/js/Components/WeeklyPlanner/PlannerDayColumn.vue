@@ -38,10 +38,10 @@ const formatTags = (meal: PlannerMeal) => {
 </script>
 
 <template>
-  <div class="flex w-full shrink-0 flex-col md:w-[320px]">
+  <div class="flex w-full min-w-0 flex-col">
     <!-- Day Header -->
     <div
-      class="bg-background sticky top-0 z-30 mb-4 flex items-end justify-between border-b pt-2 pb-2 md:static md:bg-transparent md:pt-0"
+      class="bg-background sticky top-0 z-30 mb-6 flex items-end justify-between border-b pt-2 pb-4 md:static md:bg-transparent md:pt-0"
     >
       <h2 class="text-on-surface text-2xl font-bold tracking-tight">
         {{ dayName }}
@@ -51,7 +51,6 @@ const formatTags = (meal: PlannerMeal) => {
         <span class="text-on-surface-variant text-sm font-semibold">
           {{ totalCalories }} kcal
         </span>
-        <!-- Warning indicator if algorithm struggled to hit target window -->
         <span
           v-if="!perfectMatch"
           class="text-error text-[10px] font-bold tracking-wider uppercase"
@@ -62,8 +61,10 @@ const formatTags = (meal: PlannerMeal) => {
       </div>
     </div>
 
-    <!-- Meals Stack -->
-    <div class="flex flex-col gap-4">
+    <!-- Meals Grid (Transforms to Grid on Desktop) -->
+    <div
+      class="grid min-w-0 grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+    >
       <PlannerMealCard
         v-for="meal in meals"
         :id="meal.id"
