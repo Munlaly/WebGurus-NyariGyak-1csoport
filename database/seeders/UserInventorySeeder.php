@@ -33,16 +33,22 @@ class UserInventorySeeder extends Seeder
 
         // 3. Loop through and give the user enough of each ingredient
         foreach ($recipeRequirements as $ingredientId => $requiredAmount) {
+            $daysToAdd = match(true) {
+                $ingredientId <= 3 => 2,
+                $ingredientId <= 6 => 5,
+                default => 14,
+            };
+
             $inventoryData[] = [
                 'user_id' => $user->id,
-                'ingredient_id' => $ingredientId, 
+                'ingredient_id' => $ingredientId,
                 // We add 10 to the required amount so the user has leftovers after cooking
                 'amount_left' => $requiredAmount + 10, 
                 'status' => 'FULL', 
-                'expiration_date' => now()->addDays(14)->toDateString(), 
+                'expiration_date' => now()->addDays($daysToAdd)->toDateString(), 
                 'is_frozen' => false, 
                 'created_at' => now(), 
-                'updated_at' => now()
+                'updated_at' => now(),
             ];
         }
 
