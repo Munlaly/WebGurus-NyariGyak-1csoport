@@ -21,7 +21,7 @@ class Ingredient extends Model
     protected function casts(): array {
         return [
             'name' => 'string',
-            'base_unit' => BaseUnit::class,
+            'base_unit' => 'string',
         ];
     }
 

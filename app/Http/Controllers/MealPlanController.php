@@ -10,6 +10,7 @@ use App\Models\MealPlan;
 use Illuminate\Support\Carbon;
 use App\Models\DailyPlan;
 use App\Models\UserInventory;
+use App\Models\UserProfile;
 
 class MealPlanController extends Controller
 {
@@ -54,7 +55,7 @@ class MealPlanController extends Controller
         ];
     }
 
-    private function getFilteredRecipes(int $userId, ?UserSettings $settings, array $dietSlugs) {
+    private function getFilteredRecipes(int $userId, ?UserSetting $settings, array $dietSlugs) {
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
             ->pluck('ingredient_id')
