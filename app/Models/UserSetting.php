@@ -11,7 +11,6 @@ class UserSetting extends Model
 
     protected $fillable = [
         'user_id',
-        'goals',
         'household_size',
         'prep_time_preference',
         'system_preferences',
@@ -19,7 +18,6 @@ class UserSetting extends Model
     ];
 
     protected $casts = [
-        'goals' => 'array',
         'household_size' => 'integer',
         'system_preferences' => 'array',
     ];
