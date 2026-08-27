@@ -44,3 +44,6 @@ public/hot
 _ide_helper.php
 _ide_helper_models.php
 phpstrom.meta.php
+
+# Images
+resources/images
