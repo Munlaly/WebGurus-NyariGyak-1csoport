@@ -27,6 +27,10 @@ class DashboardController extends Controller
                     ? $recipe->image
                     : asset('storage/' . $recipe->image);
             }
+            
+            if(str_contains($imageUrl, 'spoonacular.com')) {
+                $imageUrl = str_replace(['-312x231.jpg', '-240x150.jpg', '-90x90.jpg'], '-636x393.jpg', $imageUrl);
+            }
 
             return [
                 'id' => $recipe->id,
@@ -55,7 +59,9 @@ class DashboardController extends Controller
         $tomorrowString = Carbon::now()->addDay()->toDateString();
 
         foreach($dailyPlans as $dailyPlan) {
-            $offset = match ($dailyPlan->date) {
+            $planDate = Carbon::parse($dailyPlan->date)->toDateString();
+
+            $offset = match ($planDate) {
                 $yesterdayString => '-1',
                 $todayString => '0',
                 $tomorrowString => '1',

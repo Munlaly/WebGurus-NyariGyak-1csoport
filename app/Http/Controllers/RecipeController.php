@@ -46,6 +46,10 @@ class RecipeController extends Controller
                 : asset('storage/' . $recipe->image);
         }
 
+        if (str_contains($imageUrl, 'spoonacular.com')) {
+            $imageUrl = str_replace(['-312x231.jpg', '-240x150.jpg', '-90x90.jpg'], '-636x393.jpg', $imageUrl);
+        }
+
         return Inertia::render('Recipe', [
             'recipe' => [
                 'id' => $recipe->id,
