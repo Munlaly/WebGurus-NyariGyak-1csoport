@@ -9,6 +9,7 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Middleware\EnsureUserIsOnboarded;
 use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\MealPlanController;
 
 
 
@@ -20,25 +21,36 @@ Route::middleware('auth')->group(function(){
 
         Route::prefix('settings')->name('settings.')->group(function () {
         
-        Route::get('targets', [SettingsController::class, 'targets'])->name('targets');
-        Route::put('targets', [SettingsController::class, 'updateTargets']);
-        
-        Route::get('rules', [SettingsController::class, 'rules'])->name('rules');
-        Route::put('rules', [SettingsController::class, 'updateRules']);
-        
-        Route::get('system', [SettingsController::class, 'system'])->name('system');
-        Route::put('system', [SettingsController::class, 'updateSystem']);
+            Route::get('targets', [SettingsController::class, 'targets'])->name('targets');
+            Route::put('targets', [SettingsController::class, 'updateTargets']);
+            
+            Route::get('rules', [SettingsController::class, 'rules'])->name('rules');
+            Route::put('rules', [SettingsController::class, 'updateRules']);
+            
+            Route::get('system', [SettingsController::class, 'system'])->name('system');
+            Route::put('system', [SettingsController::class, 'updateSystem']);
 
-        Route::get('biometrics', [SettingsController::class, 'biometrics'])->name('biometrics');
-        Route::put('biometrics', [SettingsController::class, 'updateBiometrics']);
+            Route::get('biometrics', [SettingsController::class, 'biometrics'])->name('biometrics');
+            Route::put('biometrics', [SettingsController::class, 'updateBiometrics']);
 
-        Route::get('logistics', [SettingsController::class, 'logistics'])->name('logistics');
-        Route::put('logistics', [SettingsController::class, 'updateLogistics']);
+            Route::get('logistics', [SettingsController::class, 'logistics'])->name('logistics');
+            Route::put('logistics', [SettingsController::class, 'updateLogistics']);
 
-        Route::get('security', [SettingsController::class, 'security'])->name('security');
-        Route::patch('security/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
-        Route::put('security/password', [SettingsController::class, 'updatePassword'])->name('password.update');
-    });
+            Route::get('security', [SettingsController::class, 'security'])->name('security');
+            Route::patch('security/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
+            Route::put('security/password', [SettingsController::class, 'updatePassword'])->name('password.update');
+        });
+
+        Route::prefix('meal-plan')->name('meal-plan.')->group(function () {
+            Route::get('/', function () {
+                return Inertia::render('WeeklyPlanner'); 
+            })->name('index');
+
+            // API endpoints for the planner actions
+            Route::post('/generate', [MealPlanController::class, 'generate'])->name('generate');
+            Route::post('/regenerate-meal', [MealPlanController::class, 'regenerateMeal'])->name('regenerate-meal');
+            Route::post('/save', [MealPlanController::class, 'savePlan'])->name('save');
+        });
     });
     
 
