@@ -71,7 +71,7 @@ const formatTags = (meal: PlannerMeal) => {
         :meal-type="meal.meal_type"
         :title="meal.name"
         :calories="meal.calories"
-        :image-url="meal.image || '/images/meal-placeholder.jpg'"
+        :image-url="meal.image"
         :tags="formatTags(meal)"
         :is-pinned="meal.isPinned"
         :is-rolling="meal.isRolling"

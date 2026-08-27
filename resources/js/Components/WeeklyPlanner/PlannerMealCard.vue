@@ -7,7 +7,7 @@ const props = withDefaults(
     mealType: string;
     title: string;
     calories: number;
-    imageUrl: string;
+    imageUrl?: string;
     imageAlt?: string;
     tags?: string[];
     isPinned?: boolean;
@@ -25,6 +25,14 @@ const emit = defineEmits<{
   (e: 'toggle-pin', id: number): void;
   (e: 'reroll', id: number, type: string): void;
 }>();
+
+const handleImageError = (event: Event) => {
+  const target = event.target as HTMLImageElement | null;
+
+  if (target) {
+    target.src = 'https://placehold.co/600x400?text=No+Image';
+  }
+};
 
 const pinButtonClass = computed(() =>
   props.isPinned
@@ -64,9 +72,10 @@ const cardStateClass = computed(() =>
       class="bg-surface-container relative aspect-video w-full overflow-hidden"
     >
       <img
-        :src="imageUrl"
+        :src="imageUrl || 'https://placehold.co/600x400?text=No+Image'"
         :alt="imageAlt"
         class="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+        @error="handleImageError"
       />
       <!-- Pinned Badge -->
       <div
