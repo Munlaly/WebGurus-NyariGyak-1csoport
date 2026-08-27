@@ -84,7 +84,7 @@ const mobileMenuTransformClass = computed(() =>
 
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
-  { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
+  { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan/' },
   { name: 'My Inventory', icon: 'inventory_2', href: '#' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
@@ -330,7 +330,7 @@ const navigation = [
 
       <!-- Weekly Planner -->
       <Link
-        href="/meal-plan"
+        href="/meal-plan/"
         class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
         @click="isMobileMenuOpen = false"
       >
