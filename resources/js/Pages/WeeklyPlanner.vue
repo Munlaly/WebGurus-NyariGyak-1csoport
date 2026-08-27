@@ -32,7 +32,6 @@ const props = defineProps<{
 // State
 const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
 
-// Define days with short names for mobile layout
 const allDays = [
   { full: 'Monday', short: 'Mon' },
   { full: 'Tuesday', short: 'Tue' },
@@ -58,6 +57,17 @@ onMounted(() => {
 
 const setActiveDay = (day: string) => {
   activeDay.value = day;
+};
+
+// Extracted dynamic class logic
+const getTabClass = (dayName: string) => {
+  const baseClass =
+    'border-b-2 px-3 py-3 text-sm font-bold whitespace-nowrap transition-colors sm:px-4 md:px-6';
+  const activeClass = 'border-primary text-primary';
+  const inactiveClass =
+    'border-transparent text-on-surface-variant hover:text-on-surface';
+
+  return `${baseClass} ${activeDay.value === dayName ? activeClass : inactiveClass}`;
 };
 
 const fetchInitialPlan = async () => {
@@ -215,12 +225,7 @@ const acceptAndFinalize = () => {
         <button
           v-for="day in allDays"
           :key="day.full"
-          :class="[
-            'border-b-2 px-3 py-3 text-sm font-bold whitespace-nowrap transition-colors sm:px-4 md:px-6',
-            activeDay === day.full
-              ? 'border-primary text-primary'
-              : 'text-on-surface-variant hover:text-on-surface border-transparent',
-          ]"
+          :class="getTabClass(day.full)"
           @click="setActiveDay(day.full)"
         >
           <span class="hidden sm:inline">{{ day.full }}</span>
@@ -265,7 +270,6 @@ const acceptAndFinalize = () => {
 </template>
 
 <style scoped>
-/* Hide scrollbar for the mobile tab navigation but allow scrolling */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
