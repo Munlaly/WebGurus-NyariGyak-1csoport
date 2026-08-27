@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
+use App\Models\UserInventory;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,14 +42,70 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        return array_merge(parent::share($request), [
-            'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'username' => $request->user()->username, 
-                    
-                ] : null,
-            ],
-        ]);
+        return [
+            ...parent::share($request),
+            'auth' => function () use ($request) {
+                $user = $request->user();
+                
+                if (!$user) {
+                    return [
+                        'user' => null,
+                        'theme' => 'light',
+                    ];
+                }
+
+                $settings = $user->settings;
+                $sysPrefs = $settings ? $settings->system_preferences : [];
+
+                return [
+                    'user' => $user,
+                    'theme' => $sysPrefs['theme'] ?? 'light',
+                ];
+            },
+            'expiringAlerts' => function () use($request) {
+                $user = $request->user();
+                if(!$user) {
+                    return ['expired' => [], 'critical' => [], 'urgent' => []];
+                }
+
+                $settings = $user->settings;
+                $inAppAlertsEnabled = $settings->system_preferences['inAppAlerts'] ?? true;
+
+                if(!$inAppAlertsEnabled) {
+                    return ['expired' => [], 'critical' => [], 'urgent' => []];
+                }
+
+                $now = Carbon::now()->startOfDay();
+                $today = $now->copy();
+                $tomorrow = $now->copy()->addDay();
+                $oneWeekFromNow = $now->copy()->addDays(7);
+
+                $inventory = UserInventory::where('user_id', $user->id)
+                    ->with('ingredient')
+                    ->whereNotNull('expiration_date')
+                    ->get();
+
+                $expired = [];
+                $critical = [];
+                $urgent = [];
+
+                foreach($inventory as $item) {
+                    $expDate = Carbon::parse($item->expiration_date)->startOfDay();
+                    if($expDate->isBefore($today)) {
+                        $expired[] = $item;
+                    } elseif($expDate->equalTo($today) || $expDate->equalTo($tomorrow)) {
+                        $critical[] = $item;
+                    } elseif($expDate->isBetween($tomorrow, $oneWeekFromNow, false)) {
+                        $urgent[] = $item;
+                    }
+                }
+
+                return [
+                    'expired' => $expired,
+                    'critical' => $critical,
+                    'urgent' => $urgent,
+                ];
+            }
+        ];
     }
 }
