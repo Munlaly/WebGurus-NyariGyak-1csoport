@@ -189,7 +189,7 @@ class MealPlanController extends Controller
             $attempts = 0;
             $maxAttempts = 150;  // don't let the server loop forever
 
-            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients, $userInventory, $now, $oneWeekFromNow) {
+            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients, $userInventory, $oneWeekFromNow) {
                 $score = 0;
                 if(empty($weeklyActiveIngredients) && $userInventory->isEmpty()) {
                     return mt_rand(1, 100); // Randomize the first day
