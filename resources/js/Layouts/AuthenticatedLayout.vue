@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
 interface MacroTarget {
@@ -31,6 +31,19 @@ withDefaults(
 
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
+
+// Prevent scrolling the body when the Slider is open
+watch(isMobileMenuOpen, (isOpen) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+});
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
