@@ -95,7 +95,11 @@ class CookMealController extends Controller
             }
 
             if($mealPlanId) {
-                MealPlan::where('id', $mealPlanId)->update(['status' => 'EATEN']);
+                MealPlan::where('id', $mealPlanId)
+                    ->whereHas('dailyPlan', function ($query) use ($user) {
+                        $query->where('user_id', $user->id);
+                    })    
+                    ->update(['status' => 'EATEN']);
             }
 
             return response()->json([
