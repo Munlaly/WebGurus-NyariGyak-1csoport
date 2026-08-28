@@ -80,6 +80,7 @@ const navigation = [
   { name: 'My Inventory', icon: 'inventory_2', href: '#' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
+  { name: 'Alerts', icon: 'notifications', href: '/alerts' },
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
 </script>

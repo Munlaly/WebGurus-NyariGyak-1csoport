@@ -16,6 +16,8 @@ Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts.index');
+
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
 
         Route::prefix('settings')->name('settings.')->group(function () {

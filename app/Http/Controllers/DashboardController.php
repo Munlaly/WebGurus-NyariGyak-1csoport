@@ -53,4 +53,8 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function alerts(Request $request): Response {
+        return Inertia::render('Alerts');
+    }
+
 }

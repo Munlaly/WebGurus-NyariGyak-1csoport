@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 
 // 1. Interface for what your backend will eventually send
 interface Ingredient {
@@ -14,14 +14,31 @@ const props = defineProps<{
   expiringIngredients?: Ingredient[];
 }>();
 
+const STORAGE_KEY = 'dismissed_inventory_alerts';
+const getTodayString = () => new Date().toISOString().split('T')[0];
+const dismissedIds = ref<number[]>([]);
+
+onMounted(() => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    const parsed = JSON.parse(stored);
+    if (parsed.date === getTodayString()) {
+      dismissedIds.value = parsed.ids;
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+});
+
 // 2. Mock data to test the UI until the backend is ready
-const ingredients = ref<Ingredient[]>(
-  props.expiringIngredients || [
+const activeIngredients = computed(() => {
+  const base = props.expiringIngredients || [
     { id: 1, name: 'Milk', daysUntilExpiry: -1 },
     { id: 2, name: 'Chicken Breast', daysUntilExpiry: 1 },
     { id: 3, name: 'Spinach', daysUntilExpiry: 5 },
-  ],
-);
+  ];
+  return base.filter((item) => !dismissedIds.value.includes(item.id));
+});
 
 // 3. The logic you requested
 const categorizedAlerts = computed(() => {
@@ -65,7 +82,14 @@ const categorizedAlerts = computed(() => {
 
 // Optional: Let users dismiss the notification so it doesn't block the screen
 const dismissAlert = (id: number) => {
-  ingredients.value = ingredients.value.filter((item) => item.id !== id);
+  dismissedIds.value.push(id);
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      date: getTodayString(),
+      ids: dismissedIds.value,
+    }),
+  );
 };
 </script>
 
