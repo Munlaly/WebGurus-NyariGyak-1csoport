@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { ref, computed, watchEffect } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 
 interface MacroTarget {
   current: number;
   target: number;
 }
+
+const page = usePage();
+watchEffect(() => {
+  const userTheme = (page.props.auth as { theme?: string })?.theme || 'light';
+
+  if (userTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
 
 const props = withDefaults(
   defineProps<{
