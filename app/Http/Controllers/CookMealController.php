@@ -11,9 +11,13 @@ use App\Models\MealPlan;
 class CookMealController extends Controller
 {
     public function cook(Request $request, $recipeId) {
+        $validated = $request->validate([
+            'meal_plan_id' => 'nullable|integer|exists:meal_plans,id',
+        ]);
+
         $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
         $user = $request->user();
-        $mealPlanId = $request->input('meal_plan_id');
+        $mealPlanId = $validated['meal_plan_id'] ?? null;
 
         $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
