@@ -20,7 +20,7 @@ class MealPlanController extends Controller
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
-        $sex = strtolower($profile->sex ?? 'male');
+        $sex = $profile->sex?->value ?? 'male';
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -34,11 +34,11 @@ class MealPlanController extends Controller
             'very_active' => 1.725,
         ];
 
-        $activity = strtolower($profile->baseline_activity ?? 'sedentary');
+        $activity = $profile->baseline_activity?->value ?? 'sedentary';
         // Total Daily Energy Expenditure
         $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
 
-        $goal = strtolower($profile->fitness_goal ?? 'maintain');
+        $goal = $profile->fitness_goal?->value ?? 'maintain';
 
         $targetCalories = $tdee;
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
@@ -87,7 +87,7 @@ class MealPlanController extends Controller
 
         if(!empty($excludedCategoryIds)) {
             $validRecipes->whereDoesntHave('ingredients', function ($query) use ($excludedCategoryIds) {
-                $query->whereIn('category_id', $excludedCategoryIds);
+                $query->whereIn('ingredients.category_id', $excludedCategoryIds);
             });
         }
         return $validRecipes;
@@ -118,7 +118,7 @@ class MealPlanController extends Controller
 
         // PHASE 1.5: GOAL-BASED PRUNING
 
-        $goal = $profile ? strtolower($profile->fitness_goal ?? 'maintain') : 'maintain';
+        $goal = $profile->fitness_goal?->value ?? 'maintain';
         $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70); // Keep the top 70 %
 
         if ($cutoffThreshold >= 3) {
