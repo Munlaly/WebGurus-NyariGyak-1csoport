@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
                     ];
                 }
 
+                /** @var \App\Models\UserSetting|null $settings */
                 $settings = $user->settings;
                 $sysPrefs = $settings ? $settings->system_preferences : [];
 
@@ -68,6 +69,7 @@ class HandleInertiaRequests extends Middleware
                     return ['expired' => [], 'critical' => [], 'urgent' => []];
                 }
 
+                /** @var \App\Models\UserSetting|null $settings */
                 $settings = $user->settings;
                 $inAppAlertsEnabled = $settings->system_preferences['inAppAlerts'] ?? true;
 

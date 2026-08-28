@@ -20,6 +20,7 @@ class SendWeeklyDigests extends Command
 
         $count = 0;
         foreach($settingsQuery as $setting) {
+            /** @var \App\Models\User|null $user */
             $user = $setting->user;
 
             if(!$user || !$user->email) {

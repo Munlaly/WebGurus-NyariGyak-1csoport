@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
 import InventoryAlerts from '../Components/InventoryAlerts.vue';
-import { createInertiaApp } from '@inertiajs/vue3';
 
 interface Meal {
   id: number;
