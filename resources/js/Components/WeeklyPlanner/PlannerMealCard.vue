@@ -16,6 +16,7 @@ const props = withDefaults(
     isRolling?: boolean;
   }>(),
   {
+    imageUrl: 'https://placehold.co/600x400?text=No+Image',
     imageAlt: 'Meal image',
     tags: () => [],
     isPinned: false,

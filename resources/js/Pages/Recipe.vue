@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
-
 interface RecipeProps {
   id: number;
   title: string;
