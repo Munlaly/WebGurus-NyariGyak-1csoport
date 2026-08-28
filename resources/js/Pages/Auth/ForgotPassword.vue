@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { z } from 'zod';
 import { useForm, Link } from '@inertiajs/vue3';
+import { forgotPasswordSchema } from '../../Schemas/authSchema';
 
 defineProps<{
   status?: string;
 }>();
-
-const schema = z.object({
-  email: z.string().email('Invalid email address'),
-});
 
 const form = useForm({
   email: '',
@@ -55,7 +51,7 @@ function onSubmit() {
           </div>
 
           <UForm
-            :schema="schema"
+            :schema="forgotPasswordSchema"
             :state="form"
             class="space-y-4"
             @submit="onSubmit"

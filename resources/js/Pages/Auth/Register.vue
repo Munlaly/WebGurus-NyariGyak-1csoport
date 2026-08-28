@@ -1,19 +1,6 @@
 <script setup lang="ts">
-import { z } from 'zod';
 import { useForm, Link } from '@inertiajs/vue3';
-
-// Define client side validation
-const schema = z
-  .object({
-    username: z.string().min(2, 'Name must be at least 2 characters'),
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    password_confirmation: z.string(),
-  })
-  .refine((data) => data.password === data.password_confirmation, {
-    message: 'Passwords do not match!',
-    path: ['password_confirmation'],
-  });
+import { registerSchema } from '../../Schemas/authSchema';
 
 const form = useForm({
   username: '',
@@ -58,7 +45,7 @@ function onSubmit() {
           </div>
 
           <UForm
-            :schema="schema"
+            :schema="registerSchema"
             :state="form"
             class="space-y-4"
             @submit="onSubmit"

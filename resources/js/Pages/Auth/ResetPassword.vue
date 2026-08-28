@@ -1,22 +1,11 @@
 <script setup lang="ts">
-import { z } from 'zod';
 import { useForm } from '@inertiajs/vue3';
+import { resetPasswordSchema } from '../../Schemas/authSchema';
 
 const props = defineProps<{
   email: string;
   token: string;
 }>();
-
-const schema = z
-  .object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    password_confirmation: z.string(),
-  })
-  .refine((data) => data.password === data.password_confirmation, {
-    message: 'Passwords do not match!',
-    path: ['password_confirmation'],
-  });
 
 const form = useForm({
   token: props.token,
@@ -58,7 +47,7 @@ function onSubmit() {
           </header>
 
           <UForm
-            :schema="schema"
+            :schema="resetPasswordSchema"
             :state="form"
             class="space-y-4"
             @submit="onSubmit"

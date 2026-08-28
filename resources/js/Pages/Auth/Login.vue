@@ -1,12 +1,6 @@
 <script setup lang="ts">
-import { z } from 'zod';
 import { useForm, Link } from '@inertiajs/vue3';
-
-// Define client side validation
-const schema = z.object({
-  username: z.string().min(2, 'Name must be at least 2 characters'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
+import { loginSchema } from '../../Schemas/authSchema';
 
 const form = useForm({
   username: '',
@@ -48,7 +42,7 @@ function onSubmit() {
           </header>
 
           <UForm
-            :schema="schema"
+            :schema="loginSchema"
             :state="form"
             class="space-y-4"
             @submit="onSubmit"
