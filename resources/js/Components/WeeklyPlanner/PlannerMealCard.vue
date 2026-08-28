@@ -1,5 +1,6 @@
 <!-- PlannerMealCard.vue -->
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const props = withDefaults(
@@ -75,12 +76,14 @@ const cardStateClass = computed(() =>
     <div
       class="bg-surface-container relative aspect-video w-full overflow-hidden"
     >
-      <img
-        :src="imageUrl || 'https://placehold.co/600x400?text=No+Image'"
-        :alt="imageAlt"
-        class="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-        @error="handleImageError"
-      />
+      <Link :href="route('recipe.show', props.id)">
+        <img
+          :src="imageUrl || 'https://placehold.co/600x400?text=No+Image'"
+          :alt="imageAlt"
+          class="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+          @error="handleImageError"
+        />
+      </Link>
       <!-- Pinned Badge -->
       <div
         v-if="isPinned"
