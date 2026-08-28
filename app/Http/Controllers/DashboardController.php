@@ -42,8 +42,14 @@ class DashboardController extends Controller
             '1'  => array_values(array_filter([$formatMeal($recipes->get(7)), $formatMeal($recipes->get(8)), $formatMeal($recipes->get(9))])),
         ];
 
+        $settings = $request->user()->settings()->first();
+        $sysPrefs = $settings->system_prefferences ?? [];
+
         return Inertia::render('Dashboard', [
             'mealsByOffset' => $mealsByOffset,
+            'userSettings' => [
+                'inAppAlerts' => (bool) ($sysPrefs['inAppAlerts'] ?? true),
+            ],
         ]);
     }
 
