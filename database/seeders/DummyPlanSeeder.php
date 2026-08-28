@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Enums\EntityStatus;
+use App\Enums\ExerciseIntensity;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Recipe;
@@ -46,9 +48,9 @@ class DummyPlanSeeder extends Seeder
                     'date'    => $date,
                 ],
                 [
-                    'day_type'        => 'moderate', 
+                    'day_type'        => ExerciseIntensity::Moderate->value, 
                     'target_calories' => 2000,
-                    'status'          => 'generated', 
+                    'status'          => EntityStatus::Generated->value, 
                 ]
             );
 
@@ -65,7 +67,9 @@ class DummyPlanSeeder extends Seeder
                         ],
                         [
                             'recipe_id'     => $recipes[$recipeIndex]->id,
-                            'status'        => $date === Carbon::now()->subDay()->toDateString() ? 'eaten' : 'generated',
+                            'status'        => $date === Carbon::now()->subDay()->toDateString()
+                                ? EntityStatus::Eaten->value
+                                : EntityStatus:: Generated->value,
                         ]
                     );
                     $recipeIndex++;
