@@ -22,7 +22,7 @@ defineProps<{
 }>();
 
 const goBack = () => {
-  router.get('/dashboard');
+  window.history.back();
 };
 
 const handleImageError = (event: Event) => {
