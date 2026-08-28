@@ -36,27 +36,13 @@ class RecipeController extends Controller
             ];
         });
 
-        $imageUrl = 'https://placehold.co/600x400?text=No+Image';
-
-        if ($recipe->image) {
-            // If it's an external Spoonacular link, use it directly. 
-            // Otherwise, treat it as a local upload and wrap it in asset().
-            $imageUrl = str_starts_with($recipe->image, 'http') 
-                ? $recipe->image 
-                : asset('storage/' . $recipe->image);
-        }
-
-        if (str_contains($imageUrl, 'spoonacular.com')) {
-            $imageUrl = str_replace(['-312x231.jpg', '-240x150.jpg', '-90x90.jpg'], '-636x393.jpg', $imageUrl);
-        }
-
         return Inertia::render('Recipe', [
             'recipe' => [
                 'id' => $recipe->id,
                 'title' => $recipe->name,
                 'prepTime' => $recipe->prep_time_minutes,
                 'calories' => $recipe->calories,
-                'imageUrl' => $imageUrl,
+                'imageUrl' => $this->getRecipeImageUrl($recipe->image),
                 'imageAlt' => $recipe->name,
                 'macros' => [
                     'protein' => (float) $recipe->protein,

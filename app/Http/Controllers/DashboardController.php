@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Recipe;
 use App\Models\DailyPlan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -21,24 +20,13 @@ class DashboardController extends Controller
                 return null;
             }
 
-            $imageUrl = 'https://placehold.co/600x400?text=No+Image';
-            if ($recipe->image) {
-                $imageUrl = str_starts_with($recipe->image, 'http')
-                    ? $recipe->image
-                    : asset('storage/' . $recipe->image);
-            }
-            
-            if(str_contains($imageUrl, 'spoonacular.com')) {
-                $imageUrl = str_replace(['-312x231.jpg', '-240x150.jpg', '-90x90.jpg'], '-636x393.jpg', $imageUrl);
-            }
-
             return [
                 'id' => $recipe->id,
                 'meal_plan_id' => $mealPlan->id,
                 'title' => $recipe->name,
                 'calories' => $recipe->calories ?? 0,
                 'prepTime' => $recipe->prep_time_minutes ?? 0,
-                'imageUrl' => $imageUrl,
+                'imageUrl' => $this->getRecipeImageUrl($recipe->image),
                 'imageAlt' => $recipe->name,
                 'isPrepared' => $mealPlan->status === 'EATEN',
             ];
