@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\MealPlan;
 use Illuminate\Support\Carbon;
 use App\Models\DailyPlan;
+use App\Models\DietaryOption;
 use App\Models\UserInventory;
 use App\Models\UserProfile;
 
@@ -55,44 +56,40 @@ class MealPlanController extends Controller
         ];
     }
 
-    private function getFilteredRecipes(int $userId, ?UserSetting $settings, array $dietSlugs) {
+    private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
             ->pluck('ingredient_id')
             ->toArray();
 
-            $validRecipes = Recipe::with('ingredients');
+        $dietaryOptions = DietaryOption::whereHas('users', function ($query) use ($userId) {
+            $query->where('users.id', $userId);
+        })->with('excludedCategories')->get();
 
-            if(!empty($dislikedIngredientIds)) {
-                $validRecipes->whereDoesntHave('ingredients', function ($query) use ($dislikedIngredientIds) {
-                    $query->whereIn('ingredients.id', $dislikedIngredientIds);
-                });
-            }
+        $excludedCategoryIds = $dietaryOptions->flatMap(function ($option) {
+            return $option->excludedCategories->pluck('id');
+        })->unique()->toArray();
 
-            if($settings && $settings->prep_time_preference) {
+        $validRecipes = Recipe::with('ingredients');
+
+        if(!empty($dislikedIngredientIds)) {
+            $validRecipes->whereDoesntHave('ingredients', function ($query) use ($dislikedIngredientIds) {
+                $query->whereIn('ingredients.id', $dislikedIngredientIds);
+            });
+        }
+        if($settings && $settings->prep_time_preference) {
                 $validRecipes->where(function($query) use ($settings) {
                     $query->where('prep_time_minutes', '<=', (int) $settings->prep_time_preference)
                         ->orWhereNull('prep_time_minutes');
                 });
             }
 
-            if(!empty($dietSlugs) && !in_array('omnivore', $dietSlugs)) {
-                $preferences = $dietSlugs;
-
-                if(in_array('nut_free', $preferences) || in_array('nut-free', $preferences)) {
-                    $validRecipes->whereJsonContains('diets', 'nut free');
-                    $preferences = array_diff($preferences, ['nut_free', 'nut-free']);
-                }
-                if(!empty($preferences)) {
-                    $validRecipes->where(function($query) use ($preferences) {
-                        foreach($preferences as $diet) {
-                            $query->whereJsonContains('diets', $diet);
-                        }
-                    });
-                }
-            }
-
-            return $validRecipes;
+        if(!empty($excludedCategoryIds)) {
+            $validRecipes->whereDoesntHave('ingredients', function ($query) use ($excludedCategoryIds) {
+                $query->whereIn('category_id', $excludedCategoryIds);
+            });
+        }
+        return $validRecipes;
     }
 
     public function generate(Request $request) {
@@ -102,18 +99,12 @@ class MealPlanController extends Controller
         $settings = UserSetting::where('user_id', $user->id)->first();
         $profile = UserProfile::where('user_id', $user->id)->first();
 
-        $dietSlugs = DB::table('user_dietary_options')
-            ->join('dietary_options', 'user_dietary_options.dietary_option_id', '=', 'dietary_options.id')
-            ->where('user_dietary_options.user_id', $user->id)
-            ->pluck('dietary_options.slug')
-            ->toArray();
-
         $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile) : ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
         $targetCalories = $nutritionTargets['calories'];
         $macroTargets = $nutritionTargets['macros'];
 
         // PHASE 1: HARD FILTERS
-        $validRecipes = $this->getFilteredRecipes($user->id, $settings, $dietSlugs);
+        $validRecipes = $this->getFilteredRecipes($user->id, $settings);
         $poolOfAllowedMeals = $validRecipes->get();
 
         if($poolOfAllowedMeals->count() < 3) {
@@ -348,12 +339,6 @@ class MealPlanController extends Controller
         $user = $request->user();
         $settings = UserSetting::where('user_id', $user->id)->first();
 
-        $dietSlugs = DB::table('user_dietary_options')
-            ->join('dietary_options', 'user_dietary_options.dietary_option_id', '=', 'dietary_options.id')
-            ->where('user_dietary_options.user_id', $user->id)
-            ->pluck('dietary_options.slug')
-            ->toArray();
-
         $mealType = $request->input('meal_type');
 
         if(!in_array($mealType, ['breakfast', 'lunch', 'dinner', 'snack'])) {
@@ -363,7 +348,7 @@ class MealPlanController extends Controller
             ], 400);
         }
 
-        $validRecipes = $this->getFilteredRecipes($user->id, $settings, $dietSlugs);
+        $validRecipes = $this->getFilteredRecipes($user->id, $settings);
 
         $poolOfAllowedMeals = $validRecipes->get();
 
