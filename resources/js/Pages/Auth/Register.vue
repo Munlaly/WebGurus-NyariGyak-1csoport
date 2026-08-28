@@ -97,7 +97,7 @@ function onSubmit() {
           </UForm>
 
           <!-- Login Fallback -->
-          <div class="text-on-surface-variant font-body-md mt-8 text-center">
+          <div class="text-on-surface-variant font-body-md mt-4 text-center">
             Already have an account?
             <Link
               class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors hover:underline"
