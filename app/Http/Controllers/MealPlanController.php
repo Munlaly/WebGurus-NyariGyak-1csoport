@@ -12,6 +12,7 @@ use App\Models\DailyPlan;
 use App\Models\DietaryOption;
 use App\Models\UserInventory;
 use App\Models\UserProfile;
+use App\Enums\ExerciseIntensity;
 
 class MealPlanController extends Controller
 {
@@ -381,6 +382,7 @@ class MealPlanController extends Controller
 
         ]);
 
+        $exerciseSchedules = $user->exerciseSchedules()->pluck('intensity', 'day_of_week')->toArray();
         $plan = $validated['plan'];
         $startOfWeek = Carbon::now()->startOfWeek();
         $profile = UserProfile::where('user_id', $user->id)->first();
@@ -398,7 +400,7 @@ class MealPlanController extends Controller
 
         $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
     
-        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $mealTypesArray, $nutritionTargets) {
+        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
             // Delete old drafts
             $oldDailyPlans = DailyPlan::where('user_id', $user->id)->where('status', 'DRAFT')->get();
             MealPlan::whereIn('daily_plan_id', $oldDailyPlans->pluck('id'))->delete();
@@ -411,10 +413,13 @@ class MealPlanController extends Controller
                 $dayOffset = $dayMapping[$dayName] ?? 0;
                 $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
+                $dayNum = ($dayMapping[$dayName] ?? 0) +1 ;
+                $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate->value;
+
                 $dailyPlan = DailyPlan::create([
                     'user_id' => $user->id,
                     'date' => $scheduledDate,
-                    'day_type' => 'regular',
+                    'day_type' => $dayType,
                     'target_calories' => $nutritionTargets['calories'],
                     'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
                     'target_carbs_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['carbs'] / 100)) / 4),
