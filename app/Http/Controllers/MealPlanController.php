@@ -20,7 +20,7 @@ class MealPlanController extends Controller
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
-        $sex = $profile->sex?->value ?? 'male';
+        $sex = $profile->sex->value;
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -34,11 +34,11 @@ class MealPlanController extends Controller
             'very_active' => 1.725,
         ];
 
-        $activity = $profile->baseline_activity?->value ?? 'sedentary';
+        $activity = $profile->baseline_activity->value;
         // Total Daily Energy Expenditure
-        $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
+        $tdee = $bmr * $multipliers[$activity];
 
-        $goal = $profile->fitness_goal?->value ?? 'maintain';
+        $goal = $profile->fitness_goal->value;
 
         $targetCalories = $tdee;
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
@@ -118,7 +118,7 @@ class MealPlanController extends Controller
 
         // PHASE 1.5: GOAL-BASED PRUNING
 
-        $goal = $profile->fitness_goal?->value ?? 'maintain';
+        $goal = $profile ? $profile->fitness_goal->value : 'maintain';
         $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70); // Keep the top 70 %
 
         if ($cutoffThreshold >= 3) {
