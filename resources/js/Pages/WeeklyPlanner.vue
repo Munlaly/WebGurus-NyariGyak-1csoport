@@ -1,6 +1,6 @@
 <!-- WeeklyPlanner.vue -->
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
@@ -31,6 +31,7 @@ const props = defineProps<{
 
 // State
 const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
+const STORAGE_KEY = 'weekly_planner_state';
 
 const allDays = [
   { full: 'Monday', short: 'Mon' },
@@ -46,14 +47,42 @@ const activeDay = ref<string>('');
 const isSaving = ref(false);
 
 onMounted(() => {
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-  const isValidDay = allDays.find((d) => d.full === today);
-  activeDay.value = isValidDay ? today : 'Monday';
+  //Attempt to load saved state from session storage
+  const savedState = sessionStorage.getItem(STORAGE_KEY);
+  if (savedState) {
+    try {
+      const parsed = JSON.parse(savedState);
+      if (parsed.weeklyPlan) weeklyPlan.value = parsed.weeklyPlan;
+      if (parsed.activeDay) activeDay.value = parsed.activeDay;
+    } catch (e) {
+      console.error('Failed to load planner state', e);
+    }
+  }
 
+  // If no active day was loaded, default to today
+  if (!activeDay.value) {
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    const isValidDay = allDays.find((d) => d.full === today);
+    activeDay.value = isValidDay ? today : 'Monday';
+  }
+
+  //If no plan was loaded, generate a new one
   if (Object.keys(weeklyPlan.value).length === 0) {
     fetchInitialPlan();
   }
 });
+
+// Watch for changes to the plan or the active tab and save them
+watch(
+  () => ({
+    weeklyPlan: weeklyPlan.value,
+    activeDay: activeDay.value,
+  }),
+  (newState) => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+  },
+  { deep: true },
+);
 
 const setActiveDay = (day: string) => {
   activeDay.value = day;
@@ -158,6 +187,7 @@ const acceptAndFinalize = () => {
   form.post('/meal-plan/save', {
     onFinish: () => {
       isSaving.value = false;
+      sessionStorage.removeItem(STORAGE_KEY);
     },
   });
 };
