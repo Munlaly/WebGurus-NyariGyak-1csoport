@@ -56,9 +56,11 @@ function onSubmit() {
             class="space-y-4"
             @submit="onSubmit"
           >
-            <UFormField label="Email" name="email" :error="form.errors.email">
-              <UInput v-model="form.email" class="w-full" autofocus />
-            </UFormField>
+            <div class="min-h-20">
+              <UFormField label="Email" name="email" :error="form.errors.email">
+                <UInput v-model="form.email" class="w-full" autofocus />
+              </UFormField>
+            </div>
 
             <UButton
               type="submit"
