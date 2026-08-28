@@ -55,11 +55,19 @@ function onSubmit() {
               <UInput v-model="form.username" class="w-full" />
             </UFormField>
 
-            <UFormField
-              label="Password"
-              name="password"
-              :error="form.errors.password"
-            >
+            <div class="flex items-center justify-between">
+              <label class="text-on-surface text-sm font-medium"
+                >Password</label
+              >
+              <Link
+                v-if="route().has('password.request')"
+                :href="route('password.request')"
+                class="text-primary hover:text-primary-container text-sm transition-colors hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
+            <UFormField name="password" :error="form.errors.password">
               <UInput v-model="form.password" type="password" class="w-full" />
             </UFormField>
 
