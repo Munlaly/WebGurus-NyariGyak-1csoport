@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from './AuthenticatedLayout.vue';
 
@@ -72,15 +72,16 @@ const mobileDropdownItems = baseTabs.map((tab) => ({
   url: route(tab.routeName),
 }));
 
-const currentMobileTab = ref(props.activeTab);
-
-watch(currentMobileTab, (newValue) => {
-  if (newValue !== props.activeTab) {
-    const target = mobileDropdownItems.find((t) => t.value === newValue);
-    if (target) {
-      router.get(target.url);
+const currentMobileTab = computed({
+  get: () => props.activeTab,
+  set: (newValue) => {
+    if (newValue !== props.activeTab) {
+      const target = mobileDropdownItems.find((t) => t.value === newValue);
+      if (target) {
+        router.get(target.url);
+      }
     }
-  }
+  },
 });
 </script>
 
