@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
-import { computed, watch } from 'vue';
+import { computed, watch, onBeforeUnmount, onMounted } from 'vue';
 
 const props = defineProps<{
   userSettings: {
@@ -32,6 +32,27 @@ watch(
   },
   { immediate: true },
 );
+
+const page = usePage();
+onMounted(() => {
+  // Grab the theme we just shared from HandleInertiaRequests
+  const userTheme = page.props.auth.theme || 'light';
+
+  // Apply it to the HTML document immediately when the layout loads
+  if (userTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
+
+onBeforeUnmount(() => {
+  if (props.userSettings?.theme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
 
 const themeButtonClasses = computed(() => {
   const base =

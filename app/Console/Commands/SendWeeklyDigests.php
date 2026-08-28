@@ -29,7 +29,7 @@ class SendWeeklyDigests extends Command
             $stats = [
                 'mealsCount' => 7,
                 'wasteSavedKg' => 1.4,
-                'activeIngredientsUsed' => 5,  
+                'activeIngredientsUsed' => 5,
             ];
 
             Mail::to($user->email)->send(new WeeklyDigestMail($stats));
