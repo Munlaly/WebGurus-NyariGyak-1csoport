@@ -1,17 +1,6 @@
 <script setup lang="ts">
 import PlannerMealCard from './PlannerMealCard.vue';
-
-export interface PlannerMeal {
-  id: number;
-  meal_type: string;
-  name: string;
-  calories: number;
-  image?: string;
-  prep_time_minutes?: number;
-  diets?: string[];
-  isPinned?: boolean;
-  isRolling?: boolean;
-}
+import type { PlannerMeal } from '../../Types/plannerInterfaces.js';
 
 defineProps<{
   dayName: string;

@@ -5,25 +5,7 @@ import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import PlannerDayColumn from '../Components/WeeklyPlanner/PlannerDayColumn.vue';
-
-interface PlannerMeal {
-  id: number;
-  meal_type: string;
-  name: string;
-  calories: number;
-  image?: string;
-  prep_time_minutes?: number;
-  diets?: string[];
-  isPinned?: boolean;
-  isRolling?: boolean;
-}
-
-interface DayPlan {
-  total_calories: number;
-  has_snack: boolean;
-  perfect_match: boolean;
-  meals: PlannerMeal[];
-}
+import type { DayPlan } from '../Types/plannerInterfaces.js';
 
 const props = defineProps<{
   initialPlan?: Record<string, DayPlan>;
