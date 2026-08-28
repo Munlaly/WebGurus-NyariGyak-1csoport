@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\BaseUnit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -21,7 +20,7 @@ class Ingredient extends Model
     protected function casts(): array {
         return [
             'name' => 'string',
-            'base_unit' => BaseUnit::class,
+            'base_unit' => 'string',
         ];
     }
 
