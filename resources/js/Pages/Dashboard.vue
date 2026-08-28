@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
+import InventoryAlerts from '../Components/InventoryAlerts.vue';
+import { createInertiaApp } from '@inertiajs/vue3';
 
 interface Meal {
   id: number;
@@ -16,6 +18,9 @@ interface Meal {
 
 const props = defineProps<{
   mealsByOffset: Record<string, Meal[]>;
+  userSettings: {
+    inAppAlerts: boolean;
+  };
 }>();
 
 const dayOffset = ref<number>(0);
@@ -91,6 +96,7 @@ const toggleFavoriteStatus = (id: number) => {
 
 <template>
   <AuthenticatedLayout>
+    <InventoryAlerts :in-app-alerts-enabled="userSettings.inAppAlerts" />
     <div class="animate-fade-in flex flex-1 flex-col gap-8">
       <!-- Date Picker -->
       <div
