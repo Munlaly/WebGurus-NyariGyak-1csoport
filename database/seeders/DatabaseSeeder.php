@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
             DietaryOptionSeeder::class,
             UserSeeder::class,
             UserInventorySeeder::class,
+            DummyPlanSeeder::class,
         ]);
     }
 }

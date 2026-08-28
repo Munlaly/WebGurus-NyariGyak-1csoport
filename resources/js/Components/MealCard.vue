@@ -72,14 +72,26 @@ const favoriteTooltipText = computed(() =>
       </div>
 
       <!-- Hero Image -->
-      <img
+      <div
         :class="[
-          'h-full w-full object-cover transition-all duration-500 group-hover:scale-105',
+          'bg-surface-container-low relative aspect-video w-full overflow-hidden transition-all duration-500',
           imageStateClass,
         ]"
-        :alt="imageAlt"
-        :src="imageUrl"
-      />
+      >
+        <!-- 1. Ambient Blur Background: Fills the empty space using a heavy blur so pixelation disappears -->
+        <img
+          class="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl"
+          :src="imageUrl"
+          alt=""
+        />
+
+        <!-- 2. Crisp Foreground Image: Stays uncropped (object-contain) with your hover effects -->
+        <img
+          class="relative h-full w-full object-contain drop-shadow-md transition-all duration-500 group-hover:scale-105"
+          :alt="imageAlt"
+          :src="imageUrl"
+        />
+      </div>
     </Link>
 
     <!-- Content Body -->
