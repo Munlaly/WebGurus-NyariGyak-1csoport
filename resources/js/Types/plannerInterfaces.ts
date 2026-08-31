@@ -1,3 +1,10 @@
+export enum MealType {
+  Breakfast = 'breakfast',
+  Lunch = 'lunch',
+  Dinner = 'dinner',
+  Snack = 'snack',
+}
+
 export interface PlannerMeal {
   id: number;
   meal_type: string;

@@ -4,7 +4,7 @@ import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import PlannerDayColumn from '../Components/WeeklyPlanner/PlannerDayColumn.vue';
-import type { DayPlan } from '../Types/plannerInterfaces.js';
+import { DayPlan, MealType, PlannerMeal } from '../Types/plannerInterfaces.js';
 
 const props = defineProps<{
   initialPlan?: Record<string, DayPlan>;
@@ -82,8 +82,23 @@ const getTabClass = (dayName: string) => {
 
 const fetchInitialPlan = async () => {
   try {
-    const response = await axios.post('/meal-plan/generate');
-    weeklyPlan.value = response.data.plan;
+    const response = await axios.post(route('meal-plan.generate'));
+    const newPlan = response.data.plan;
+
+    const types = [
+      MealType.Breakfast,
+      MealType.Lunch,
+      MealType.Dinner,
+      MealType.Snack,
+    ];
+
+    for (const day in newPlan) {
+      newPlan[day].meals.forEach((meal: PlannerMeal, index: number) => {
+        meal.meal_type = types[index] || MealType.Snack;
+      });
+    }
+
+    weeklyPlan.value = newPlan;
   } catch (error) {
     console.error('Failed to fetch plan:', error);
   }
@@ -112,11 +127,16 @@ const rerollMeal = async (
   const targetMeal = day.meals[mealIndex];
   if (targetMeal.isPinned) return;
 
-  targetMeal.isRolling = true;
+  const actualMealType =
+    mealType ||
+    [MealType.Breakfast, MealType.Lunch, MealType.Dinner, MealType.Snack][
+      mealIndex
+    ];
 
+  targetMeal.isRolling = true;
   try {
-    const response = await axios.post('/meal-plan/regenerate-meal', {
-      meal_type: mealType,
+    const response = await axios.post(route('meal-plan.regenerate-meal'), {
+      meal_type: actualMealType,
     });
     const newRecipe = response.data.recipe;
 
@@ -167,7 +187,9 @@ const acceptAndFinalize = async () => {
   }
 
   try {
-    const response = await axios.post('/meal-plan/save', { plan: payload });
+    const response = await axios.post(route('meal-plan.save'), {
+      plan: payload,
+    });
 
     if (response.data.success) {
       sessionStorage.removeItem(STORAGE_KEY);
