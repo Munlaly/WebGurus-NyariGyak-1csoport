@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\UserInventory;
+use App\Models\UserSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -47,11 +48,9 @@ class HandleInertiaRequests extends Middleware
         $expiringCount = 0;
         $expiringAlerts = [];
         if ($user) {
-            $settings = \App\Models\UserSetting::where('user_id', $user->id)->first();
+            $settings = UserSetting::where('user_id', $user->id)->first();
             if ($settings && $settings->system_preferences) {
-                $prefs = is_string($settings->system_preferences) 
-                    ? json_decode($settings->system_preferences, true) 
-                    : $settings->system_preferences;
+                $prefs = $settings->system_preferences;
                 $theme = $prefs['theme'] ?? 'light';
                 $inAppAlerts = $prefs['inAppAlerts'] ?? true;
             }
