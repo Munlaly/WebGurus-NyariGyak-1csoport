@@ -1,6 +1,5 @@
-<!-- WeeklyPlanner.vue -->
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import axios from 'axios';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import PlannerDayColumn from '../Components/WeeklyPlanner/PlannerDayColumn.vue';
@@ -26,6 +25,15 @@ const allDays = [
 
 const activeDay = ref<string>('');
 const isSaving = ref(false);
+const isAlreadySaved = ref(false);
+
+const saveButtonText = computed(() =>
+  isAlreadySaved.value ? 'Update Plan' : 'Accept & Finalize',
+);
+
+const saveButtonIcon = computed(() =>
+  isAlreadySaved.value ? 'update' : 'check_circle',
+);
 
 onMounted(() => {
   //Attempt to load saved state from session storage
@@ -35,6 +43,8 @@ onMounted(() => {
       const parsed = JSON.parse(savedState);
       if (parsed.weeklyPlan) weeklyPlan.value = parsed.weeklyPlan;
       if (parsed.activeDay) activeDay.value = parsed.activeDay;
+      if (parsed.isAlreadySaved !== undefined)
+        isAlreadySaved.value = parsed.isAlreadySaved;
     } catch (e) {
       console.error('Failed to load planner state', e);
     }
@@ -58,6 +68,7 @@ watch(
   () => ({
     weeklyPlan: weeklyPlan.value,
     activeDay: activeDay.value,
+    isAlreadySaved: isAlreadySaved.value,
   }),
   (newState) => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
@@ -193,12 +204,14 @@ const acceptAndFinalize = async () => {
     });
 
     if (response.data.success) {
-      sessionStorage.removeItem(STORAGE_KEY);
+      isAlreadySaved.value = true;
 
       // Fire a success toast
       toast.add({
         title: 'Success!',
-        description: response.data.message,
+        description: isAlreadySaved.value
+          ? 'Weekly plan updated successfully!'
+          : response.data.message,
         color: 'success',
         icon: 'i-heroicons-check-circle',
       });
@@ -266,10 +279,10 @@ const acceptAndFinalize = async () => {
               class="material-symbols-outlined animate-spin text-[18px]"
               >progress_activity</span
             >
-            <span v-else class="material-symbols-outlined text-[18px]"
-              >check_circle</span
-            >
-            Accept & Finalize
+            <span v-else class="material-symbols-outlined text-[18px]">{{
+              saveButtonIcon
+            }}</span>
+            {{ saveButtonText }}
           </button>
         </div>
       </div>
