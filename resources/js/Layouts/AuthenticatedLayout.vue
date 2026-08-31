@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 
 interface MacroTarget {
   current: number;
@@ -76,6 +76,12 @@ function toggleSidebar() {
 
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
+}
+
+function handleLogout() {
+  sessionStorage.clear();
+
+  router.post(route('logout'));
 }
 
 // Prevent scrolling the body when the Slider is open
@@ -244,12 +250,10 @@ onUnmounted(() => {
             </div>
 
             <!-- Logout Button -->
-            <Link
-              href="/logout"
-              method="post"
-              as="button"
+            <button
               class="text-on-surface-variant hover:text-error active:bg-error/10 flex items-center justify-center rounded-full p-2 transition-colors active:scale-95 md:px-3 md:py-1.5"
               title="Log out"
+              @click="handleLogout"
             >
               <span class="material-symbols-outlined text-[20px] md:text-[18px]"
                 >logout</span
@@ -258,7 +262,7 @@ onUnmounted(() => {
                 class="hidden md:ml-1.5 md:inline md:text-sm md:font-semibold"
                 >Log out</span
               >
-            </Link>
+            </button>
           </div>
         </header>
 
