@@ -64,9 +64,13 @@ function onSubmit() {
               >
                 <UInput
                   v-model="form.username"
-                  variant="none"
                   placeholder="Jane Doe"
-                  class="bg-surface-container-lowest text-on-surface font-body-md focus:ring-primary w-full rounded-lg border border-black px-4 py-3 transition-colors duration-200 focus:ring-2"
+                  class="font-body-md text-on-surface w-full"
+                  variant="outlined"
+                  :highlight="true"
+                  :ui="{
+                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
+                  }"
                 />
               </UFormField>
 
@@ -79,9 +83,14 @@ function onSubmit() {
                 <UInput
                   v-model="form.email"
                   type="email"
-                  variant="none"
+                  color="neutral"
                   placeholder="jane@example.com"
-                  class="bg-surface-container-lowest text-on-surface font-body-md focus:ring-primary w-full rounded-lg border border-black px-4 py-3 transition-colors duration-200 focus:ring-2"
+                  class="font-body-md text-on-surface w-full"
+                  variant="outlined"
+                  :highlight="true"
+                  :ui="{
+                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
+                  }"
                 />
               </UFormField>
 
@@ -94,9 +103,13 @@ function onSubmit() {
                 <UInput
                   v-model="form.password"
                   type="password"
-                  variant="none"
                   placeholder="••••••••"
-                  class="bg-surface-container-lowest text-on-surface font-body-md focus:ring-primary w-full rounded-lg border border-black px-4 py-3 transition-colors duration-200 focus:ring-2"
+                  class="font-body-md text-on-surface w-full"
+                  variant="outlined"
+                  :highlight="true"
+                  :ui="{
+                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
+                  }"
                 />
               </UFormField>
 
@@ -109,9 +122,13 @@ function onSubmit() {
                 <UInput
                   v-model="form.password_confirmation"
                   type="password"
-                  variant="none"
                   placeholder="••••••••"
-                  class="bg-surface-container-lowest text-on-surface font-body-md focus:ring-primary w-full rounded-lg border border-black px-4 py-3 transition-colors duration-200 focus:ring-2"
+                  class="font-body-md text-on-surface w-full"
+                  variant="outlined"
+                  :highlight="true"
+                  :ui="{
+                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
+                  }"
                 />
               </UFormField>
             </div>
@@ -120,7 +137,7 @@ function onSubmit() {
             <UButton
               type="submit"
               :loading="form.processing"
-              class="bg-primary-container text-on-primary-container font-headline-md flex w-full items-center justify-center gap-2 rounded-xl border border-black py-4 text-[18px] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]"
+              class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               <span class="material-symbols-outlined text-[20px]">lock</span>
               Create Account & Set Preferences
@@ -133,7 +150,7 @@ function onSubmit() {
               Already have an account?
               <Link
                 class="text-primary hover:text-primary-container ml-1 font-semibold transition-colors hover:underline"
-                :href="route('login')"
+                :href="route('index')"
               >
                 Log in
               </Link>

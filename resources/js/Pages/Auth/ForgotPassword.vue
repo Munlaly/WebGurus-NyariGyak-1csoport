@@ -58,7 +58,13 @@ function onSubmit() {
           >
             <div class="min-h-20">
               <UFormField label="Email" name="email" :error="form.errors.email">
-                <UInput v-model="form.email" class="w-full" autofocus />
+                <UInput
+                  v-model="form.email"
+                  class="w-full"
+                  autofocus
+                  variant="outlined"
+                  :highlight="true"
+                />
               </UFormField>
             </div>
 
@@ -66,7 +72,7 @@ function onSubmit() {
               type="submit"
               block
               :loading="form.processing"
-              class="mt-2 w-full justify-center"
+              class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               Email Password Reset Link
             </UButton>

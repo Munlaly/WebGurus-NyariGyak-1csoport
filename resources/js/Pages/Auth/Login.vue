@@ -52,7 +52,12 @@ function onSubmit() {
               name="username"
               :error="form.errors.username"
             >
-              <UInput v-model="form.username" class="w-full" />
+              <UInput
+                v-model="form.username"
+                class="w-full"
+                variant="outlined"
+                :highlight="true"
+              />
             </UFormField>
 
             <div class="flex items-center justify-between">
@@ -68,14 +73,20 @@ function onSubmit() {
               </Link>
             </div>
             <UFormField name="password" :error="form.errors.password">
-              <UInput v-model="form.password" type="password" class="w-full" />
+              <UInput
+                v-model="form.password"
+                type="password"
+                class="w-full"
+                variant="outlined"
+                :highlight="true"
+              />
             </UFormField>
 
             <UButton
               type="submit"
               block
               :loading="form.processing"
-              class="w-full justify-center"
+              class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               Log In
               <span class="material-symbols-outlined text-[18px]"

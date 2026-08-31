@@ -54,7 +54,13 @@ function onSubmit() {
           >
             <UFormField label="Email" name="email" :error="form.errors.email">
               <!-- Pre-filled from the URL/Controller props -->
-              <UInput v-model="form.email" class="w-full" readonly />
+              <UInput
+                v-model="form.email"
+                class="w-full"
+                readonly
+                variant="outlined"
+                :highlight="true"
+              />
             </UFormField>
 
             <UFormField
@@ -67,6 +73,8 @@ function onSubmit() {
                 type="password"
                 class="w-full"
                 autofocus
+                variant="outlined"
+                :highlight="true"
               />
             </UFormField>
 
@@ -79,6 +87,8 @@ function onSubmit() {
                 v-model="form.password_confirmation"
                 type="password"
                 class="w-full"
+                variant="outlined"
+                :highlight="true"
               />
             </UFormField>
 
@@ -86,7 +96,7 @@ function onSubmit() {
               type="submit"
               block
               :loading="form.processing"
-              class="mt-2 w-full justify-center"
+              class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
             >
               Reset Password
             </UButton>
