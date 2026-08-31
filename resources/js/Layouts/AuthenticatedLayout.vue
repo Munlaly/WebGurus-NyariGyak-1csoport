@@ -29,29 +29,17 @@ withDefaults(
   },
 );
 
+const navigation = [
+  { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
+  { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
+  { name: 'My Inventory', icon: 'inventory_2', href: '#' },
+  { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
+  { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
+  { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
+];
+
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
-
-// Prevent scrolling the body when the Slider is open
-watch(isMobileMenuOpen, (isOpen) => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-  }
-});
-
-onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = '';
-  }
-});
-
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
-
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value;
-};
 
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
 
@@ -82,14 +70,26 @@ const mobileMenuTransformClass = computed(() =>
   isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
 );
 
-const navigation = [
-  { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
-  { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan/' },
-  { name: 'My Inventory', icon: 'inventory_2', href: '#' },
-  { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
-  { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
-  { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
-];
+function toggleSidebar() {
+  isCollapsed.value = !isCollapsed.value;
+}
+
+function toggleMobileMenu() {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+}
+
+// Prevent scrolling the body when the Slider is open
+watch(isMobileMenuOpen, (isOpen) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+});
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
 </script>
 
 <template>
