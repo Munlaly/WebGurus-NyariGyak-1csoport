@@ -1,8 +1,10 @@
 <script setup lang="ts">
+// Imports
+import { computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
-import { computed, watch } from 'vue';
 
+// Props
 const props = defineProps<{
   userSettings: {
     theme: 'light' | 'dark';
@@ -12,8 +14,7 @@ const props = defineProps<{
   };
 }>();
 
-const activeTab = 'system';
-
+// Initializations
 const form = useForm({
   theme: props.userSettings?.theme || 'light',
   pushNotifications: props.userSettings?.pushNotifications ?? true,
@@ -21,18 +22,10 @@ const form = useForm({
   emailDigests: props.userSettings?.emailDigests ?? false,
 });
 
-watch(
-  () => form.theme,
-  (newTheme) => {
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  },
-  { immediate: true },
-);
+// Variables
+const activeTab = 'system';
 
+// Computeds
 const themeButtonClasses = computed(() => {
   const base =
     'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition-all';
@@ -45,9 +38,23 @@ const themeButtonClasses = computed(() => {
   };
 });
 
-const submitSystemSettings = () => {
+// Functions
+function submitSystemSettings() {
   form.put(route('settings.system'), { preserveScroll: true });
-};
+}
+
+// Watchers
+watch(
+  () => form.theme,
+  (newTheme) => {
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

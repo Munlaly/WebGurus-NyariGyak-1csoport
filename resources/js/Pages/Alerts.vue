@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// Imports
 import { computed, ref, onMounted } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
@@ -20,69 +21,17 @@ interface AlertsData {
   urgent: InventoryItem[];
 }
 
+// Initializations
 const page = usePage();
-const dismissedIds = ref<number[]>([]);
-const STORAGE_KEY = 'dismissed_alerts_history';
 
+// Variables
+const STORAGE_KEY = 'dismissed_alerts_history';
+const SKIP_CONFIRM_KEY = 'skip_alert_confirm';
+
+const dismissedIds = ref<number[]>([]);
 const isConfirmModalOpen = ref(false);
 const pendingDismissId = ref<number | null>(null);
 const dontAskAgain = ref(false);
-const SKIP_CONFIRM_KEY = 'skip_alert_confirm';
-
-onMounted(() => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      dismissedIds.value = JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed to parse dismissed alerts:', e);
-    }
-  }
-  if (localStorage.getItem(SKIP_CONFIRM_KEY) === 'true') {
-    dontAskAgain.value = true;
-  }
-});
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return 'Unknown Date';
-  return dateString.split('T')[0];
-};
-
-const handleDismissClick = (id: number) => {
-  if (dontAskAgain.value) {
-    dismissAlert(id);
-  } else {
-    pendingDismissId.value = id;
-    isConfirmModalOpen.value = true;
-  }
-};
-
-const confirmDismiss = () => {
-  if (dontAskAgain.value) {
-    localStorage.setItem(SKIP_CONFIRM_KEY, 'true');
-  } else {
-    localStorage.removeItem(SKIP_CONFIRM_KEY);
-  }
-
-  if (pendingDismissId.value !== null) {
-    dismissAlert(pendingDismissId.value);
-  }
-
-  isConfirmModalOpen.value = false;
-  pendingDismissId.value = null;
-};
-
-const cancelDismiss = () => {
-  isConfirmModalOpen.value = false;
-  pendingDismissId.value = null;
-};
-
-const dismissAlert = (id: number) => {
-  if (!dismissedIds.value.includes(id)) {
-    dismissedIds.value.push(id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissedIds.value));
-  }
-};
 
 const alertsData = computed<AlertsData>(() => {
   const data = page.props.expiringAlerts as AlertsData;
@@ -101,12 +50,69 @@ const alertsData = computed<AlertsData>(() => {
   };
 });
 
-const resetDismissedAlerts = () => {
+// Functions
+function formatDate(dateString: string) {
+  if (!dateString) return 'Unknown Date';
+  return dateString.split('T')[0];
+}
+
+function handleDismissClick(id: number) {
+  if (dontAskAgain.value) {
+    dismissAlert(id);
+  } else {
+    pendingDismissId.value = id;
+    isConfirmModalOpen.value = true;
+  }
+}
+
+function confirmDismiss() {
+  if (dontAskAgain.value) {
+    localStorage.setItem(SKIP_CONFIRM_KEY, 'true');
+  } else {
+    localStorage.removeItem(SKIP_CONFIRM_KEY);
+  }
+
+  if (pendingDismissId.value !== null) {
+    dismissAlert(pendingDismissId.value);
+  }
+
+  isConfirmModalOpen.value = false;
+  pendingDismissId.value = null;
+}
+
+function cancelDismiss() {
+  isConfirmModalOpen.value = false;
+  pendingDismissId.value = null;
+}
+
+function dismissAlert(id: number) {
+  if (!dismissedIds.value.includes(id)) {
+    dismissedIds.value.push(id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissedIds.value));
+  }
+}
+
+function resetDismissedAlerts() {
   dismissedIds.value = [];
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(SKIP_CONFIRM_KEY);
   dontAskAgain.value = false;
-};
+}
+
+// Hooks
+onMounted(() => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      dismissedIds.value = JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse dismissed alerts:', e);
+    }
+  }
+  if (localStorage.getItem(SKIP_CONFIRM_KEY) === 'true') {
+    dontAskAgain.value = true;
+  }
+});
 </script>
 
 <template>
