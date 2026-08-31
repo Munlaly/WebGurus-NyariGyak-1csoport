@@ -3,7 +3,7 @@ import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 import type { SecurityProps } from '../../Types/settingInterfaces';
 
-const props = defineProps<SecurityProps>();
+const props = defineProps<SecurityProps & { status?: string }>();
 
 const activeTab = 'security';
 
@@ -13,25 +13,22 @@ const profileForm = useForm({
   email: props.user.email,
 });
 
-//Password Management
-const passwordForm = useForm({
-  current_password: '',
-  password: '',
-  password_confirmation: '',
+const resetLinkForm = useForm({
+  email: props.user.email,
 });
 
-const updateProfile = () => {
+function updateProfile() {
   profileForm.patch(route('settings.profile.update'), {
     preserveScroll: true,
   });
-};
+}
 
-const updatePassword = () => {
-  passwordForm.put(route('settings.password.update'), {
+function sendResetLink() {
+  resetLinkForm.email = props.user.email;
+  resetLinkForm.post(route('password.email'), {
     preserveScroll: true,
-    onSuccess: () => passwordForm.reset(),
   });
-};
+}
 </script>
 
 <template>
@@ -113,68 +110,41 @@ const updatePassword = () => {
       <!-- Section 2: Update Password -->
       <section class="py-8">
         <UForm
-          :state="passwordForm"
+          :state="resetLinkForm"
           class="grid grid-cols-1 gap-8 md:grid-cols-3"
-          @submit.prevent="updatePassword"
+          @submit.prevent="sendResetLink"
         >
           <div class="md:col-span-1">
             <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
               Update Password
             </h2>
             <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
-              Ensure your account is using a long, random password to stay
-              secure.
+              Receive a secure email link to change your password.
             </p>
           </div>
 
           <div class="space-y-6 md:col-span-2">
-            <UFormField
-              label="Current Password"
-              name="current_password"
-              :error="passwordForm.errors.current_password"
+            <div
+              v-if="props.status"
+              class="mb-4 max-w-md rounded-md bg-green-50 p-4 text-sm font-medium text-green-600"
             >
-              <UInput
-                v-model="passwordForm.current_password"
-                type="password"
-                class="w-full max-w-md"
-                autocomplete="current-password"
-              />
-            </UFormField>
+              {{ props.status }}
+            </div>
 
-            <UFormField
-              label="New Password"
-              name="password"
-              :error="passwordForm.errors.password"
-            >
-              <UInput
-                v-model="passwordForm.password"
-                type="password"
-                class="w-full max-w-md"
-                autocomplete="new-password"
-              />
-            </UFormField>
-
-            <UFormField
-              label="Confirm Password"
-              name="password_confirmation"
-              :error="passwordForm.errors.password_confirmation"
-            >
-              <UInput
-                v-model="passwordForm.password_confirmation"
-                type="password"
-                class="w-full max-w-md"
-                autocomplete="new-password"
-              />
-            </UFormField>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Clicking the button below will send a password reset link to
+              <strong>{{ props.user.email }}</strong
+              >.
+            </p>
 
             <div class="flex items-center gap-4 pt-2">
               <UButton
                 type="submit"
                 color="primary"
-                :loading="passwordForm.processing"
+                :loading="resetLinkForm.processing"
                 class="px-6 py-2 text-sm"
               >
-                Save Password
+                Send Reset Link
               </UButton>
 
               <Transition
@@ -184,10 +154,10 @@ const updatePassword = () => {
                 leave-to-class="opacity-0"
               >
                 <p
-                  v-if="passwordForm.recentlySuccessful"
+                  v-if="resetLinkForm.recentlySuccessful"
                   class="text-sm text-gray-600 dark:text-gray-400"
                 >
-                  Saved.
+                  Email sent.
                 </p>
               </Transition>
             </div>
