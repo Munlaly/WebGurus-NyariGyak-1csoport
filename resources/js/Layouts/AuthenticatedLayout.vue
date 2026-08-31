@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, watchEffect } from 'vue';
+import { ref, computed, watch, onUnmounted, watchEffect, onMounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 
 interface MacroTarget {
@@ -102,12 +102,87 @@ const navigation = [
   { name: 'Alerts', icon: 'notifications', href: '/alerts' },
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
+
+const showTopAlert = ref(false);
+const expiringCount = computed(
+  () => (page.props.auth as any)?.expiringCount || 0,
+);
+
+onMounted(() => {
+  const inAppAlertsEnabled = (page.props.auth as any)?.inAppAlerts ?? true;
+
+  if (inAppAlertsEnabled && expiringCount.value > 0) {
+    if (!sessionStorage.getItem('top_alert_seen')) {
+      setTimeout(() => {
+        showTopAlert.value = true;
+      }, 800);
+    }
+  }
+});
+
+const closeTopAlert = () => {
+  showTopAlert.value = false;
+  sessionStorage.setItem('top_alert_seen', 'true');
+};
 </script>
 
 <template>
   <div
     class="bg-background text-on-background font-body-md relative flex min-h-screen w-full overflow-x-hidden antialiased"
   >
+    <!-- TOP CENTER NOTIFICATION -->
+    <Transition
+      enter-active-class="transition ease-out duration-300 transform"
+      enter-from-class="-translate-y-full opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showTopAlert"
+        class="fixed top-6 left-1/2 z-[100] w-11/12 max-w-md -translate-x-1/2 sm:w-full"
+      >
+        <div
+          class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-red-900/50 dark:bg-gray-900"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
+            >
+              <span
+                class="material-symbols-outlined text-red-600 dark:text-red-400"
+                >warning</span
+              >
+            </div>
+            <div>
+              <p class="text-sm font-bold text-gray-900 dark:text-white">
+                Inventory Alert
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                You have ingredients in your inventory that need your attention.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <Link
+              href="/alerts"
+              class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+              @click="closeTopAlert"
+            >
+              Review
+            </Link>
+            <button
+              class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              @click="closeTopAlert"
+            >
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- DESKTOP SIDEBAR -->
     <nav
       :class="[

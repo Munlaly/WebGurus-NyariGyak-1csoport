@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\UserInventory;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,24 +40,35 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
         $theme = 'light';
-        if ($request->user()) {
-            $settings = \App\Models\UserSetting::where('user_id', $request->user()->id)->first();
+        $inAppAlerts = true;
+        $expiringCount = 0;
+        if ($user) {
+            $settings = \App\Models\UserSetting::where('user_id', $user->id)->first();
             if ($settings && $settings->system_preferences) {
                 $prefs = is_string($settings->system_preferences) 
                     ? json_decode($settings->system_preferences, true) 
                     : $settings->system_preferences;
                 $theme = $prefs['theme'] ?? 'light';
+                $inAppAlerts = $prefs['inAppAlerts'] ?? true;
             }
+
+            $expiringCount = UserInventory::where('user_id', $user->id)
+                ->whereNotNull('expiration_date')
+                ->where('expiration_date', '<=', now()->addDays(7))
+                ->count();
         }
 
         return array_merge(parent::share($request), [
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'username' => $request->user()->username, 
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'username' => $user->username, 
                 ] : null,
                 'theme' => $theme,
+                'inappAlerts' => $inAppAlerts,
+                'expiringCount' => $expiringCount,
             ],
         ]);
     }
