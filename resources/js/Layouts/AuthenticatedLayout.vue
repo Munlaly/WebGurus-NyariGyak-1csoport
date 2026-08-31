@@ -141,7 +141,7 @@ const closeTopAlert = () => {
     >
       <div
         v-if="showTopAlert"
-        class="fixed top-6 left-1/2 z-[100] w-11/12 max-w-md -translate-x-1/2 sm:w-full"
+        class="fixed top-6 left-1/2 z-100 w-11/12 max-w-md -translate-x-1/2 sm:w-full"
       >
         <div
           class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-red-900/50 dark:bg-gray-900"
@@ -228,19 +228,39 @@ const closeTopAlert = () => {
           <li v-for="item in navigation" :key="item.name">
             <Link
               :href="item.href"
-              class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low flex items-center rounded-xl transition-all duration-200 active:scale-95"
+              class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low relative flex items-center justify-between rounded-xl transition-all duration-200 active:scale-95"
               :class="navItemSpacingClass"
               :title="isCollapsed ? item.name : ''"
             >
-              <span class="material-symbols-outlined shrink-0 text-[22px]">{{
-                item.icon
-              }}</span>
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined shrink-0 text-[22px]">{{
+                  item.icon
+                }}</span>
+                <span
+                  v-if="!isCollapsed"
+                  class="font-body-md text-body-md font-medium whitespace-nowrap"
+                >
+                  {{ item.name }}
+                </span>
+              </div>
+
+              <!-- Live Counter Badge for Alerts -->
               <span
-                v-if="!isCollapsed"
-                class="font-body-md text-body-md font-medium whitespace-nowrap"
+                v-if="
+                  item.name === 'Alerts' && expiringCount > 0 && !isCollapsed
+                "
+                class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600 dark:bg-red-900/40 dark:text-red-400"
               >
-                {{ item.name }}
+                {{ expiringCount }}
               </span>
+
+              <!-- Red dot indicator when sidebar is collapsed -->
+              <span
+                v-if="
+                  item.name === 'Alerts' && expiringCount > 0 && isCollapsed
+                "
+                class="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-white dark:ring-gray-900"
+              ></span>
             </Link>
           </li>
         </ul>

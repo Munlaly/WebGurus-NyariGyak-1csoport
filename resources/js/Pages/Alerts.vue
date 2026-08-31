@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
+import { lo } from '@nuxt/ui/runtime/locale/index.js';
 
 interface Ingredient {
   id: number;
@@ -100,18 +101,37 @@ const alertsData = computed<AlertsData>(() => {
     urgent: rawData.urgent,
   };
 });
+
+const resetDismissedAlerts = () => {
+  dismissedIds.value = [];
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(SKIP_CONFIRM_KEY);
+  dontAskAgain.value = false;
+};
 </script>
 
 <template>
   <AuthenticatedLayout>
     <div class="relative mx-auto flex w-full max-w-4xl flex-col gap-8">
-      <header>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          Inventory Alerts
-        </h1>
-        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          Review your expiring ingredients below.
-        </p>
+      <header class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            Inventory Alerts
+          </h1>
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Review your expiring ingredients below.
+          </p>
+        </div>
+
+        <!-- Batch Action: Reset Hidden Alerts Button -->
+        <button
+          v-if="dismissedIds.length > 0 || dontAskAgain"
+          class="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+          @click="resetDismissedAlerts"
+        >
+          <span class="material-symbols-outlined text-base">refresh</span>
+          <span>Reset Hidden Alerts</span>
+        </button>
       </header>
 
       <div class="flex flex-col gap-6">
@@ -221,7 +241,7 @@ const alertsData = computed<AlertsData>(() => {
     <!-- Confirmation Modal Overlay -->
     <div
       v-if="isConfirmModalOpen"
-      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-100 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     >
       <div
         class="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-gray-900"
