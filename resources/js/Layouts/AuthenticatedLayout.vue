@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { ref, computed, watch, onUnmounted, watchEffect } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 
 interface MacroTarget {
   current: number;
@@ -28,6 +28,17 @@ withDefaults(
     fat: () => ({ current: 0, target: 65 }),
   },
 );
+
+const page = usePage();
+watchEffect(() => {
+  const userTheme = (page.props.auth as { theme?: string })?.theme || 'light';
+
+  if (userTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
 
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
@@ -187,7 +198,7 @@ const navigation = [
       <!-- TOP APP BAR -->
       <header
         :class="[
-          'border-surface-container fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-white px-3 transition-all duration-300 ease-in-out md:px-8',
+          'border-surface-container bg-background fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b px-3 transition-all duration-300 ease-in-out md:px-8',
           headerPositionClass,
         ]"
       >

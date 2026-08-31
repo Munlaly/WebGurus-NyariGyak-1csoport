@@ -39,13 +39,24 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $theme = 'light';
+        if ($request->user()) {
+            $settings = \App\Models\UserSetting::where('user_id', $request->user()->id)->first();
+            if ($settings && $settings->system_preferences) {
+                $prefs = is_string($settings->system_preferences) 
+                    ? json_decode($settings->system_preferences, true) 
+                    : $settings->system_preferences;
+                $theme = $prefs['theme'] ?? 'light';
+            }
+        }
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,
                     'username' => $request->user()->username, 
-                    
                 ] : null,
+                'theme' => $theme,
             ],
         ]);
     }

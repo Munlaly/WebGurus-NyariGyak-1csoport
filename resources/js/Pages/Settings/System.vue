@@ -103,21 +103,10 @@ const submitSystemSettings = () => {
           <div class="flex items-center justify-between">
             <div>
               <p class="font-semibold text-gray-900 dark:text-white">
-                Browser Push Notifications
-              </p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Real-time alerts for expiring ingredients.
-              </p>
-            </div>
-            <USwitch v-model="form.pushNotifications" />
-          </div>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="font-semibold text-gray-900 dark:text-white">
                 In-App Alerts
               </p>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                Updates shown within the dashboard.
+                Real-time alerts for expiring ingredients.
               </p>
             </div>
             <USwitch v-model="form.inAppAlerts" />
