@@ -1,7 +1,6 @@
 <!-- WeeklyPlanner.vue -->
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import PlannerDayColumn from '../Components/WeeklyPlanner/PlannerDayColumn.vue';
@@ -151,7 +150,9 @@ const regenerateUnpinned = async () => {
   await Promise.allSettled(promises);
 };
 
-const acceptAndFinalize = () => {
+const toast = useToast();
+
+const acceptAndFinalize = async () => {
   isSaving.value = true;
 
   const payload: Record<
@@ -165,13 +166,33 @@ const acceptAndFinalize = () => {
     };
   }
 
-  const form = useForm({ plan: payload });
-  form.post('/meal-plan/save', {
-    onFinish: () => {
-      isSaving.value = false;
+  try {
+    const response = await axios.post('/meal-plan/save', { plan: payload });
+
+    if (response.data.success) {
       sessionStorage.removeItem(STORAGE_KEY);
-    },
-  });
+
+      // Fire a success toast
+      toast.add({
+        title: 'Success!',
+        description: response.data.message,
+        color: 'success',
+        icon: 'i-heroicons-check-circle',
+      });
+    }
+  } catch (error) {
+    console.error('Failed to save plan:', error);
+
+    // Fire an error toast
+    toast.add({
+      title: 'Error',
+      description: 'Failed to save the meal plan. Please try again.',
+      color: 'error',
+      icon: 'i-heroicons-x-circle',
+    });
+  } finally {
+    isSaving.value = false;
+  }
 };
 </script>
 

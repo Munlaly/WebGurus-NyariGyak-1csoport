@@ -35,6 +35,7 @@ export default [
         ...globals.browser,
         route: 'readonly',
         $page: 'readonly',
+        useToast: 'readonly',
       },
     },
     rules: {
