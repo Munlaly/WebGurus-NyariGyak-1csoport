@@ -1,6 +1,7 @@
 <script setup lang="ts">
+// 1. Imports
 import { ref, computed, watch, onUnmounted, watchEffect, onMounted } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 
 interface MacroTarget {
   current: number;
@@ -25,6 +26,7 @@ interface CustomPageProps {
   };
 }
 
+// 2. Props
 withDefaults(
   defineProps<{
     primaryGoal?: string;
@@ -47,62 +49,50 @@ withDefaults(
   },
 );
 
+// 3. Emits
+
+// 4. Initializations
 const page = usePage();
-const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
 
-watchEffect(() => {
-  const userTheme = typedPageProps.value.auth?.theme || 'light';
-
-  if (userTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-});
-
-const isCollapsed = ref(false);
-const isMobileMenuOpen = ref(false);
-
-const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
-
-const navItemSpacingClass = computed(() =>
-  isCollapsed.value ? 'justify-center p-3' : 'gap-3 px-4 py-3.5',
-);
-
-const toggleBtnSpacingClass = computed(() =>
-  isCollapsed.value ? 'justify-center p-3' : 'gap-3 px-4 py-3',
-);
-
-const toggleBtnArrowType = computed(() =>
-  isCollapsed.value
-    ? 'keyboard_double_arrow_right'
-    : 'keyboard_double_arrow_left',
-);
-
-const mainContentMarginClass = computed(() =>
-  isCollapsed.value ? 'md:ml-20' : 'md:ml-72',
-);
-
-// Dynamically offset the fixed header on desktop based on sidebar state
-const headerPositionClass = computed(() =>
-  isCollapsed.value ? 'left-0 md:left-20' : 'left-0 md:left-72',
-);
-
-const mobileMenuTransformClass = computed(() =>
-  isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
-);
-
+// 5. Variables
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
   { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
-  { name: 'My Inventory', icon: 'inventory_2', href: '#' },
+  { name: 'My Inventory', icon: 'inventory_2', href: '/inventory' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
   { name: 'Alerts', icon: 'notifications', href: '/alerts' },
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
 
+// -- Refs
+const isCollapsed = ref(false);
+const isMobileMenuOpen = ref(false);
 const showTopAlert = ref(false);
+
+// -- Computeds
+const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
+const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
+const navItemSpacingClass = computed(() =>
+  isCollapsed.value ? 'justify-center p-3' : 'gap-3 px-4 py-3.5',
+);
+const toggleBtnSpacingClass = computed(() =>
+  isCollapsed.value ? 'justify-center p-3' : 'gap-3 px-4 py-3',
+);
+const toggleBtnArrowType = computed(() =>
+  isCollapsed.value
+    ? 'keyboard_double_arrow_right'
+    : 'keyboard_double_arrow_left',
+);
+const mainContentMarginClass = computed(() =>
+  isCollapsed.value ? 'md:ml-20' : 'md:ml-72',
+);
+const headerPositionClass = computed(() =>
+  isCollapsed.value ? 'left-0 md:left-20' : 'left-0 md:left-72',
+);
+const mobileMenuTransformClass = computed(() =>
+  isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
+);
 const expiringCount = computed(
   () => typedPageProps.value.auth?.expiringCount || 0,
 );
@@ -135,6 +125,43 @@ const availableAlertsCount = computed(() => {
   return activeExpired.length + critical.length + urgent.length;
 });
 
+// 6. Functions
+function toggleSidebar() {
+  isCollapsed.value = !isCollapsed.value;
+}
+
+function toggleMobileMenu() {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+}
+
+function handleLogout() {
+  sessionStorage.clear();
+  router.post(route('logout'));
+}
+
+function closeTopAlert() {
+  showTopAlert.value = false;
+  sessionStorage.setItem('top_alert_seen', 'true');
+}
+
+// 7. Watchers
+watchEffect(() => {
+  const userTheme = typedPageProps.value.auth?.theme || 'light';
+
+  if (userTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
+
+watch(isMobileMenuOpen, (isOpen) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+});
+
+// 8. Hooks
 onMounted(() => {
   const inAppAlertsEnabled = typedPageProps.value.auth?.inAppAlerts ?? true;
 
@@ -147,76 +174,72 @@ onMounted(() => {
   }
 });
 
-const closeTopAlert = () => {
-  showTopAlert.value = false;
-  sessionStorage.setItem('top_alert_seen', 'true');
-};
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
 </script>
 
 <template>
-  <div
-    class="bg-background text-on-background font-body-md relative flex min-h-screen w-full overflow-x-hidden antialiased"
-  >
-    <!-- TOP CENTER NOTIFICATION -->
-    <Transition
-      enter-active-class="transition ease-out duration-300 transform"
-      enter-from-class="-translate-y-full opacity-0"
-      enter-to-class="translate-y-0 opacity-100"
-      leave-active-class="transition ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
+  <UApp>
+    <div
+      class="bg-background text-on-background font-body-md relative flex min-h-screen w-full overflow-x-hidden antialiased"
     >
-      <div
-        v-if="showTopAlert"
-        class="fixed top-6 left-1/2 z-100 w-11/12 max-w-md -translate-x-1/2 sm:w-full"
+      <!-- TOP CENTER NOTIFICATION -->
+      <Transition
+        enter-active-class="transition ease-out duration-300 transform"
+        enter-from-class="-translate-y-full opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
       >
         <div
-          class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-red-900/50 dark:bg-gray-900"
+          v-if="showTopAlert"
+          class="fixed top-6 left-1/2 z-100 w-11/12 max-w-md -translate-x-1/2 sm:w-full"
         >
-          <div class="flex items-center gap-4">
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
-            >
-              <span
-                class="material-symbols-outlined text-red-600 dark:text-red-400"
-                >warning</span
+          <div
+            class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-red-900/50 dark:bg-gray-900"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
               >
+                <span
+                  class="material-symbols-outlined text-red-600 dark:text-red-400"
+                  >warning</span
+                >
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900 dark:text-white">
+                  Inventory Alert
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  You have ingredients in your inventory that need your
+                  attention.
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="text-sm font-bold text-gray-900 dark:text-white">
-                Inventory Alert
-              </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                You have ingredients in your inventory that need your attention.
-              </p>
+            <div class="flex items-center gap-2">
+              <Link
+                href="/alerts"
+                class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+                @click="closeTopAlert"
+              >
+                Review
+              </Link>
+              <button
+                class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                @click="closeTopAlert"
+              >
+                <span class="material-symbols-outlined text-[20px]">close</span>
+              </button>
             </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <Link
-              href="/alerts"
-              class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
-              @click="closeTopAlert"
-            >
-              Review
-            </Link>
-            <button
-              class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-              @click="closeTopAlert"
-            >
-              <span class="material-symbols-outlined text-[20px]">close</span>
-            </button>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
 
-    <!-- DESKTOP SIDEBAR -->
-    <nav
-      :class="[
-        'bg-surface dark:bg-surface-dim fixed top-0 left-0 z-40 hidden h-full flex-col shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 ease-in-out md:flex',
-        sidebarWidthClass,
-      ]"
-    >
       <!-- DESKTOP SIDEBAR -->
       <nav
         :class="[
@@ -262,19 +285,44 @@ const closeTopAlert = () => {
             <li v-for="item in navigation" :key="item.name">
               <Link
                 :href="item.href"
-                class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low flex items-center rounded-xl transition-all duration-200 active:scale-95"
+                class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low relative flex items-center justify-between rounded-xl transition-all duration-200 active:scale-95"
                 :class="navItemSpacingClass"
                 :title="isCollapsed ? item.name : ''"
               >
-                <span class="material-symbols-outlined shrink-0 text-[22px]">{{
-                  item.icon
-                }}</span>
+                <div class="flex items-center gap-3">
+                  <span
+                    class="material-symbols-outlined shrink-0 text-[22px]"
+                    >{{ item.icon }}</span
+                  >
+                  <span
+                    v-if="!isCollapsed"
+                    class="font-body-md text-body-md font-medium whitespace-nowrap"
+                  >
+                    {{ item.name }}
+                  </span>
+                </div>
+
+                <!-- Live Counter Badge -->
                 <span
-                  v-if="!isCollapsed"
-                  class="font-body-md text-body-md font-medium whitespace-nowrap"
+                  v-if="
+                    item.name === 'Alerts' &&
+                    availableAlertsCount > 0 &&
+                    !isCollapsed
+                  "
+                  class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600 dark:bg-red-900/40 dark:text-red-400"
                 >
-                  {{ item.name }}
+                  {{ availableAlertsCount }}
                 </span>
+
+                <!-- Red dot indicator when sidebar is collapsed -->
+                <span
+                  v-if="
+                    item.name === 'Alerts' &&
+                    availableAlertsCount > 0 &&
+                    isCollapsed
+                  "
+                  class="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-white dark:ring-gray-900"
+                ></span>
               </Link>
             </li>
           </ul>
@@ -307,7 +355,7 @@ const closeTopAlert = () => {
         <!-- TOP APP BAR -->
         <header
           :class="[
-            'border-surface-container fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-white px-3 transition-all duration-300 ease-in-out md:px-8',
+            'border-surface-container bg-background fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b px-3 transition-all duration-300 ease-in-out md:px-8',
             headerPositionClass,
           ]"
         >
@@ -363,7 +411,7 @@ const closeTopAlert = () => {
               <span>{{ fat.current ?? 0 }}g</span>
             </div>
 
-            <!-- Logout Button -->
+            <!-- Logout Button (Using Bence's handleLogout) -->
             <button
               class="text-on-surface-variant hover:text-error active:bg-error/10 flex items-center justify-center rounded-full p-2 transition-colors active:scale-95 md:px-3 md:py-1.5"
               title="Log out"
@@ -408,105 +456,8 @@ const closeTopAlert = () => {
               class="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100"
               >Smart Meal Plan</span
             >
-              Smart Meal Plan
-            </h2>
-            <p
-              class="font-body-sm text-body-sm text-on-surface-variant truncate"
-            >
-              Personal Nutrition
-            </p>
-          </div>
-        </div>
-
-        <!-- Desktop Navigation Links -->
-        <ul class="flex-1 space-y-1.5">
-          <li v-for="item in navigation" :key="item.name">
-            <Link
-              :href="item.href"
-              class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low relative flex items-center justify-between rounded-xl transition-all duration-200 active:scale-95"
-              :class="navItemSpacingClass"
-              :title="isCollapsed ? item.name : ''"
-            >
-              <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined shrink-0 text-[22px]">{{
-                  item.icon
-                }}</span>
-                <span
-                  v-if="!isCollapsed"
-                  class="font-body-md text-body-md font-medium whitespace-nowrap"
-                >
-                  {{ item.name }}
-                </span>
-              </div>
-
-              <!-- Live Counter Badge using availableAlertsCount -->
-              <span
-                v-if="
-                  item.name === 'Alerts' &&
-                  availableAlertsCount > 0 &&
-                  !isCollapsed
-                "
-                class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600 dark:bg-red-900/40 dark:text-red-400"
-              >
-                {{ availableAlertsCount }}
-              </span>
-
-              <!-- Red dot indicator when sidebar is collapsed -->
-              <span
-                v-if="
-                  item.name === 'Alerts' &&
-                  availableAlertsCount > 0 &&
-                  isCollapsed
-                "
-                class="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-white dark:ring-gray-900"
-              ></span>
-            </Link>
-          </li>
-        </ul>
-
-        <!-- Collapse Toggle Button -->
-        <div class="border-outline-variant mt-auto border-t pt-3">
-          <button
-            class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary flex w-full items-center rounded-xl transition-colors active:scale-95"
-            :class="toggleBtnSpacingClass"
-            @click="toggleSidebar"
-          >
-            <span class="material-symbols-outlined shrink-0">{{
-              toggleBtnArrowType
-            }}</span>
-            <span v-if="!isCollapsed" class="font-body-md font-medium"
-              >Collapse</span
-            >
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- MAIN CONTENT AREA -->
-    <div
-      :class="[
-        'flex min-h-screen flex-1 flex-col transition-all duration-300 ease-in-out',
-        mainContentMarginClass,
-      ]"
-    >
-      <!-- TOP APP BAR -->
-      <header
-        :class="[
-          'border-surface-container bg-background fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b px-3 transition-all duration-300 ease-in-out md:px-8',
-          headerPositionClass,
-        ]"
-      >
-        <!-- Left: Cooked Meals -->
-        <div class="flex items-center gap-2">
-          <div
-            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold"
-          >
-            <span class="material-symbols-outlined text-primary text-[18px]"
-              >check_circle</span
-            >
-            <span class="whitespace-nowrap"
-              >{{ mealsCooked.current ?? 0 }}/{{ mealsCooked.total ?? 3 }}
-              <span class="hidden sm:inline">Meals</span></span
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400"
+              >Personal Nutrition</span
             >
           </div>
         </div>
@@ -547,7 +498,7 @@ const closeTopAlert = () => {
 
         <!-- Weekly Planner -->
         <Link
-          href="/meal-plan/"
+          href="/meal-plan"
           class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
           @click="isMobileMenuOpen = false"
         >
