@@ -14,6 +14,7 @@ use App\Models\UserInventory;
 use App\Models\UserProfile;
 use App\Enums\ExerciseIntensity;
 use App\Enums\EntityStatus;
+use Inertia\Inertia;
 
 class MealPlanController extends Controller
 {
@@ -56,6 +57,10 @@ class MealPlanController extends Controller
             'calories' => (int) round($targetCalories),
             'macros' => $macros,
         ];
+    }
+
+    public function index(){
+        return Inertia::render('WeeklyPlanner'); 
     }
 
     private function getFilteredRecipes(int $userId, ?UserSetting $settings) {

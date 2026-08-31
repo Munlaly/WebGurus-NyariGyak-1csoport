@@ -42,9 +42,7 @@ Route::middleware('auth')->group(function(){
         });
 
         Route::prefix('meal-plan')->name('meal-plan.')->group(function () {
-            Route::get('/', function () {
-                return Inertia::render('WeeklyPlanner'); 
-            })->name('index');
+            Route::get('/', [MealPlanController::class, 'index'])->name('index');
 
             // API endpoints for the planner actions
             Route::post('/generate', [MealPlanController::class, 'generate'])->name('generate');
