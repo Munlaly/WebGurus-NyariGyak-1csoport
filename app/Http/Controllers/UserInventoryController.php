@@ -27,8 +27,9 @@ class UserInventoryController extends Controller
         foreach($inventory as $item) {
             $needsAttention = false;
             if($item->expiration_date) {
-                $expDate = Carbon::parse($item->expiration_date);
-                if($expDate->isBetween($now, $oneWeekFromNow)) {
+                $expDate = Carbon::parse($item->expiration_date)->startOfDay();
+                $targetDate = $now->copy()->addDays(7)->startOfDay();
+                if($expDate->isPast() || $expDate->isBefore($targetDate)) {
                     $needsAttention = true;
                 }
             }
@@ -44,14 +45,14 @@ class UserInventoryController extends Controller
             }
         }
         
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'attention_needed' => $attentionNeeded,
-                    'inventory' => $regularInventory,
-                    'current_score' => $settings->zero_waste_score ?? 0
-                ]
-            ]);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'attention_needed' => $attentionNeeded,
+                'inventory' => $regularInventory,
+                'current_score' => $settings->zero_waste_score ?? 0
+            ]
+        ]);
     }
 
     public function store(Request $request) {

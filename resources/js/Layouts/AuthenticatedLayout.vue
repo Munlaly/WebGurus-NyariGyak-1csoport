@@ -1,24 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch, onUnmounted } from 'vue';
+import { Link } from '@inertiajs/vue3';
 
 interface MacroTarget {
   current: number;
   target: number;
 }
 
-const page = usePage();
-watchEffect(() => {
-  const userTheme = (page.props.auth as { theme?: string })?.theme || 'light';
-
-  if (userTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-});
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
     primaryGoal?: string;
     mealsCooked?: {
@@ -41,9 +30,27 @@ const props = withDefaults(
 );
 
 const isCollapsed = ref(false);
+const isMobileMenuOpen = ref(false);
+
+// Prevent scrolling the body when the Slider is open
+watch(isMobileMenuOpen, (isOpen) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+});
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
+};
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
@@ -66,30 +73,30 @@ const mainContentMarginClass = computed(() =>
   isCollapsed.value ? 'md:ml-20' : 'md:ml-72',
 );
 
-const mealsProgressPercent = computed(() => {
-  if (!props.mealsCooked.total) return 0;
-  return Math.min(
-    100,
-    Math.round((props.mealsCooked.current / props.mealsCooked.total) * 100),
-  );
-});
+// Dynamically offset the fixed header on desktop based on sidebar state
+const headerPositionClass = computed(() =>
+  isCollapsed.value ? 'left-0 md:left-20' : 'left-0 md:left-72',
+);
+
+const mobileMenuTransformClass = computed(() =>
+  isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
+);
 
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
-  { name: 'Weekly Planner', icon: 'event_note', href: '#' },
+  { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
   { name: 'My Inventory', icon: 'inventory_2', href: '#' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
-  { name: 'Alerts', icon: 'notifications', href: '/alerts' },
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
 </script>
 
 <template>
   <div
-    class="bg-background text-on-background font-body-md flex min-h-screen w-full overflow-x-hidden antialiased"
+    class="bg-background text-on-background font-body-md relative flex min-h-screen w-full overflow-x-hidden antialiased"
   >
-    <!-- Sidebar -->
+    <!-- DESKTOP SIDEBAR -->
     <nav
       :class="[
         'bg-surface dark:bg-surface-dim fixed top-0 left-0 z-40 hidden h-full flex-col shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 ease-in-out md:flex',
@@ -129,12 +136,12 @@ const navigation = [
           </div>
         </div>
 
-        <!-- Navigation Links -->
+        <!-- Desktop Navigation Links -->
         <ul class="flex-1 space-y-1.5">
           <li v-for="item in navigation" :key="item.name">
             <Link
               :href="item.href"
-              class="text-on-surface-variant hover:bg-surface-container-low flex items-center rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-95"
+              class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low flex items-center rounded-xl transition-all duration-200 active:scale-95"
               :class="navItemSpacingClass"
               :title="isCollapsed ? item.name : ''"
             >
@@ -144,8 +151,9 @@ const navigation = [
               <span
                 v-if="!isCollapsed"
                 class="font-body-md text-body-md font-medium whitespace-nowrap"
-                >{{ item.name }}</span
               >
+                {{ item.name }}
+              </span>
             </Link>
           </li>
         </ul>
@@ -153,95 +161,85 @@ const navigation = [
         <!-- Collapse Toggle Button -->
         <div class="border-outline-variant mt-auto border-t pt-3">
           <button
-            class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary flex w-full items-center rounded-xl transition-colors"
+            class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary flex w-full items-center rounded-xl transition-colors active:scale-95"
             :class="toggleBtnSpacingClass"
             @click="toggleSidebar"
           >
-            <span class="material-symbols-outlined shrink-0">
-              {{ toggleBtnArrowType }}
-            </span>
-            <span v-if="!isCollapsed" class="font-body-md font-medium">
-              Collapse
-            </span>
+            <span class="material-symbols-outlined shrink-0">{{
+              toggleBtnArrowType
+            }}</span>
+            <span v-if="!isCollapsed" class="font-body-md font-medium"
+              >Collapse</span
+            >
           </button>
         </div>
       </div>
     </nav>
 
-    <!-- Main Content Area -->
+    <!-- MAIN CONTENT AREA -->
     <div
       :class="[
         'flex min-h-screen flex-1 flex-col transition-all duration-300 ease-in-out',
         mainContentMarginClass,
       ]"
     >
-      <!-- TopAppBar -->
+      <!-- TOP APP BAR -->
       <header
-        class="bg-background/80 border-surface-container sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b px-4 backdrop-blur-md md:px-8"
+        :class="[
+          'border-surface-container fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-white px-3 transition-all duration-300 ease-in-out md:px-8',
+          headerPositionClass,
+        ]"
       >
-        <!-- Left: Primary Goal Badge & Meals Cooked Progress -->
-        <div class="flex items-center gap-3">
-          <!-- Primary Goal Badge -->
+        <!-- Left: Cooked Meals -->
+        <div class="flex items-center gap-2">
           <div
-            class="bg-primary/10 text-primary hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold sm:flex"
+            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold"
           >
-            <span class="material-symbols-outlined text-[20px]">flag</span>
-            <span class="capitalize">{{ primaryGoal }}</span>
-          </div>
-
-          <!-- Meals Cooked Progress Bar -->
-          <div
-            class="bg-surface-container hidden items-center gap-2.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
-          >
-            <span class="material-symbols-outlined text-primary text-[20px]"
+            <span class="material-symbols-outlined text-primary text-[18px]"
               >check_circle</span
             >
-            <span>{{ mealsCooked.current }}/{{ mealsCooked.total }} Meals</span>
-            <div
-              class="bg-outline-variant/30 h-2 w-20 overflow-hidden rounded-full"
+            <span class="whitespace-nowrap"
+              >{{ mealsCooked.current ?? 0 }}/{{ mealsCooked.total ?? 3 }}
+              <span class="hidden sm:inline">Meals</span></span
             >
-              <div
-                class="bg-primary h-full rounded-full transition-all duration-300"
-                :style="{ width: `${mealsProgressPercent}%` }"
-              />
-            </div>
           </div>
         </div>
 
-        <!-- Right: Macros (Calories, Protein, Carbs, Fat) & Logout -->
-        <div class="flex items-center gap-2 md:gap-3">
-          <!-- Calories -->
+        <!-- Right: Macros & Logout -->
+        <div class="flex items-center gap-1.5 md:gap-3">
+          <!-- Calories: Visible everywhere -->
           <div
-            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold"
+            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold"
           >
-            <span class="material-symbols-outlined text-primary text-[20px]"
+            <span class="material-symbols-outlined text-primary text-[18px]"
               >local_fire_department</span
             >
-            <span>{{ calories.current }} / {{ calories.target }} kcal</span>
+            <span class="whitespace-nowrap"
+              >{{ calories.current ?? 0 }}
+              <span class="hidden sm:inline"
+                >/ {{ calories.target ?? 0 }} kcal</span
+              ></span
+            >
           </div>
 
-          <!-- Protein -->
+          <!-- P/C/F Macros: Hidden on Mobile, Visible on md+ -->
           <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium sm:flex"
+            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium md:flex"
           >
             <span class="text-primary font-bold">P:</span>
-            <span>{{ protein.current }}/{{ protein.target }}g</span>
+            <span>{{ protein.current ?? 0 }}g</span>
           </div>
-
-          <!-- Carbs -->
           <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium xl:flex"
+            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
           >
             <span class="text-primary font-bold">C:</span>
-            <span>{{ carbs.current }}/{{ carbs.target }}g</span>
+            <span>{{ carbs.current ?? 0 }}g</span>
           </div>
-
-          <!-- Fat -->
           <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium xl:flex"
+            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
           >
             <span class="text-primary font-bold">F:</span>
-            <span>{{ fat.current }}/{{ fat.target }}g</span>
+            <span>{{ fat.current ?? 0 }}g</span>
           </div>
 
           <!-- Logout Button -->
@@ -249,18 +247,114 @@ const navigation = [
             href="/logout"
             method="post"
             as="button"
-            class="text-on-surface-variant hover:text-primary ml-2 flex items-center gap-1.5 px-2 py-1.5 text-sm font-semibold transition-colors"
+            class="text-on-surface-variant hover:text-error active:bg-error/10 flex items-center justify-center rounded-full p-2 transition-colors active:scale-95 md:px-3 md:py-1.5"
+            title="Log out"
           >
-            <span class="material-symbols-outlined text-[20px]">logout</span>
-            <span class="hidden sm:inline">Log out</span>
+            <span class="material-symbols-outlined text-[20px] md:text-[18px]"
+              >logout</span
+            >
+            <span class="hidden md:ml-1.5 md:inline md:text-sm md:font-semibold"
+              >Log out</span
+            >
           </Link>
         </div>
       </header>
 
-      <!-- Content Canvas -->
-      <main class="flex w-full flex-1 flex-col p-6 md:p-8">
-        <slot />
-      </main>
+      <!-- Content Canvas Wrapper  -->
+      <div class="mt-16 flex w-full flex-1 flex-col overflow-hidden">
+        <main class="flex w-full flex-1 flex-col p-4 pb-24 md:p-8 md:pb-8">
+          <slot />
+        </main>
+      </div>
     </div>
+
+    <!-- NATIVE SLIDEOVER MENU-->
+    <div
+      :class="[
+        'fixed inset-0 top-16 z-40 flex flex-col overflow-y-auto overscroll-contain bg-white p-6 pb-28 shadow-2xl transition-transform duration-300 ease-in-out md:hidden dark:bg-gray-950',
+        mobileMenuTransformClass,
+      ]"
+    >
+      <!-- Header (Profile) -->
+      <div
+        class="mb-8 flex items-center gap-4 border-b border-gray-200 pb-6 dark:border-gray-800"
+      >
+        <img
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
+          class="h-14 w-14 rounded-full border border-gray-200 object-cover shadow-sm"
+        />
+        <div class="flex flex-col">
+          <span
+            class="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100"
+            >Smart Meal Plan</span
+          >
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400"
+            >Personal Nutrition</span
+          >
+        </div>
+      </div>
+
+      <!-- Full Navigation List -->
+      <div class="flex flex-1 flex-col justify-between gap-2.5">
+        <Link
+          v-for="item in navigation"
+          :key="item.name"
+          :href="item.href"
+          class="flex items-center gap-4 rounded-2xl bg-gray-50 px-5 py-4 font-semibold text-gray-900 shadow-sm transition-all hover:bg-gray-100 active:scale-[0.98] dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+          @click="isMobileMenuOpen = false"
+        >
+          <span
+            class="material-symbols-outlined text-[26px] text-green-600 dark:text-green-500"
+            >{{ item.icon }}</span
+          >
+          <span class="text-base tracking-wide">{{ item.name }}</span>
+        </Link>
+      </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav
+      class="fixed bottom-0 left-0 z-50 flex w-full justify-around border-t border-gray-200 bg-white px-2 py-3 pb-[max(env(safe-area-inset-bottom),1rem)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] md:hidden dark:border-gray-800 dark:bg-gray-950"
+    >
+      <!-- Today's Plans -->
+      <Link
+        href="/dashboard"
+        class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
+        @click="isMobileMenuOpen = false"
+      >
+        <span class="material-symbols-outlined text-[26px]"
+          >calendar_today</span
+        >
+        <span class="text-[11px] font-bold">Today</span>
+      </Link>
+
+      <!-- Weekly Planner -->
+      <Link
+        href="/meal-plan"
+        class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
+        @click="isMobileMenuOpen = false"
+      >
+        <span class="material-symbols-outlined text-[26px]">event_note</span>
+        <span class="text-[11px] font-bold">Weekly</span>
+      </Link>
+
+      <!-- More / Burger Menu Trigger -->
+      <button
+        :class="[
+          'flex flex-col items-center gap-1.5 transition-all active:scale-95',
+          isMobileMenuOpen
+            ? 'text-green-600'
+            : 'text-gray-500 hover:text-green-600',
+        ]"
+        @click="toggleMobileMenu"
+      >
+        <span class="material-symbols-outlined text-[26px]">{{
+          isMobileMenuOpen ? 'close' : 'menu'
+        }}</span>
+        <span class="text-[11px] font-bold">{{
+          isMobileMenuOpen ? 'Close' : 'More'
+        }}</span>
+      </button>
+    </nav>
   </div>
 </template>

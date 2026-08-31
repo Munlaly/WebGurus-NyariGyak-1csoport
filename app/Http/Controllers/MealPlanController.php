@@ -7,49 +7,90 @@ use App\Models\UserSetting;
 use App\Models\Recipe;
 use Illuminate\Support\Facades\DB;
 use App\Models\MealPlan;
-use App\Models\User;
 use Illuminate\Support\Carbon;
+use App\Models\DailyPlan;
+use App\Models\DietaryOption;
+use App\Models\UserInventory;
+use App\Models\UserProfile;
+use App\Enums\ExerciseIntensity;
 
 class MealPlanController extends Controller
 {
+    private function calculateNutritionalTargets(UserProfile $profile) {
+        $weight = (float) ($profile->weight_kg ?? 70);
+        $height = (float) ($profile->height_cm ?? 170);
+        $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
+        $sex = strtolower($profile->sex ?? 'male');
+
+        // calculate Basal Metabolic Rate (Mifflin-St Jeor)
+        $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
+        $bmr += ($sex === 'female') ? -161 : 5;
+
+        // apply activity multiplier
+        $multipliers = [
+            'sedentary' => 1.2,
+            'lightly_active' => 1.375,
+            'moderately_active' => 1.55,
+            'very_active' => 1.725,
+        ];
+
+        $activity = strtolower($profile->baseline_activity ?? 'sedentary');
+        // Total Daily Energy Expenditure
+        $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
+
+        $goal = strtolower($profile->fitness_goal ?? 'maintain');
+
+        $targetCalories = $tdee;
+        $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
+
+        if(in_array($goal, ['lose_weight', 'lose weight'])) {
+            $targetCalories = $tdee - 500;
+            $macros = ['protein' => 40, 'carbs' => 30, 'fat' => 30];
+        } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+            $targetCalories = $tdee + 500;
+            $macros = ['protein' => 30, 'carbs' => 50, 'fat' => 20];
+        }
+
+        return [
+            'calories' => (int) round($targetCalories),
+            'macros' => $macros,
+        ];
+    }
+
     private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
         $dislikedIngredientIds = DB::table('user_disliked_ingredients')
             ->where('user_id', $userId)
             ->pluck('ingredient_id')
             ->toArray();
 
-            $validRecipes = Recipe::with('ingredients');
+        $dietaryOptions = DietaryOption::whereHas('users', function ($query) use ($userId) {
+            $query->where('users.id', $userId);
+        })->with('excludedCategories')->get();
 
-            if(!empty($dislikedIngredientIds)) {
-                $validRecipes->whereDoesntHave('ingredients', function ($query) use ($dislikedIngredientIds) {
-                    $query->whereIn('ingredients.id', $dislikedIngredientIds);
-                });
-            }
+        $excludedCategoryIds = $dietaryOptions->flatMap(function ($option) {
+            return $option->excludedCategories->pluck('id');
+        })->unique()->toArray();
 
-            if($settings && $settings->prep_time_preference) {
+        $validRecipes = Recipe::with('ingredients');
+
+        if(!empty($dislikedIngredientIds)) {
+            $validRecipes->whereDoesntHave('ingredients', function ($query) use ($dislikedIngredientIds) {
+                $query->whereIn('ingredients.id', $dislikedIngredientIds);
+            });
+        }
+        if($settings && $settings->prep_time_preference) {
                 $validRecipes->where(function($query) use ($settings) {
                     $query->where('prep_time_minutes', '<=', (int) $settings->prep_time_preference)
                         ->orWhereNull('prep_time_minutes');
                 });
             }
 
-            if($settings && !empty($settings->meal_plan_preference) && !in_array('omnivore', $settings->meal_plan_preference)) {
-                $preferences = $settings->meal_plan_preference;
-
-                if(in_array('nut_free', $preferences)) {
-                    $validRecipes->whereJsonContains('diets', 'nut free');
-                    $preferences = array_diff($preferences, ['nut_free']);
-                }
-                if(!empty($preferences)) {
-                    $validRecipes->where(function($query) use ($preferences) {
-                        foreach($preferences as $diet) {
-                            $query->whereJsonContains('diets', $diet);
-                        }
-                    });
-                }
-            }
-
-            return $validRecipes;
+        if(!empty($excludedCategoryIds)) {
+            $validRecipes->whereDoesntHave('ingredients', function ($query) use ($excludedCategoryIds) {
+                $query->whereIn('category_id', $excludedCategoryIds);
+            });
+        }
+        return $validRecipes;
     }
 
     public function generate(Request $request) {
@@ -57,60 +98,14 @@ class MealPlanController extends Controller
         $user = $request->user();
 
         $settings = UserSetting::where('user_id', $user->id)->first();
+        $profile = UserProfile::where('user_id', $user->id)->first();
+
+        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile) : ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
+        $targetCalories = $nutritionTargets['calories'];
+        $macroTargets = $nutritionTargets['macros'];
 
         // PHASE 1: HARD FILTERS
-
         $validRecipes = $this->getFilteredRecipes($user->id, $settings);
-
-        if($settings && !empty($settings->meal_plan_preference) && !in_array('omnivore', $settings->meal_plan_preference)) {
-            $preferences = $settings->meal_plan_preference;
-
-            if(in_array('nut_free', $preferences)) {
-                $validRecipes->where(function($q) {
-                    $q->whereDoesntHave('ingredients', function($subQ) {
-                        $subQ->where('name', 'like', '%nut%')
-                              ->orWhere('name', 'like', '%peanut%')
-                              ->orWhere('name', 'like', '%almond%')
-                              ->orWhere('name', 'like', '%cashew%')
-                              ->orWhere('name', 'like', '%walnut%')
-                              ->orWhere('name', 'like', '%pecan%')
-                              ->orWhere('name', 'like', '%hazelnut%')
-                              ->orWhere('name', 'like', '%macadamia%')
-                              ->orWhere('name', 'like', '%pistachio%');
-                    })
-                        ->where('title', 'not like', '% nut %')
-                        ->where('title', 'not like', '%nuts%')
-                        ->where('title', 'not like', '%peanut%')
-                        ->where('title', 'not like', '%almond%')
-                        ->where('title', 'not like', '%cashew%')
-                        ->where('title', 'not like', '%walnut%')
-                        ->where('title', 'not like', '%pecan%')
-                        ->where('title', 'not like', '%hazelnut%')
-                        ->where('title', 'not like', '%macadamia%')
-                        ->where('title', 'not like', '%pistachio%')
-
-                        ->where('instructions', 'not like', '% nut %')
-                        ->where('instructions', 'not like', '%nuts%')
-                        ->where('instructions', 'not like', '%peanut%')
-                        ->where('instructions', 'not like', '%almond%')
-                        ->where('instructions', 'not like', '%cashew%')
-                        ->where('instructions', 'not like', '%walnut%')
-                        ->where('instructions', 'not like', '%pecan%')
-                        ->where('instructions', 'not like', '%hazelnut%')
-                        ->where('instructions', 'not like', '%macadamia%')
-                        ->where('instructions', 'not like', '%pistachio%');
-                });
-                $preferences = array_diff($preferences, ['nut_free']);
-            }
-            if(!empty($preferences)) {
-                $validRecipes->where(function($query) use ($preferences) {
-                    foreach($preferences as $diet) {
-                        $query->whereJsonContains('diets', $diet);
-                    }
-                });
-            }
-        }
-
         $poolOfAllowedMeals = $validRecipes->get();
 
         if($poolOfAllowedMeals->count() < 3) {
@@ -123,19 +118,17 @@ class MealPlanController extends Controller
 
         // PHASE 1.5: GOAL-BASED PRUNING
 
-        $goals = $settings->goals ?? [];
+        $goal = $profile ? strtolower($profile->fitness_goal ?? 'maintain') : 'maintain';
         $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70); // Keep the top 70 %
 
-        if (in_array('build_muscle', $goals) && $cutoffThreshold >= 3) {
-            // sort by highest protein, keep the top 70%, and re-index the collection
-            $poolOfAllowedMeals = $poolOfAllowedMeals->sortByDesc('protein')->take($cutoffThreshold)->values();
-        }
-
-        $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70);
-        
-        if(in_array('eat_healthy', $goals) && $cutoffThreshold >= 3) {
-            // sort by lowest fat, keep the top 70%, and re-index the collection
-            $poolOfAllowedMeals = $poolOfAllowedMeals->sortBy('fat')->take($cutoffThreshold)->values();
+        if ($cutoffThreshold >= 3) {
+            if(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+                // sort by highest protein, keep the top 70%, and re-index the collection
+                $poolOfAllowedMeals = $poolOfAllowedMeals->sortByDesc('protein')->take($cutoffThreshold)->values();
+            } elseif(in_array($goal, ['lose_weight', 'lose weight'])) {
+                // sort by lowest fat, keep the top 70%, and re-index the collection
+                $poolOfAllowedMeals = $poolOfAllowedMeals->sortBy('calories')->sortBy('fat')->take($cutoffThreshold)->values();
+            }
         }
 
         // PHASE 2: CALORIE & ZERO-WASTE ENGINE
@@ -148,9 +141,9 @@ class MealPlanController extends Controller
         if($breakfasts->isEmpty() || $lunches->isEmpty() || $dinners->isEmpty()) {
             return response()->json([
                 'success'=> false,
-                'message' => 'Your filters are too strict! We could not find enough meals for every cathegory.',
+                'message' => 'Your filters are too strict! We could not find enough meals for every category.',
                 'summary' => [
-                    'breakfasts_fount' => $breakfasts->count(),
+                    'breakfasts_found' => $breakfasts->count(),
                     'lunches_found' => $lunches->count(),
                     'dinners_found' => $dinners->count(),
                     'snacks_found' => $snacks->count(),
@@ -158,10 +151,15 @@ class MealPlanController extends Controller
             ], 400);
         }
 
-        $targetCalories = $settings->daily_calorie_target ?? 2000;
-
         $minCalories = $targetCalories * 0.85;
         $maxCalories = $targetCalories * 1.15;
+
+        $userInventory = UserInventory::where('user_id', $user->id)
+            ->orderBy('expiration_date', 'asc')
+            ->get()
+            ->keyBy('ingredient_id');
+        $now = Carbon::now();
+        $oneWeekFromNow = $now->copy()->addDays(7);
 
         $weeklyPlan = [];
         $allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -183,19 +181,43 @@ class MealPlanController extends Controller
             $attempts = 0;
             $maxAttempts = 150;  // don't let the server loop forever
 
-            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients) {
-                if(empty($weeklyActiveIngredients)) {
+            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients, $userInventory, $oneWeekFromNow) {
+                $score = 0;
+                if(empty($weeklyActiveIngredients) && $userInventory->isEmpty()) {
                     return mt_rand(1, 100); // Randomize the first day
                 }
 
-                $score = 0;
                 /** @var \App\Models\Ingredient $ingredient */
                 foreach($meal->ingredients as $ingredient) {
-                    if(in_array($ingredient->id, $weeklyActiveIngredients)) {
+                    $ingId = $ingredient->id;
+                    $amount = (float) ($ingredient->pivot->amount ?? 1);
+
+                    if(in_array($ingId, $weeklyActiveIngredients)) {
                         $score += 15; // Reward for using an ingredient already in the plan
-                
-                        $amount = (float) ($ingredient->pivot->amount ?? 1);
                         $score += $amount;
+                    }
+
+                    if($userInventory->has($ingId)) {
+                        $inventoryItem = $userInventory->get($ingId);
+
+                        $score += 25;
+                        if(in_array($inventoryItem->status, ['OPENED', 'LOW'])) {
+                            $score += 35;
+                        }
+
+                        if($inventoryItem->expiration_date) {
+                            $expDate = Carbon::parse($inventoryItem->expiration_date)->startOfDay();
+                            $today = Carbon::now()->startOfDay();
+                            $tomorrow = Carbon::now()->addDay()->startOfDay();
+
+                            if($expDate->isBefore($today)) {
+                                $score -= 50; // expired: penalize recipes using this so it doesn't get picked
+                            } elseif($expDate->equalTo($today) || $expDate->equalTo($tomorrow)) {
+                                $score += 100; // critical: use today or tomorrow
+                            } elseif($expDate->isBetween($tomorrow, $oneWeekFromNow)) {
+                                $score += 60; // urgent: expiring soon
+                            }
+                        }
                     }
                 }
                 return $score;
@@ -306,8 +328,9 @@ class MealPlanController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Weekly plan succesfully generated.',
+            'message' => 'Weekly plan successfully generated.',
             'target_calories' => $targetCalories,
+            'macro_targets' => $macroTargets,
             'plan' => $weeklyPlan,
         ]);
     }
@@ -327,55 +350,6 @@ class MealPlanController extends Controller
         }
 
         $validRecipes = $this->getFilteredRecipes($user->id, $settings);
-
-        if($settings && !empty($settings->meal_plan_preference) && !in_array('omnivore', $settings->meal_plan_preference)) {
-            $preferences = $settings->meal_plan_preference;
-
-            if(in_array('nut_free', $preferences)) {
-                $validRecipes->where(function($q) {
-                    $q->whereDoesntHave('ingredients', function($subQ) {
-                        $subQ->where('name', 'like', '%nut%')
-                              ->orWhere('name', 'like', '%peanut%')
-                              ->orWhere('name', 'like', '%almond%')
-                              ->orWhere('name', 'like', '%cashew%')
-                              ->orWhere('name', 'like', '%walnut%')
-                              ->orWhere('name', 'like', '%pecan%')
-                              ->orWhere('name', 'like', '%hazelnut%')
-                              ->orWhere('name', 'like', '%macadamia%')
-                              ->orWhere('name', 'like', '%pistachio%');
-                    })
-                        ->where('title', 'not like', '% nut %')
-                        ->where('title', 'not like', '%nuts%')
-                        ->where('title', 'not like', '%peanut%')
-                        ->where('title', 'not like', '%almond%')
-                        ->where('title', 'not like', '%cashew%')
-                        ->where('title', 'not like', '%walnut%')
-                        ->where('title', 'not like', '%pecan%')
-                        ->where('title', 'not like', '%hazelnut%')
-                        ->where('title', 'not like', '%macadamia%')
-                        ->where('title', 'not like', '%pistachio%')
-
-                        ->where('instructions', 'not like', '% nut %')
-                        ->where('instructions', 'not like', '%nuts%')
-                        ->where('instructions', 'not like', '%peanut%')
-                        ->where('instructions', 'not like', '%almond%')
-                        ->where('instructions', 'not like', '%cashew%')
-                        ->where('instructions', 'not like', '%walnut%')
-                        ->where('instructions', 'not like', '%pecan%')
-                        ->where('instructions', 'not like', '%hazelnut%')
-                        ->where('instructions', 'not like', '%macadamia%')
-                        ->where('instructions', 'not like', '%pistachio%');
-                });
-                $preferences = array_diff($preferences, ['nut_free']);
-            }
-            if(!empty($preferences)) {
-                $validRecipes->where(function($query) use ($preferences) {
-                    foreach($preferences as $diet) {
-                        $query->whereJsonContains('diets', $diet);
-                    }
-                });
-            }
-        }
 
         $poolOfAllowedMeals = $validRecipes->get();
 
@@ -408,8 +382,11 @@ class MealPlanController extends Controller
 
         ]);
 
+        $exerciseSchedules = $user->exerciseSchedules()->pluck('intensity', 'day_of_week')->toArray();
         $plan = $validated['plan'];
         $startOfWeek = Carbon::now()->startOfWeek();
+        $profile = UserProfile::where('user_id', $user->id)->first();
+        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile): ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
 
         $dayMapping = [
             'Monday' => 0,
@@ -423,24 +400,39 @@ class MealPlanController extends Controller
 
         $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
     
-        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $mealTypesArray) {
+        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
             // Delete old drafts
-            MealPlan::where('user_id', $user->id)
-                ->where('status', 'DRAFT')
-                ->delete();
+            $oldDailyPlans = DailyPlan::where('user_id', $user->id)->where('status', 'DRAFT')->get();
+            MealPlan::whereIn('daily_plan_id', $oldDailyPlans->pluck('id'))->delete();
+            foreach($oldDailyPlans as $dp) {
+                $dp->delete();
+            }
 
             // Insert new plan
             foreach($plan as $dayName => $dayData) {
                 $dayOffset = $dayMapping[$dayName] ?? 0;
                 $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
+                $dayNum = ($dayMapping[$dayName] ?? 0) +1 ;
+                $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate->value;
+
+                $dailyPlan = DailyPlan::create([
+                    'user_id' => $user->id,
+                    'date' => $scheduledDate,
+                    'day_type' => $dayType,
+                    'target_calories' => $nutritionTargets['calories'],
+                    'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
+                    'target_carbs_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['carbs'] / 100)) / 4),
+                    'target_fat_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['fat'] / 100)) / 9),
+                    'status' => 'DRAFT',
+                ]);
+
                 foreach($dayData['meals'] as $index => $meal) {
                     $mealType = $meal['meal_type'] ?? ($mealTypesArray[$index] ?? 'snack');
 
                     MealPlan::create([
-                        'user_id' => $user->id,
+                        'daily_plan_id' => $dailyPlan->id,
                         'recipe_id' => $meal['id'],
-                        'scheduled_date' => $scheduledDate,
                         'meal_type' => $mealType,
                         'status' => 'DRAFT',
                     ]);
@@ -449,7 +441,7 @@ class MealPlanController extends Controller
         });
         return response()->json([
             'success' => true,
-            'message' => 'Weekly plan saved to your clendar succesfully!'
+            'message' => 'Weekly plan saved to your calendar successfully!'
         ]);     
     }
 }

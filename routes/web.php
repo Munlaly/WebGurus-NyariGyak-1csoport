@@ -16,8 +16,6 @@ Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts.index');
-
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
 
         Route::prefix('settings')->name('settings.')->group(function () {
@@ -30,6 +28,16 @@ Route::middleware('auth')->group(function(){
         
         Route::get('system', [SettingsController::class, 'system'])->name('system');
         Route::put('system', [SettingsController::class, 'updateSystem']);
+
+        Route::get('biometrics', [SettingsController::class, 'biometrics'])->name('biometrics');
+        Route::put('biometrics', [SettingsController::class, 'updateBiometrics']);
+
+        Route::get('logistics', [SettingsController::class, 'logistics'])->name('logistics');
+        Route::put('logistics', [SettingsController::class, 'updateLogistics']);
+
+        Route::get('security', [SettingsController::class, 'security'])->name('security');
+        Route::patch('security/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
+        Route::put('security/password', [SettingsController::class, 'updatePassword'])->name('password.update');
     });
     });
     

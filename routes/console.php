@@ -9,4 +9,3 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('inventory:clean-expired')->daily();
-Schedule::command('digest:send-weekly')->weeklyOn(1, '8:0');

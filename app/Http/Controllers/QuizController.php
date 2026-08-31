@@ -63,9 +63,7 @@ class QuizController extends Controller
         DB::transaction(function () use ($user, $validated) {
             
             // Save Profile Data
-            $user->profile()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
+            $user->profile()->create([
                 'sex' => $validated['sex'],
                 'birthdate' => $validated['birthdate'],
                 'height_cm' => $validated['height_cm'],
@@ -75,9 +73,7 @@ class QuizController extends Controller
             ]);
 
             // Save App Settings
-            $user->settings()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
+            $user->settings()->create([
                 'household_size' => $validated['household_size'],
                 'prep_time_preference' => $validated['prep_time_preference'],
             ]);
@@ -102,8 +98,7 @@ class QuizController extends Controller
                 ];
             }
 
-            // Wipe old schedules and save new ones (to prevent dupes)
-            $user->exerciseSchedules()->delete();
+            // Save Exercise Schedule using createMany
             $user->exerciseSchedules()->createMany($exerciseRecords);
 
             // Sync Many-to-Many Relationships

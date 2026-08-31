@@ -41,9 +41,9 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             RecipeSeeder::class,
             DietaryOptionSeeder::class,
-            DummyPlanSeeder::class,
             UserSeeder::class,
             UserInventorySeeder::class,
+            DummyPlanSeeder::class,
         ]);
     }
 }

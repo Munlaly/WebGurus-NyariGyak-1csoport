@@ -48,10 +48,10 @@ const submitSystemSettings = () => {
       <!-- Theme Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Appearance
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Customize the planner's visual theme.
           </p>
         </div>
@@ -80,10 +80,10 @@ const submitSystemSettings = () => {
       <!-- Notifications Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Notifications
           </h2>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
             Manage how you receive alerts and digests.
           </p>
         </div>
