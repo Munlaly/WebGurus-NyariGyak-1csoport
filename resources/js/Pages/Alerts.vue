@@ -1,11 +1,36 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 
-// We can grab the alerts data directly from the HandleInertiaRequests middleware!
+interface Ingredient {
+  id: number;
+  name: string;
+}
+
+interface InventoryItem {
+  id: number;
+  expiration_date: string;
+  ingredient?: Ingredient;
+}
+
+interface AlertsData {
+  expired: InventoryItem[];
+  ciritcal: InventoryItem[];
+  urgent: InventoryItem[];
+}
+
 const page = usePage();
-const alertsData = computed(() => page.props.expiringAlerts as any);
+const alertsData = computed<AlertsData>(() => {
+  const data = page.props.expiringAlerts as AlertsData;
+  return (
+    data || {
+      expired: [],
+      critical: [],
+      urgent: [],
+    }
+  );
+});
 </script>
 
 <template>

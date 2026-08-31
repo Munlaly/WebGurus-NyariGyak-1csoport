@@ -17,7 +17,7 @@ Route::middleware('auth')->group(function(){
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
-
+    
         Route::prefix('settings')->name('settings.')->group(function () {
         
         Route::get('targets', [SettingsController::class, 'targets'])->name('targets');
@@ -38,7 +38,7 @@ Route::middleware('auth')->group(function(){
         Route::get('security', [SettingsController::class, 'security'])->name('security');
         Route::patch('security/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
         Route::put('security/password', [SettingsController::class, 'updatePassword'])->name('password.update');
-    });
+        });
     });
     
 

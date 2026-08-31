@@ -71,4 +71,34 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function alerts(Request $request): Response {
+        $expiringAlerts = [
+            'expired' => [
+                [
+                    'id' => 1,
+                    'expiration_date' => '2026-08-25',
+                    'ingredient' => ['id' => 101, 'name' => 'Almond Milk']
+                ]
+            ],
+            'critical' => [
+                [
+                    'id' => 2,
+                    'expiration_date' => '2026-09-01',
+                    'ingredient' => ['id' => 102, 'name' => 'Chicken Breast']
+                ]
+            ],
+            'urgent' => [
+                [
+                    'id' => 3,
+                    'expiration_date' => '2026-09-05',
+                    'ingredient' => ['id' => 103, 'name' => 'Fresh Spinach']
+                ]
+            ],
+        ];
+        
+        return Inertia::render('Alerts', [
+            'expiringAlerts' => $expiringAlerts
+        ]);
+    }
+
 }
