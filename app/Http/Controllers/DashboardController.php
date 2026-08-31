@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPlan;
+use App\Models\UserInventory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Carbon;
+
+use function Symfony\Component\String\b;
 
 class DashboardController extends Controller
 {
@@ -72,30 +75,35 @@ class DashboardController extends Controller
     }
 
     public function alerts(Request $request): Response {
+        $user = $request->user();
+        $now = Carbon::now()->startOfDay();
+        $inTwoDays = $now->copy()->addDays(2)->endOfDay();
+        $inSevenDays = $now->copy()->addDays(7)->endOfDay();
+
+        $inventory = UserInventory::with('ingredient')
+            ->where('user_id', $user->id)
+            ->whereNotNull('expiration_date')
+            ->orderBy('expiration_date', 'asc')
+            ->get();
+
         $expiringAlerts = [
-            'expired' => [
-                [
-                    'id' => 1,
-                    'expiration_date' => '2026-08-25',
-                    'ingredient' => ['id' => 101, 'name' => 'Almond Milk']
-                ]
-            ],
-            'critical' => [
-                [
-                    'id' => 2,
-                    'expiration_date' => '2026-09-01',
-                    'ingredient' => ['id' => 102, 'name' => 'Chicken Breast']
-                ]
-            ],
-            'urgent' => [
-                [
-                    'id' => 3,
-                    'expiration_date' => '2026-09-05',
-                    'ingredient' => ['id' => 103, 'name' => 'Fresh Spinach']
-                ]
-            ],
+            'expired' => [],
+            'critical' => [],
+            'urgent' => [],
         ];
-        
+
+        foreach($inventory as $item) {
+            $expDate = Carbon::parse($item->expiration_date)->startOfDay();
+
+            if($expDate->isBefore($now)) {
+                $expiringAlerts['expired'][] = $item;
+            } elseif($expDate->isBetween($now, $inTwoDays)) {
+                $expiringAlerts['critical'][] = $item;
+            } elseif($expDate->isBetween($now, $inSevenDays)) {
+                $expiringAlerts['urgent'][] = $item;
+            }
+        }
+
         return Inertia::render('Alerts', [
             'expiringAlerts' => $expiringAlerts
         ]);

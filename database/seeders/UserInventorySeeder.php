@@ -39,7 +39,7 @@ class UserInventorySeeder extends Seeder
                 // We add 10 to the required amount so the user has leftovers after cooking
                 'amount_left' => $requiredAmount + 10, 
                 'status' => 'FULL', 
-                'expiration_date' => now()->addDays(14)->toDateString(), 
+                'expiration_date' => now()->addDays(-1)->toDateString(), 
                 'is_frozen' => false, 
                 'created_at' => now(), 
                 'updated_at' => now()

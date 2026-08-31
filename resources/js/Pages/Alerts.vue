@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { computed, ref, onMounted } from 'vue';
+import { usePage, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 
 interface Ingredient {
@@ -16,20 +16,47 @@ interface InventoryItem {
 
 interface AlertsData {
   expired: InventoryItem[];
-  ciritcal: InventoryItem[];
+  critical: InventoryItem[];
   urgent: InventoryItem[];
 }
 
 const page = usePage();
+const dismissedIds = ref<number[]>([]);
+const STORAGE_KEY = 'dismissed_alerts_history';
+
+onMounted(() => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      dismissedIds.value = JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse dismissed alerts:', e);
+    }
+  }
+});
+
+const dismissAlert = (id: number) => {
+  if (!dismissedIds.value.includes(id)) {
+    dismissedIds.value.push(id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissedIds.value));
+  }
+};
+
 const alertsData = computed<AlertsData>(() => {
   const data = page.props.expiringAlerts as AlertsData;
-  return (
-    data || {
-      expired: [],
-      critical: [],
-      urgent: [],
-    }
-  );
+  const rawData = data || {
+    expired: [],
+    critical: [],
+    urgent: [],
+  };
+
+  return {
+    expired: rawData.expired.filter(
+      (item) => !dismissedIds.value.includes(item.id),
+    ),
+    critical: rawData.critical,
+    urgent: rawData.urgent,
+  };
 });
 </script>
 
@@ -56,14 +83,27 @@ const alertsData = computed<AlertsData>(() => {
           >
             <span class="material-symbols-outlined">error</span> Expired
           </h2>
-          <ul
-            class="list-inside list-disc space-y-2 text-red-900 dark:text-red-300"
-          >
-            <li v-for="item in alertsData.expired" :key="item.id">
-              {{ item.ingredient?.name || 'Unknown Item' }}
-              <span class="opacity-75"
-                >(Expired on {{ item.expiration_date }})</span
+          <ul class="flex flex-col gap-3">
+            <li
+              v-for="item in alertsData.expired"
+              :key="item.id"
+              class="flex items-center justify-between rounded-lg bg-red-100/50 px-4 py-2 dark:bg-red-900/20"
+            >
+              <span class="text-red-900 dark:text-red-300">
+                {{ item.ingredient?.name || 'Unknown Item' }}
+                <span class="opacity-75"
+                  >(Expired on {{ item.expiration_date }})</span
+                >
+              </span>
+
+              <!-- The X Button -->
+              <button
+                class="flex h-8 w-8 items-center justify-center rounded-full text-red-700 transition-colors hover:bg-red-200 dark:text-red-400 dark:hover:bg-red-800"
+                title="Dismiss notification"
+                @click="dismissAlert(item.id)"
               >
+                <span class="material-symbols-outlined text-xl">close</span>
+              </button>
             </li>
           </ul>
         </div>
@@ -79,11 +119,17 @@ const alertsData = computed<AlertsData>(() => {
             <span class="material-symbols-outlined">warning</span> Critical (1-2
             days)
           </h2>
-          <ul
-            class="list-inside list-disc space-y-2 text-orange-900 dark:text-orange-300"
-          >
+          <ul class="flex flex-col gap-2">
             <li v-for="item in alertsData.critical" :key="item.id">
-              {{ item.ingredient?.name || 'Unknown Item' }}
+              <Link
+                :href="'/inventory?highlight=' + item.id"
+                class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-orange-900 transition-colors hover:bg-orange-100 dark:text-orange-300 dark:hover:bg-orange-900/30"
+              >
+                <span>{{ item.ingredient?.name || 'Unknown Item' }}</span>
+                <span class="material-symbols-outlined opacity-50"
+                  >arrow_forward_ios</span
+                >
+              </Link>
             </li>
           </ul>
         </div>
@@ -99,11 +145,17 @@ const alertsData = computed<AlertsData>(() => {
             <span class="material-symbols-outlined">schedule</span> Urgent (&lt;
             7 days)
           </h2>
-          <ul
-            class="list-inside list-disc space-y-2 text-yellow-900 dark:text-yellow-300"
-          >
+          <ul class="flex flex-col gap-2">
             <li v-for="item in alertsData.urgent" :key="item.id">
-              {{ item.ingredient?.name || 'Unknown Item' }}
+              <Link
+                :href="'/inventory?highlight=' + item.id"
+                class="flex w-full items-center justify-between rounded-lg px-4 py-2 text-yellow-900 transition-colors hover:bg-yellow-100 dark:text-yellow-300 dark:hover:bg-yellow-900/30"
+              >
+                <span>{{ item.ingredient?.name || 'Unknown Item' }}</span>
+                <span class="material-symbols-outlined opacity-50"
+                  >arrow_forward_ios</span
+                >
+              </Link>
             </li>
           </ul>
         </div>
