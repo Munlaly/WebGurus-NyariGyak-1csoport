@@ -13,6 +13,8 @@ use App\Models\DietaryOption;
 use App\Models\UserInventory;
 use App\Models\UserProfile;
 use App\Enums\ExerciseIntensity;
+use App\Enums\EntityStatus;
+use Inertia\Inertia;
 
 class MealPlanController extends Controller
 {
@@ -20,7 +22,7 @@ class MealPlanController extends Controller
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
-        $sex = strtolower($profile->sex ?? 'male');
+        $sex = $profile->sex->value;
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -34,11 +36,11 @@ class MealPlanController extends Controller
             'very_active' => 1.725,
         ];
 
-        $activity = strtolower($profile->baseline_activity ?? 'sedentary');
+        $activity = $profile->baseline_activity->value;
         // Total Daily Energy Expenditure
-        $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
+        $tdee = $bmr * $multipliers[$activity];
 
-        $goal = strtolower($profile->fitness_goal ?? 'maintain');
+        $goal = $profile->fitness_goal->value;
 
         $targetCalories = $tdee;
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
@@ -55,6 +57,16 @@ class MealPlanController extends Controller
             'calories' => (int) round($targetCalories),
             'macros' => $macros,
         ];
+    }
+
+    public function index( Request $request){
+        $hasPlan = \App\Models\DailyPlan::where('user_id', $request->user()->id)
+            ->where('date', '>=', Carbon::now()->startOfWeek()->toDateString())
+            ->exists();
+
+        return Inertia::render('WeeklyPlanner', [
+            'hasSavedPlan' => $hasPlan
+        ]); 
     }
 
     private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
@@ -87,7 +99,7 @@ class MealPlanController extends Controller
 
         if(!empty($excludedCategoryIds)) {
             $validRecipes->whereDoesntHave('ingredients', function ($query) use ($excludedCategoryIds) {
-                $query->whereIn('category_id', $excludedCategoryIds);
+                $query->whereIn('ingredients.category_id', $excludedCategoryIds);
             });
         }
         return $validRecipes;
@@ -118,7 +130,7 @@ class MealPlanController extends Controller
 
         // PHASE 1.5: GOAL-BASED PRUNING
 
-        $goal = $profile ? strtolower($profile->fitness_goal ?? 'maintain') : 'maintain';
+        $goal = $profile ? $profile->fitness_goal->value : 'maintain';
         $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70); // Keep the top 70 %
 
         if ($cutoffThreshold >= 3) {
@@ -402,7 +414,10 @@ class MealPlanController extends Controller
     
         DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
             // Delete old drafts
-            $oldDailyPlans = DailyPlan::where('user_id', $user->id)->where('status', 'DRAFT')->get();
+            $oldDailyPlans = DailyPlan::where('user_id', $user->id)
+                ->where('status', EntityStatus::Draft->value)
+                ->get();
+            
             MealPlan::whereIn('daily_plan_id', $oldDailyPlans->pluck('id'))->delete();
             foreach($oldDailyPlans as $dp) {
                 $dp->delete();
@@ -424,7 +439,7 @@ class MealPlanController extends Controller
                     'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
                     'target_carbs_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['carbs'] / 100)) / 4),
                     'target_fat_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['fat'] / 100)) / 9),
-                    'status' => 'DRAFT',
+                    'status' => EntityStatus::Draft->value,
                 ]);
 
                 foreach($dayData['meals'] as $index => $meal) {
@@ -434,7 +449,7 @@ class MealPlanController extends Controller
                         'daily_plan_id' => $dailyPlan->id,
                         'recipe_id' => $meal['id'],
                         'meal_type' => $mealType,
-                        'status' => 'DRAFT',
+                        'status' => EntityStatus::Draft->value,
                     ]);
                 }
             }
@@ -443,5 +458,65 @@ class MealPlanController extends Controller
             'success' => true,
             'message' => 'Weekly plan saved to your calendar successfully!'
         ]);     
+    }
+
+    public function fetchCurrentPlan(Request $request) {
+        $user = $request->user();
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
+        $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
+
+        $dailyPlans = DailyPlan::where('user_id', $user->id)
+            ->whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->with(['mealPlans.recipe'])
+            ->get();
+
+        if ($dailyPlans->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active plan found for this week.',
+                'plan' => (object)[]
+            ]);
+        }
+
+        $weeklyPlan = [];
+
+        foreach ($dailyPlans as $dailyPlan) {
+            // Convert 'YYYY-MM-DD' back to 'Monday', 'Tuesday' for frontend
+            $dayName = Carbon::parse($dailyPlan->date)->format('l');
+
+            $meals = $dailyPlan->mealPlans->map(function ( \App\Models\MealPlan $mealPlan) {
+                $recipe = $mealPlan->recipe;
+                return [
+                    'id' => $recipe->id,
+                    'meal_type' => $mealPlan->meal_type,
+                    'name' => $recipe->name,
+                    'calories' => $recipe->calories,
+                    'image' => $recipe->image,
+                    'prep_time_minutes' => $recipe->prep_time_minutes,
+                    'diets' => current($recipe->diets ?? []) ? [$recipe->diets[0]] : [],
+                    'isPinned' => true, // Treat saved DB meals as pinned by default 
+                    'isRolling' => false,
+                ];
+            });
+
+            $totalCalories = $meals->sum('calories');
+            $hasSnack = $meals->contains('meal_type', 'snack');
+            
+            $minCalories = $dailyPlan->target_calories * 0.85;
+            $maxCalories = $dailyPlan->target_calories * 1.15;
+            $perfectMatch = $totalCalories >= $minCalories && $totalCalories <= $maxCalories;
+
+            $weeklyPlan[$dayName] = [
+                'total_calories' => $totalCalories,
+                'has_snack' => $hasSnack,
+                'perfect_match' => $perfectMatch,
+                'meals' => $meals->values()->toArray()
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'plan' => $weeklyPlan,
+        ]);
     }
 }

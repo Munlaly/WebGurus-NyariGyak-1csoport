@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $meal_type
+ * @property \App\Models\Recipe $recipe
+ */
 class MealPlan extends Model
 {
     protected $fillable = [

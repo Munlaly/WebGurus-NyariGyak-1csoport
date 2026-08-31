@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3';
-
 interface RecipeProps {
   id: number;
   title: string;
@@ -22,7 +20,7 @@ defineProps<{
 }>();
 
 const goBack = () => {
-  router.get('/dashboard');
+  window.history.back();
 };
 
 const handleImageError = (event: Event) => {
