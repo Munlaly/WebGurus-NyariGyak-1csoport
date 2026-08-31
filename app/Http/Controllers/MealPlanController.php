@@ -64,7 +64,9 @@ class MealPlanController extends Controller
             ->where('date', '>=', Carbon::now()->startOfWeek()->toDateString())
             ->exists();
 
-        return Inertia::render('WeeklyPlanner'); 
+        return Inertia::render('WeeklyPlanner', [
+            'hasSavedPlan' => $hasPlan
+        ]); 
     }
 
     private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
