@@ -7,6 +7,7 @@ import { DayPlan, MealType, PlannerMeal } from '../Types/plannerInterfaces.js';
 
 const props = defineProps<{
   initialPlan?: Record<string, DayPlan>;
+  hasSavedPlan?: boolean;
 }>();
 
 const toast = useToast();
@@ -221,8 +222,20 @@ onMounted(() => {
   }
 
   //If no plan was loaded, generate a new one
-  if (Object.keys(weeklyPlan.value).length === 0) {
+  if (Object.keys(weeklyPlan.value).length === 0 && !props.hasSavedPlan) {
     fetchInitialPlan();
+  } else if (Object.keys(weeklyPlan.value).length === 0 && props.hasSavedPlan) {
+    axios
+      .get(route('meal-plan.current'))
+      .then((response) => {
+        if (response.data.success) {
+          weeklyPlan.value = response.data.plan;
+          isAlreadySaved.value = true;
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load existing plan:', error);
+      });
   }
 });
 </script>

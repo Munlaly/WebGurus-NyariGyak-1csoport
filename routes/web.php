@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function(){
             Route::post('/generate', [MealPlanController::class, 'generate'])->name('generate');
             Route::post('/regenerate-meal', [MealPlanController::class, 'regenerateMeal'])->name('regenerate-meal');
             Route::post('/save', [MealPlanController::class, 'savePlan'])->name('save');
+            Route::get('/current', [MealPlanController::class, 'fetchCurrentPlan'])->name('current');
         });
     });
     

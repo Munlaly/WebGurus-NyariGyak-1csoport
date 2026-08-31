@@ -59,7 +59,11 @@ class MealPlanController extends Controller
         ];
     }
 
-    public function index(){
+    public function index( Request $request){
+        $hasPlan = \App\Models\DailyPlan::where('user_id', $request->user()->id)
+            ->where('date', '>=', Carbon::now()->startOfWeek()->toDateString())
+            ->exists();
+
         return Inertia::render('WeeklyPlanner'); 
     }
 
@@ -452,5 +456,65 @@ class MealPlanController extends Controller
             'success' => true,
             'message' => 'Weekly plan saved to your calendar successfully!'
         ]);     
+    }
+
+    public function fetchCurrentPlan(Request $request) {
+        $user = $request->user();
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
+        $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
+
+        $dailyPlans = DailyPlan::where('user_id', $user->id)
+            ->whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->with(['mealPlans.recipe'])
+            ->get();
+
+        if ($dailyPlans->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active plan found for this week.',
+                'plan' => (object)[]
+            ]);
+        }
+
+        $weeklyPlan = [];
+
+        foreach ($dailyPlans as $dailyPlan) {
+            // Convert 'YYYY-MM-DD' back to 'Monday', 'Tuesday' for frontend
+            $dayName = Carbon::parse($dailyPlan->date)->format('l');
+
+            $meals = $dailyPlan->mealPlans->map(function ($mealPlan) {
+                $recipe = $mealPlan->recipe;
+                return [
+                    'id' => $recipe->id,
+                    'meal_type' => $mealPlan->meal_type,
+                    'name' => $recipe->name,
+                    'calories' => $recipe->calories,
+                    'image' => $recipe->image,
+                    'prep_time_minutes' => $recipe->prep_time_minutes,
+                    'diets' => current($recipe->diets ?? []) ? [$recipe->diets[0]] : [],
+                    'isPinned' => true, // Treat saved DB meals as pinned by default 
+                    'isRolling' => false,
+                ];
+            });
+
+            $totalCalories = $meals->sum('calories');
+            $hasSnack = $meals->contains('meal_type', 'snack');
+            
+            $minCalories = $dailyPlan->target_calories * 0.85;
+            $maxCalories = $dailyPlan->target_calories * 1.15;
+            $perfectMatch = $totalCalories >= $minCalories && $totalCalories <= $maxCalories;
+
+            $weeklyPlan[$dayName] = [
+                'total_calories' => $totalCalories,
+                'has_snack' => $hasSnack,
+                'perfect_match' => $perfectMatch,
+                'meals' => $meals->values()->toArray()
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'plan' => $weeklyPlan,
+        ]);
     }
 }
