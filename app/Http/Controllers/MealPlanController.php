@@ -13,6 +13,7 @@ use App\Models\DietaryOption;
 use App\Models\UserInventory;
 use App\Models\UserProfile;
 use App\Enums\ExerciseIntensity;
+use App\Enums\EntityStatus;
 
 class MealPlanController extends Controller
 {
@@ -402,7 +403,10 @@ class MealPlanController extends Controller
     
         DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
             // Delete old drafts
-            $oldDailyPlans = DailyPlan::where('user_id', $user->id)->where('status', 'DRAFT')->get();
+            $oldDailyPlans = DailyPlan::where('user_id', $user->id)
+                ->where('status', EntityStatus::Draft->value)
+                ->get();
+            
             MealPlan::whereIn('daily_plan_id', $oldDailyPlans->pluck('id'))->delete();
             foreach($oldDailyPlans as $dp) {
                 $dp->delete();
@@ -424,7 +428,7 @@ class MealPlanController extends Controller
                     'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
                     'target_carbs_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['carbs'] / 100)) / 4),
                     'target_fat_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['fat'] / 100)) / 9),
-                    'status' => 'DRAFT',
+                    'status' => EntityStatus::Draft->value,
                 ]);
 
                 foreach($dayData['meals'] as $index => $meal) {
@@ -434,7 +438,7 @@ class MealPlanController extends Controller
                         'daily_plan_id' => $dailyPlan->id,
                         'recipe_id' => $meal['id'],
                         'meal_type' => $mealType,
-                        'status' => 'DRAFT',
+                        'status' => EntityStatus::Draft->value,
                     ]);
                 }
             }
