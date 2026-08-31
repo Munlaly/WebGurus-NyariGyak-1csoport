@@ -142,6 +142,7 @@ const rerollMeal = async (
 
     day.meals[mealIndex] = {
       ...newRecipe,
+      meal_type: actualMealType,
       isPinned: false,
       isRolling: false,
     };
