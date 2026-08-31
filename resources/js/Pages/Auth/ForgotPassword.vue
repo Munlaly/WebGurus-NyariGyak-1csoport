@@ -76,7 +76,7 @@ function onSubmit() {
             Remember your password?
             <Link
               class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors hover:underline"
-              :href="route('login')"
+              :href="route('index')"
             >
               Back to login
             </Link>

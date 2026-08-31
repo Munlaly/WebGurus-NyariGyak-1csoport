@@ -52,7 +52,7 @@ class NewPasswordController extends Controller
         // If the reset was successful redirect to login
         // Otherwise to where the user came from with an error message
         return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
+                    ? redirect()->route('index')->with('status', __($status))
                     : back()->withErrors(['email' => __($status)]);
     }
 }
