@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 
 interface MacroTarget {
   current: number;
@@ -29,29 +29,17 @@ withDefaults(
   },
 );
 
+const navigation = [
+  { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
+  { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
+  { name: 'My Inventory', icon: 'inventory_2', href: '#' },
+  { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
+  { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
+  { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
+];
+
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
-
-// Prevent scrolling the body when the Slider is open
-watch(isMobileMenuOpen, (isOpen) => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-  }
-});
-
-onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = '';
-  }
-});
-
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value;
-};
-
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value;
-};
 
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
 
@@ -82,279 +70,298 @@ const mobileMenuTransformClass = computed(() =>
   isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
 );
 
-const navigation = [
-  { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
-  { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
-  { name: 'My Inventory', icon: 'inventory_2', href: '#' },
-  { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
-  { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
-  { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
-];
+function toggleSidebar() {
+  isCollapsed.value = !isCollapsed.value;
+}
+
+function toggleMobileMenu() {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+}
+
+function handleLogout() {
+  sessionStorage.clear();
+
+  router.post(route('logout'));
+}
+
+// Prevent scrolling the body when the Slider is open
+watch(isMobileMenuOpen, (isOpen) => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+});
+
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
 </script>
 
 <template>
-  <div
-    class="bg-background text-on-background font-body-md relative flex min-h-screen w-full overflow-x-hidden antialiased"
-  >
-    <!-- DESKTOP SIDEBAR -->
-    <nav
-      :class="[
-        'bg-surface dark:bg-surface-dim fixed top-0 left-0 z-40 hidden h-full flex-col shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 ease-in-out md:flex',
-        sidebarWidthClass,
-      ]"
+  <UApp>
+    <div
+      class="bg-background text-on-background font-body-md relative flex min-h-screen w-full overflow-x-hidden antialiased"
     >
-      <div class="flex h-full flex-col p-4">
-        <!-- Brand / Profile Header -->
+      <!-- DESKTOP SIDEBAR -->
+      <nav
+        :class="[
+          'bg-surface dark:bg-surface-dim fixed top-0 left-0 z-40 hidden h-full flex-col shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 ease-in-out md:flex',
+          sidebarWidthClass,
+        ]"
+      >
+        <div class="flex h-full flex-col p-4">
+          <!-- Brand / Profile Header -->
+          <div
+            class="mb-6 flex items-center transition-all duration-300"
+            :class="
+              isCollapsed ? 'justify-center gap-0 px-0' : 'gap-3.5 px-2 py-2'
+            "
+          >
+            <img
+              alt="User profile"
+              :class="[
+                'border-outline-variant aspect-square shrink-0 rounded-full border object-cover transition-all duration-300',
+                isCollapsed ? 'h-9 w-9 min-w-9' : 'h-11 w-11 min-w-11',
+              ]"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
+            />
+            <div
+              v-if="!isCollapsed"
+              class="min-w-0 flex-1 overflow-hidden whitespace-nowrap"
+            >
+              <h2
+                class="font-headline-md text-headline-md text-primary dark:text-primary-fixed truncate font-bold"
+              >
+                Smart Meal Plan
+              </h2>
+              <p
+                class="font-body-sm text-body-sm text-on-surface-variant truncate"
+              >
+                Personal Nutrition
+              </p>
+            </div>
+          </div>
+
+          <!-- Desktop Navigation Links -->
+          <ul class="flex-1 space-y-1.5">
+            <li v-for="item in navigation" :key="item.name">
+              <Link
+                :href="item.href"
+                class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low flex items-center rounded-xl transition-all duration-200 active:scale-95"
+                :class="navItemSpacingClass"
+                :title="isCollapsed ? item.name : ''"
+              >
+                <span class="material-symbols-outlined shrink-0 text-[22px]">{{
+                  item.icon
+                }}</span>
+                <span
+                  v-if="!isCollapsed"
+                  class="font-body-md text-body-md font-medium whitespace-nowrap"
+                >
+                  {{ item.name }}
+                </span>
+              </Link>
+            </li>
+          </ul>
+
+          <!-- Collapse Toggle Button -->
+          <div class="border-outline-variant mt-auto border-t pt-3">
+            <button
+              class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary flex w-full items-center rounded-xl transition-colors active:scale-95"
+              :class="toggleBtnSpacingClass"
+              @click="toggleSidebar"
+            >
+              <span class="material-symbols-outlined shrink-0">{{
+                toggleBtnArrowType
+              }}</span>
+              <span v-if="!isCollapsed" class="font-body-md font-medium"
+                >Collapse</span
+              >
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- MAIN CONTENT AREA -->
+      <div
+        :class="[
+          'flex min-h-screen flex-1 flex-col transition-all duration-300 ease-in-out',
+          mainContentMarginClass,
+        ]"
+      >
+        <!-- TOP APP BAR -->
+        <header
+          :class="[
+            'border-surface-container fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-white px-3 transition-all duration-300 ease-in-out md:px-8',
+            headerPositionClass,
+          ]"
+        >
+          <!-- Left: Cooked Meals -->
+          <div class="flex items-center gap-2">
+            <div
+              class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold"
+            >
+              <span class="material-symbols-outlined text-primary text-[18px]"
+                >check_circle</span
+              >
+              <span class="whitespace-nowrap"
+                >{{ mealsCooked.current ?? 0 }}/{{ mealsCooked.total ?? 3 }}
+                <span class="hidden sm:inline">Meals</span></span
+              >
+            </div>
+          </div>
+
+          <!-- Right: Macros & Logout -->
+          <div class="flex items-center gap-1.5 md:gap-3">
+            <!-- Calories: Visible everywhere -->
+            <div
+              class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold"
+            >
+              <span class="material-symbols-outlined text-primary text-[18px]"
+                >local_fire_department</span
+              >
+              <span class="whitespace-nowrap"
+                >{{ calories.current ?? 0 }}
+                <span class="hidden sm:inline"
+                  >/ {{ calories.target ?? 0 }} kcal</span
+                ></span
+              >
+            </div>
+
+            <!-- P/C/F Macros: Hidden on Mobile, Visible on md+ -->
+            <div
+              class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium md:flex"
+            >
+              <span class="text-primary font-bold">P:</span>
+              <span>{{ protein.current ?? 0 }}g</span>
+            </div>
+            <div
+              class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
+            >
+              <span class="text-primary font-bold">C:</span>
+              <span>{{ carbs.current ?? 0 }}g</span>
+            </div>
+            <div
+              class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
+            >
+              <span class="text-primary font-bold">F:</span>
+              <span>{{ fat.current ?? 0 }}g</span>
+            </div>
+
+            <!-- Logout Button -->
+            <button
+              class="text-on-surface-variant hover:text-error active:bg-error/10 flex items-center justify-center rounded-full p-2 transition-colors active:scale-95 md:px-3 md:py-1.5"
+              title="Log out"
+              @click="handleLogout"
+            >
+              <span class="material-symbols-outlined text-[20px] md:text-[18px]"
+                >logout</span
+              >
+              <span
+                class="hidden md:ml-1.5 md:inline md:text-sm md:font-semibold"
+                >Log out</span
+              >
+            </button>
+          </div>
+        </header>
+
+        <!-- Content Canvas Wrapper  -->
+        <div class="mt-16 flex w-full flex-1 flex-col overflow-hidden">
+          <main class="flex w-full flex-1 flex-col p-4 pb-24 md:p-8 md:pb-8">
+            <slot />
+          </main>
+        </div>
+      </div>
+
+      <!-- NATIVE SLIDEOVER MENU-->
+      <div
+        :class="[
+          'fixed inset-0 top-16 z-40 flex flex-col overflow-y-auto overscroll-contain bg-white p-6 pb-28 shadow-2xl transition-transform duration-300 ease-in-out md:hidden dark:bg-gray-950',
+          mobileMenuTransformClass,
+        ]"
+      >
+        <!-- Header (Profile) -->
         <div
-          class="mb-6 flex items-center transition-all duration-300"
-          :class="
-            isCollapsed ? 'justify-center gap-0 px-0' : 'gap-3.5 px-2 py-2'
-          "
+          class="mb-8 flex items-center gap-4 border-b border-gray-200 pb-6 dark:border-gray-800"
         >
           <img
-            alt="User profile"
-            :class="[
-              'border-outline-variant aspect-square shrink-0 rounded-full border object-cover transition-all duration-300',
-              isCollapsed ? 'h-9 w-9 min-w-9' : 'h-11 w-11 min-w-11',
-            ]"
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
+            class="h-14 w-14 rounded-full border border-gray-200 object-cover shadow-sm"
           />
-          <div
-            v-if="!isCollapsed"
-            class="min-w-0 flex-1 overflow-hidden whitespace-nowrap"
-          >
-            <h2
-              class="font-headline-md text-headline-md text-primary dark:text-primary-fixed truncate font-bold"
+          <div class="flex flex-col">
+            <span
+              class="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100"
+              >Smart Meal Plan</span
             >
-              Smart Meal Plan
-            </h2>
-            <p
-              class="font-body-sm text-body-sm text-on-surface-variant truncate"
-            >
-              Personal Nutrition
-            </p>
-          </div>
-        </div>
-
-        <!-- Desktop Navigation Links -->
-        <ul class="flex-1 space-y-1.5">
-          <li v-for="item in navigation" :key="item.name">
-            <Link
-              :href="item.href"
-              class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low flex items-center rounded-xl transition-all duration-200 active:scale-95"
-              :class="navItemSpacingClass"
-              :title="isCollapsed ? item.name : ''"
-            >
-              <span class="material-symbols-outlined shrink-0 text-[22px]">{{
-                item.icon
-              }}</span>
-              <span
-                v-if="!isCollapsed"
-                class="font-body-md text-body-md font-medium whitespace-nowrap"
-              >
-                {{ item.name }}
-              </span>
-            </Link>
-          </li>
-        </ul>
-
-        <!-- Collapse Toggle Button -->
-        <div class="border-outline-variant mt-auto border-t pt-3">
-          <button
-            class="text-on-surface-variant hover:bg-surface-container-low hover:text-primary flex w-full items-center rounded-xl transition-colors active:scale-95"
-            :class="toggleBtnSpacingClass"
-            @click="toggleSidebar"
-          >
-            <span class="material-symbols-outlined shrink-0">{{
-              toggleBtnArrowType
-            }}</span>
-            <span v-if="!isCollapsed" class="font-body-md font-medium"
-              >Collapse</span
-            >
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- MAIN CONTENT AREA -->
-    <div
-      :class="[
-        'flex min-h-screen flex-1 flex-col transition-all duration-300 ease-in-out',
-        mainContentMarginClass,
-      ]"
-    >
-      <!-- TOP APP BAR -->
-      <header
-        :class="[
-          'border-surface-container fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-white px-3 transition-all duration-300 ease-in-out md:px-8',
-          headerPositionClass,
-        ]"
-      >
-        <!-- Left: Cooked Meals -->
-        <div class="flex items-center gap-2">
-          <div
-            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold"
-          >
-            <span class="material-symbols-outlined text-primary text-[18px]"
-              >check_circle</span
-            >
-            <span class="whitespace-nowrap"
-              >{{ mealsCooked.current ?? 0 }}/{{ mealsCooked.total ?? 3 }}
-              <span class="hidden sm:inline">Meals</span></span
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400"
+              >Personal Nutrition</span
             >
           </div>
         </div>
 
-        <!-- Right: Macros & Logout -->
-        <div class="flex items-center gap-1.5 md:gap-3">
-          <!-- Calories: Visible everywhere -->
-          <div
-            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold"
-          >
-            <span class="material-symbols-outlined text-primary text-[18px]"
-              >local_fire_department</span
-            >
-            <span class="whitespace-nowrap"
-              >{{ calories.current ?? 0 }}
-              <span class="hidden sm:inline"
-                >/ {{ calories.target ?? 0 }} kcal</span
-              ></span
-            >
-          </div>
-
-          <!-- P/C/F Macros: Hidden on Mobile, Visible on md+ -->
-          <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium md:flex"
-          >
-            <span class="text-primary font-bold">P:</span>
-            <span>{{ protein.current ?? 0 }}g</span>
-          </div>
-          <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
-          >
-            <span class="text-primary font-bold">C:</span>
-            <span>{{ carbs.current ?? 0 }}g</span>
-          </div>
-          <div
-            class="bg-surface-container text-on-surface-variant hidden items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium lg:flex"
-          >
-            <span class="text-primary font-bold">F:</span>
-            <span>{{ fat.current ?? 0 }}g</span>
-          </div>
-
-          <!-- Logout Button -->
+        <!-- Full Navigation List -->
+        <div class="flex flex-1 flex-col justify-between gap-2.5">
           <Link
-            href="/logout"
-            method="post"
-            as="button"
-            class="text-on-surface-variant hover:text-error active:bg-error/10 flex items-center justify-center rounded-full p-2 transition-colors active:scale-95 md:px-3 md:py-1.5"
-            title="Log out"
+            v-for="item in navigation"
+            :key="item.name"
+            :href="item.href"
+            class="flex items-center gap-4 rounded-2xl bg-gray-50 px-5 py-4 font-semibold text-gray-900 shadow-sm transition-all hover:bg-gray-100 active:scale-[0.98] dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+            @click="isMobileMenuOpen = false"
           >
-            <span class="material-symbols-outlined text-[20px] md:text-[18px]"
-              >logout</span
+            <span
+              class="material-symbols-outlined text-[26px] text-green-600 dark:text-green-500"
+              >{{ item.icon }}</span
             >
-            <span class="hidden md:ml-1.5 md:inline md:text-sm md:font-semibold"
-              >Log out</span
-            >
+            <span class="text-base tracking-wide">{{ item.name }}</span>
           </Link>
         </div>
-      </header>
-
-      <!-- Content Canvas Wrapper  -->
-      <div class="mt-16 flex w-full flex-1 flex-col overflow-hidden">
-        <main class="flex w-full flex-1 flex-col p-4 pb-24 md:p-8 md:pb-8">
-          <slot />
-        </main>
       </div>
-    </div>
 
-    <!-- NATIVE SLIDEOVER MENU-->
-    <div
-      :class="[
-        'fixed inset-0 top-16 z-40 flex flex-col overflow-y-auto overscroll-contain bg-white p-6 pb-28 shadow-2xl transition-transform duration-300 ease-in-out md:hidden dark:bg-gray-950',
-        mobileMenuTransformClass,
-      ]"
-    >
-      <!-- Header (Profile) -->
-      <div
-        class="mb-8 flex items-center gap-4 border-b border-gray-200 pb-6 dark:border-gray-800"
+      <!-- MOBILE BOTTOM NAVIGATION -->
+      <nav
+        class="fixed bottom-0 left-0 z-50 flex w-full justify-around border-t border-gray-200 bg-white px-2 py-3 pb-[max(env(safe-area-inset-bottom),1rem)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] md:hidden dark:border-gray-800 dark:bg-gray-950"
       >
-        <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnFlfN9gc-pOKnjod68ZfAFVYgHKchS-RM2cagTzDHWUM1DBLrBcoB1xR-tsZNbd7KH4DI7QzTDM7n_mhOhEpRqukq5UBUaJuQjrDCCOgE0JmCZ6b49UZru_uNr5ruZ83FIMwFfwNwU8qXV1GPyJoDDeHmHnfKEdX6GFgJM73NrUNt3VzfnRv2gJtaQC7hPZnckJ_TLVjXFJStmeL5TSZkPxp-NKYeTOkieIM3soJjQXGtIeBudP8V"
-          class="h-14 w-14 rounded-full border border-gray-200 object-cover shadow-sm"
-        />
-        <div class="flex flex-col">
-          <span
-            class="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100"
-            >Smart Meal Plan</span
-          >
-          <span class="text-sm font-medium text-gray-500 dark:text-gray-400"
-            >Personal Nutrition</span
-          >
-        </div>
-      </div>
-
-      <!-- Full Navigation List -->
-      <div class="flex flex-1 flex-col justify-between gap-2.5">
+        <!-- Today's Plans -->
         <Link
-          v-for="item in navigation"
-          :key="item.name"
-          :href="item.href"
-          class="flex items-center gap-4 rounded-2xl bg-gray-50 px-5 py-4 font-semibold text-gray-900 shadow-sm transition-all hover:bg-gray-100 active:scale-[0.98] dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+          href="/dashboard"
+          class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
           @click="isMobileMenuOpen = false"
         >
-          <span
-            class="material-symbols-outlined text-[26px] text-green-600 dark:text-green-500"
-            >{{ item.icon }}</span
+          <span class="material-symbols-outlined text-[26px]"
+            >calendar_today</span
           >
-          <span class="text-base tracking-wide">{{ item.name }}</span>
+          <span class="text-[11px] font-bold">Today</span>
         </Link>
-      </div>
-    </div>
 
-    <!-- MOBILE BOTTOM NAVIGATION -->
-    <nav
-      class="fixed bottom-0 left-0 z-50 flex w-full justify-around border-t border-gray-200 bg-white px-2 py-3 pb-[max(env(safe-area-inset-bottom),1rem)] shadow-[0_-4px_24px_rgba(0,0,0,0.12)] md:hidden dark:border-gray-800 dark:bg-gray-950"
-    >
-      <!-- Today's Plans -->
-      <Link
-        href="/dashboard"
-        class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
-        @click="isMobileMenuOpen = false"
-      >
-        <span class="material-symbols-outlined text-[26px]"
-          >calendar_today</span
+        <!-- Weekly Planner -->
+        <Link
+          href="/meal-plan/"
+          class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
+          @click="isMobileMenuOpen = false"
         >
-        <span class="text-[11px] font-bold">Today</span>
-      </Link>
+          <span class="material-symbols-outlined text-[26px]">event_note</span>
+          <span class="text-[11px] font-bold">Weekly</span>
+        </Link>
 
-      <!-- Weekly Planner -->
-      <Link
-        href="/meal-plan"
-        class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
-        @click="isMobileMenuOpen = false"
-      >
-        <span class="material-symbols-outlined text-[26px]">event_note</span>
-        <span class="text-[11px] font-bold">Weekly</span>
-      </Link>
-
-      <!-- More / Burger Menu Trigger -->
-      <button
-        :class="[
-          'flex flex-col items-center gap-1.5 transition-all active:scale-95',
-          isMobileMenuOpen
-            ? 'text-green-600'
-            : 'text-gray-500 hover:text-green-600',
-        ]"
-        @click="toggleMobileMenu"
-      >
-        <span class="material-symbols-outlined text-[26px]">{{
-          isMobileMenuOpen ? 'close' : 'menu'
-        }}</span>
-        <span class="text-[11px] font-bold">{{
-          isMobileMenuOpen ? 'Close' : 'More'
-        }}</span>
-      </button>
-    </nav>
-  </div>
+        <!-- More / Burger Menu Trigger -->
+        <button
+          :class="[
+            'flex flex-col items-center gap-1.5 transition-all active:scale-95',
+            isMobileMenuOpen
+              ? 'text-green-600'
+              : 'text-gray-500 hover:text-green-600',
+          ]"
+          @click="toggleMobileMenu"
+        >
+          <span class="material-symbols-outlined text-[26px]">{{
+            isMobileMenuOpen ? 'close' : 'menu'
+          }}</span>
+          <span class="text-[11px] font-bold">{{
+            isMobileMenuOpen ? 'Close' : 'More'
+          }}</span>
+        </button>
+      </nav>
+    </div>
+  </UApp>
 </template>
