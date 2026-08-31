@@ -484,7 +484,7 @@ class MealPlanController extends Controller
             // Convert 'YYYY-MM-DD' back to 'Monday', 'Tuesday' for frontend
             $dayName = Carbon::parse($dailyPlan->date)->format('l');
 
-            $meals = $dailyPlan->mealPlans->map(function ($mealPlan) {
+            $meals = $dailyPlan->mealPlans->map(function ( \App\Models\MealPlan $mealPlan) {
                 $recipe = $mealPlan->recipe;
                 return [
                     'id' => $recipe->id,
