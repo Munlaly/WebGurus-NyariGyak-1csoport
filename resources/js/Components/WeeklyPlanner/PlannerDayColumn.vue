@@ -14,7 +14,7 @@ const emit = defineEmits<{
   (e: 'reroll', dayName: string, mealId: number, mealType: string): void;
 }>();
 
-const formatTags = (meal: PlannerMeal) => {
+function formatTags(meal: PlannerMeal) {
   const tags: string[] = [];
   if (meal.prep_time_minutes) {
     tags.push(`${meal.prep_time_minutes}m`);
@@ -23,7 +23,7 @@ const formatTags = (meal: PlannerMeal) => {
     if (meal.diets.length > 0) tags.push(meal.diets[0]);
   }
   return tags;
-};
+}
 </script>
 
 <template>

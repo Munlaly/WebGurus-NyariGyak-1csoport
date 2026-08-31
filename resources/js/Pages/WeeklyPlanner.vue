@@ -9,8 +9,8 @@ const props = defineProps<{
   initialPlan?: Record<string, DayPlan>;
 }>();
 
-// State
-const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
+const toast = useToast();
+
 const STORAGE_KEY = 'weekly_planner_state';
 
 const allDays = [
@@ -23,6 +23,7 @@ const allDays = [
   { full: 'Sunday', short: 'Sun' },
 ];
 
+const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
 const activeDay = ref<string>('');
 const isSaving = ref(false);
 const isAlreadySaved = ref(false);
@@ -35,53 +36,12 @@ const saveButtonIcon = computed(() =>
   isAlreadySaved.value ? 'update' : 'check_circle',
 );
 
-onMounted(() => {
-  //Attempt to load saved state from session storage
-  const savedState = sessionStorage.getItem(STORAGE_KEY);
-  if (savedState) {
-    try {
-      const parsed = JSON.parse(savedState);
-      if (parsed.weeklyPlan) weeklyPlan.value = parsed.weeklyPlan;
-      if (parsed.activeDay) activeDay.value = parsed.activeDay;
-      if (parsed.isAlreadySaved !== undefined)
-        isAlreadySaved.value = parsed.isAlreadySaved;
-    } catch (e) {
-      console.error('Failed to load planner state', e);
-    }
-  }
-
-  // If no active day was loaded, default to today
-  if (!activeDay.value) {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-    const isValidDay = allDays.find((d) => d.full === today);
-    activeDay.value = isValidDay ? today : 'Monday';
-  }
-
-  //If no plan was loaded, generate a new one
-  if (Object.keys(weeklyPlan.value).length === 0) {
-    fetchInitialPlan();
-  }
-});
-
-// Watch for changes to the plan or the active tab and save them
-watch(
-  () => ({
-    weeklyPlan: weeklyPlan.value,
-    activeDay: activeDay.value,
-    isAlreadySaved: isAlreadySaved.value,
-  }),
-  (newState) => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-  },
-  { deep: true },
-);
-
-const setActiveDay = (day: string) => {
+function setActiveDay(day: string) {
   activeDay.value = day;
-};
+}
 
 // Extracted dynamic class logic
-const getTabClass = (dayName: string) => {
+function getTabClass(dayName: string) {
   const baseClass =
     'border-b-2 px-3 py-3 text-sm font-bold whitespace-nowrap transition-colors sm:px-4 md:px-6';
   const activeClass = 'border-primary text-primary';
@@ -89,9 +49,18 @@ const getTabClass = (dayName: string) => {
     'border-transparent text-on-surface-variant hover:text-on-surface';
 
   return `${baseClass} ${activeDay.value === dayName ? activeClass : inactiveClass}`;
-};
+}
 
-const fetchInitialPlan = async () => {
+function togglePin(dayName: string, mealId: number) {
+  const day = weeklyPlan.value[dayName];
+  if (!day) return;
+  const meal = day.meals.find((m) => m.id === mealId);
+  if (meal) {
+    meal.isPinned = !meal.isPinned;
+  }
+}
+
+async function fetchInitialPlan() {
   try {
     const response = await axios.post(route('meal-plan.generate'));
     const newPlan = response.data.plan;
@@ -113,22 +82,9 @@ const fetchInitialPlan = async () => {
   } catch (error) {
     console.error('Failed to fetch plan:', error);
   }
-};
+}
 
-const togglePin = (dayName: string, mealId: number) => {
-  const day = weeklyPlan.value[dayName];
-  if (!day) return;
-  const meal = day.meals.find((m) => m.id === mealId);
-  if (meal) {
-    meal.isPinned = !meal.isPinned;
-  }
-};
-
-const rerollMeal = async (
-  dayName: string,
-  mealId: number,
-  mealType: string,
-) => {
+async function rerollMeal(dayName: string, mealId: number, mealType: string) {
   const day = weeklyPlan.value[dayName];
   if (!day) return;
 
@@ -166,9 +122,9 @@ const rerollMeal = async (
     console.error('Failed to reroll meal:', error);
     targetMeal.isRolling = false;
   }
-};
+}
 
-const regenerateUnpinned = async () => {
+async function regenerateUnpinned() {
   const promises: Promise<void>[] = [];
 
   for (const [dayName, dayData] of Object.entries(weeklyPlan.value)) {
@@ -180,11 +136,9 @@ const regenerateUnpinned = async () => {
   }
 
   await Promise.allSettled(promises);
-};
+}
 
-const toast = useToast();
-
-const acceptAndFinalize = async () => {
+async function acceptAndFinalize() {
   isSaving.value = true;
 
   const payload: Record<
@@ -229,7 +183,48 @@ const acceptAndFinalize = async () => {
   } finally {
     isSaving.value = false;
   }
-};
+}
+
+// Watch for changes to the plan or the active tab and save them
+watch(
+  () => ({
+    weeklyPlan: weeklyPlan.value,
+    activeDay: activeDay.value,
+    isAlreadySaved: isAlreadySaved.value,
+  }),
+  (newState) => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+  },
+  { deep: true },
+);
+
+onMounted(() => {
+  //Attempt to load saved state from session storage
+  const savedState = sessionStorage.getItem(STORAGE_KEY);
+  if (savedState) {
+    try {
+      const parsed = JSON.parse(savedState);
+      if (parsed.weeklyPlan) weeklyPlan.value = parsed.weeklyPlan;
+      if (parsed.activeDay) activeDay.value = parsed.activeDay;
+      if (parsed.isAlreadySaved !== undefined)
+        isAlreadySaved.value = parsed.isAlreadySaved;
+    } catch (e) {
+      console.error('Failed to load planner state', e);
+    }
+  }
+
+  // If no active day was loaded, default to today
+  if (!activeDay.value) {
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    const isValidDay = allDays.find((d) => d.full === today);
+    activeDay.value = isValidDay ? today : 'Monday';
+  }
+
+  //If no plan was loaded, generate a new one
+  if (Object.keys(weeklyPlan.value).length === 0) {
+    fetchInitialPlan();
+  }
+});
 </script>
 
 <template>

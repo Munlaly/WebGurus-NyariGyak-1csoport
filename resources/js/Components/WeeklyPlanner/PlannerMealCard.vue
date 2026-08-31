@@ -29,14 +29,6 @@ const emit = defineEmits<{
   (e: 'reroll', id: number, type: string): void;
 }>();
 
-const handleImageError = (event: Event) => {
-  const target = event.target as HTMLImageElement | null;
-
-  if (target) {
-    target.src = 'https://placehold.co/600x400?text=No+Image';
-  }
-};
-
 const pinButtonClass = computed(() =>
   props.isPinned
     ? 'bg-primary-50 text-primary-700 border-primary-200 hover:bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400 dark:border-primary-800'
@@ -48,6 +40,14 @@ const cardStateClass = computed(() =>
     ? 'border-primary shadow-[0px_0px_0px_1px_rgba(var(--color-primary),1)]'
     : 'border-outline-variant/50 hover:shadow-md',
 );
+
+function handleImageError(event: Event) {
+  const target = event.target as HTMLImageElement | null;
+
+  if (target) {
+    target.src = 'https://placehold.co/600x400?text=No+Image';
+  }
+}
 </script>
 
 <template>
