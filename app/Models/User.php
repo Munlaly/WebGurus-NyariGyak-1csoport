@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\UserSetting;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -77,5 +78,15 @@ class User extends Authenticatable
     public function exerciseSchedules(): HasMany
     {
         return $this->hasMany(UserExerciseSchedule::class);
+    }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }
