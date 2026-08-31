@@ -9,8 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use App\Models\DietaryOption;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+
 
 class SettingsController extends Controller
 {
@@ -230,7 +230,8 @@ class SettingsController extends Controller
             'user' => [
                 'username' => $request->user()->username, 
                 'email' => $request->user()->email,       
-            ]
+            ],
+            'status' => session('status'),
         ]);
     }
 
@@ -257,18 +258,14 @@ class SettingsController extends Controller
         return back()->with('success', 'Profile details updated.');
     }
 
-    public function updatePassword(Request $request): RedirectResponse
+    public function sendPasswordResetLink(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'], 
-            
-            'password' => ['required', Password::defaults(), 'confirmed'], 
-        ]);
+        $status = Password::sendResetLink(
+            ['email' => $request->user()->email]
+        );
 
-        $request->user()->update([
-            'password' => Hash::make($validated['password']), 
-        ]);
-
-        return back()->with('success', 'Password updated successfully.');
+        return $status == Password::RESET_LINK_SENT
+            ? back()->with('status', __($status))
+            : back()->withErrors(['email' => __($status)]);
     }
 }

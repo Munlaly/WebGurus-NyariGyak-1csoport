@@ -24,8 +24,7 @@ function updateProfile() {
 }
 
 function sendResetLink() {
-  resetLinkForm.email = props.user.email;
-  resetLinkForm.post(route('password.email'), {
+  resetLinkForm.post(route('settings.password.link'), {
     preserveScroll: true,
   });
 }
