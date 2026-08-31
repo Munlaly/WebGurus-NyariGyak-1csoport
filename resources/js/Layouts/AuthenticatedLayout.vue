@@ -7,6 +7,24 @@ interface MacroTarget {
   target: number;
 }
 
+interface InventoryItem {
+  id: number;
+  expiration_date: string;
+}
+
+interface CustomPageProps {
+  auth: {
+    theme?: string;
+    inAppAlerts?: boolean;
+    expiringCount?: number;
+  };
+  expiringAlerts?: {
+    expired?: InventoryItem[];
+    critical?: InventoryItem[];
+    urgent?: InventoryItem[];
+  };
+}
+
 withDefaults(
   defineProps<{
     primaryGoal?: string;
@@ -30,8 +48,10 @@ withDefaults(
 );
 
 const page = usePage();
+const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
+
 watchEffect(() => {
-  const userTheme = (page.props.auth as { theme?: string })?.theme || 'light';
+  const userTheme = typedPageProps.value.auth?.theme || 'light';
 
   if (userTheme === 'dark') {
     document.documentElement.classList.add('dark');
@@ -105,11 +125,39 @@ const navigation = [
 
 const showTopAlert = ref(false);
 const expiringCount = computed(
-  () => (page.props.auth as any)?.expiringCount || 0,
+  () => typedPageProps.value.auth?.expiringCount || 0,
 );
 
+const availableAlertsCount = computed(() => {
+  const alerts = typedPageProps.value.expiringAlerts || {
+    expired: [],
+    critical: [],
+    urgent: [],
+  };
+
+  let dismissedIds: number[] = [];
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('dismissed_alerts_history');
+    if (saved) {
+      try {
+        dismissedIds = JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse dismissed alerts', e);
+      }
+    }
+  }
+
+  const activeExpired = (alerts.expired || []).filter(
+    (item) => !dismissedIds.includes(item.id),
+  );
+  const critical = alerts.critical || [];
+  const urgent = alerts.urgent || [];
+
+  return activeExpired.length + critical.length + urgent.length;
+});
+
 onMounted(() => {
-  const inAppAlertsEnabled = (page.props.auth as any)?.inAppAlerts ?? true;
+  const inAppAlertsEnabled = typedPageProps.value.auth?.inAppAlerts ?? true;
 
   if (inAppAlertsEnabled && expiringCount.value > 0) {
     if (!sessionStorage.getItem('top_alert_seen')) {
@@ -244,20 +292,24 @@ const closeTopAlert = () => {
                 </span>
               </div>
 
-              <!-- Live Counter Badge for Alerts -->
+              <!-- Live Counter Badge using availableAlertsCount -->
               <span
                 v-if="
-                  item.name === 'Alerts' && expiringCount > 0 && !isCollapsed
+                  item.name === 'Alerts' &&
+                  availableAlertsCount > 0 &&
+                  !isCollapsed
                 "
                 class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600 dark:bg-red-900/40 dark:text-red-400"
               >
-                {{ expiringCount }}
+                {{ availableAlertsCount }}
               </span>
 
               <!-- Red dot indicator when sidebar is collapsed -->
               <span
                 v-if="
-                  item.name === 'Alerts' && expiringCount > 0 && isCollapsed
+                  item.name === 'Alerts' &&
+                  availableAlertsCount > 0 &&
+                  isCollapsed
                 "
                 class="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-white dark:ring-gray-900"
               ></span>

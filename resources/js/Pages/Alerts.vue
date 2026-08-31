@@ -2,7 +2,6 @@
 import { computed, ref, onMounted } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
-import { lo } from '@nuxt/ui/runtime/locale/index.js';
 
 interface Ingredient {
   id: number;

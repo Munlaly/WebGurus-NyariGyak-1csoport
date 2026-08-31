@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\UserInventory;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,6 +45,7 @@ class HandleInertiaRequests extends Middleware
         $theme = 'light';
         $inAppAlerts = true;
         $expiringCount = 0;
+        $expiringAlerts = [];
         if ($user) {
             $settings = \App\Models\UserSetting::where('user_id', $user->id)->first();
             if ($settings && $settings->system_preferences) {
@@ -54,10 +56,34 @@ class HandleInertiaRequests extends Middleware
                 $inAppAlerts = $prefs['inAppAlerts'] ?? true;
             }
 
-            $expiringCount = UserInventory::where('user_id', $user->id)
+            $now = now();
+            $today = $now->copy()->startOfDay();
+
+            $userInventory = UserInventory::with('ingredient')
+                ->where('user_id', $user->id)
                 ->whereNotNull('expiration_date')
-                ->where('expiration_date', '<=', now()->addDays(7))
-                ->count();
+                ->where('expiration_date', '<=', $now->copy()->addDays(7))
+                ->get();
+
+            $expired = $userInventory->filter(function ($item) use ($today) {
+                return Carbon::parse($item->expiration_date)->lt($today);
+            })->values();
+            $critical = $userInventory->filter(function ($item) use ($today) {
+                $date = Carbon::parse($item->expiration_date);
+                return $date->gte($today) && $date->lte($today->copy()->addDays(2));
+            })->values();
+            $urgent = $userInventory->filter(function ($item) use ($today) {
+                $date = Carbon::parse($item->expiration_date);
+                return $date->gt($today->copy()->addDays(2)) && $date->lte($today->copy()->addDays(7));
+            })->values();
+
+            $expiringAlerts = [
+                'expired' => $expired,
+                'critical' => $critical,
+                'urgent' => $urgent,
+            ];
+
+            $expiringCount = $userInventory->count();
         }
 
         return array_merge(parent::share($request), [
@@ -67,9 +93,10 @@ class HandleInertiaRequests extends Middleware
                     'username' => $user->username, 
                 ] : null,
                 'theme' => $theme,
-                'inappAlerts' => $inAppAlerts,
+                'inAppAlerts' => $inAppAlerts,
                 'expiringCount' => $expiringCount,
             ],
+            'expiringAlerts' => $expiringAlerts,
         ]);
     }
 }
