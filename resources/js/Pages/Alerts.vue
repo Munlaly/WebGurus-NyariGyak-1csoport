@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Imports
 import { computed, ref, onMounted } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
@@ -21,10 +20,8 @@ interface AlertsData {
   urgent: InventoryItem[];
 }
 
-// Initializations
 const page = usePage();
 
-// Variables
 const STORAGE_KEY = 'dismissed_alerts_history';
 const SKIP_CONFIRM_KEY = 'skip_alert_confirm';
 
@@ -50,7 +47,6 @@ const alertsData = computed<AlertsData>(() => {
   };
 });
 
-// Functions
 function formatDate(dateString: string) {
   if (!dateString) return 'Unknown Date';
   return dateString.split('T')[0];
@@ -99,7 +95,6 @@ function resetDismissedAlerts() {
   dontAskAgain.value = false;
 }
 
-// Hooks
 onMounted(() => {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {

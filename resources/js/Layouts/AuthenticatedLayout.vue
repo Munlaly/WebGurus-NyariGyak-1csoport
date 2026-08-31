@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// 1. Imports
 import { ref, computed, watch, onUnmounted, watchEffect, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 
@@ -26,7 +25,6 @@ interface CustomPageProps {
   };
 }
 
-// 2. Props
 withDefaults(
   defineProps<{
     primaryGoal?: string;
@@ -49,12 +47,8 @@ withDefaults(
   },
 );
 
-// 3. Emits
-
-// 4. Initializations
 const page = usePage();
 
-// 5. Variables
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
   { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
@@ -65,12 +59,10 @@ const navigation = [
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
 
-// -- Refs
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
 const showTopAlert = ref(false);
 
-// -- Computeds
 const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
 const navItemSpacingClass = computed(() =>
@@ -144,7 +136,6 @@ function closeTopAlert() {
   sessionStorage.setItem('top_alert_seen', 'true');
 }
 
-// 7. Watchers
 watchEffect(() => {
   const userTheme = typedPageProps.value.auth?.theme || 'light';
 
@@ -161,7 +152,6 @@ watch(isMobileMenuOpen, (isOpen) => {
   }
 });
 
-// 8. Hooks
 onMounted(() => {
   const inAppAlertsEnabled = typedPageProps.value.auth?.inAppAlerts ?? true;
 
