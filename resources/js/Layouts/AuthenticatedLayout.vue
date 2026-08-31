@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// 1. Imports
 import { ref, computed, watch, onUnmounted, watchEffect, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useDismissedAlerts } from '../Composables/useDismissedAlerts';
@@ -26,6 +27,7 @@ interface CustomPageProps {
   };
 }
 
+// 2. Props
 withDefaults(
   defineProps<{
     primaryGoal?: string;
@@ -48,6 +50,9 @@ withDefaults(
   },
 );
 
+// 3. Emits (None in this component)
+
+// 4. Initializations
 const page = usePage();
 const { dismissedIds } = useDismissedAlerts();
 
@@ -154,6 +159,11 @@ onMounted(() => {
   }
 });
 
+onUnmounted(() => {
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
+});
 onUnmounted(() => {
   if (typeof document !== 'undefined') {
     document.body.style.overflow = '';
