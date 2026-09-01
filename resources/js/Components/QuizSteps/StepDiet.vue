@@ -35,11 +35,11 @@ const stringModel = computed({
   >
     <div class="space-y-4">
       <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
+        class="font-display text-on-surface text-3xl font-bold tracking-tight text-slate-900"
       >
         Dietary Preferences
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700">
         Do you follow any specific diets? Select all that apply so we can filter
         your meal plan accordingly.
       </p>
@@ -54,6 +54,12 @@ const stringModel = computed({
             size="lg"
             class="mt-2"
             variant="card"
+            color="primary"
+            :ui="{
+              label: 'text-slate-900 dark:text-white font-semibold',
+              description: 'text-slate-700 dark:text-gray-300 text-sm',
+              item: 'mt-2 border-slate-300',
+            }"
           />
         </div>
       </UFormField>
