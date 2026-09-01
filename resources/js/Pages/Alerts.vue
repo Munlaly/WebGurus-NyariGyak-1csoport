@@ -2,7 +2,7 @@
 import { computed, ref, onMounted } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
-import { useDismissedAlerts } from '../Composables/UseDismissedAlerts';
+import { useDismissedAlerts } from '../Composables/useDismissedAlerts.js';
 
 interface Ingredient {
   id: number;

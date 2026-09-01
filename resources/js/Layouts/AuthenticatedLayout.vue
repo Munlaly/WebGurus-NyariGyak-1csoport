@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, watchEffect, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { useDismissedAlerts } from '../Composables/UseDismissedAlerts';
+import { useDismissedAlerts } from '../Composables/useDismissedAlerts';
 
 interface MacroTarget {
   current: number;
