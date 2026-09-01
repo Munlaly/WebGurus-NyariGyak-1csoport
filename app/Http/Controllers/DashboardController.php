@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Carbon;
+use App\Services\AlertService;
 
 use function Symfony\Component\String\b;
 
@@ -74,35 +75,10 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function alerts(Request $request): Response {
+    public function alerts(Request $request, AlertService $alertService): Response {
         $user = $request->user();
-        $now = Carbon::now()->startOfDay();
-        $inTwoDays = $now->copy()->addDays(2)->endOfDay();
-        $inSevenDays = $now->copy()->addDays(7)->endOfDay();
 
-        $inventory = UserInventory::with('ingredient')
-            ->where('user_id', $user->id)
-            ->whereNotNull('expiration_date')
-            ->orderBy('expiration_date', 'asc')
-            ->get();
-
-        $expiringAlerts = [
-            'expired' => [],
-            'critical' => [],
-            'urgent' => [],
-        ];
-
-        foreach($inventory as $item) {
-            $expDate = Carbon::parse($item->expiration_date)->startOfDay();
-
-            if($expDate->isBefore($now)) {
-                $expiringAlerts['expired'][] = $item;
-            } elseif($expDate->isBetween($now, $inTwoDays)) {
-                $expiringAlerts['critical'][] = $item;
-            } elseif($expDate->isBetween($now, $inSevenDays)) {
-                $expiringAlerts['urgent'][] = $item;
-            }
-        }
+        $expiringAlerts = $alertService->getExpiringAlertIds($user);
 
         return Inertia::render('Alerts', [
             'expiringAlerts' => $expiringAlerts

@@ -7,6 +7,7 @@ use App\Models\UserSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Services\AlertService;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -55,34 +56,18 @@ class HandleInertiaRequests extends Middleware
                 $inAppAlerts = $prefs['inAppAlerts'] ?? true;
             }
 
-            $now = now();
-            $today = $now->copy()->startOfDay();
-
-            $userInventory = UserInventory::with('ingredient')
-                ->where('user_id', $user->id)
-                ->whereNotNull('expiration_date')
-                ->where('expiration_date', '<=', $now->copy()->addDays(7))
-                ->get();
-
-            $expired = $userInventory->filter(function ($item) use ($today) {
-                return Carbon::parse($item->expiration_date)->lt($today);
-            })->values();
-            $critical = $userInventory->filter(function ($item) use ($today) {
-                $date = Carbon::parse($item->expiration_date);
-                return $date->gte($today) && $date->lte($today->copy()->addDays(2));
-            })->values();
-            $urgent = $userInventory->filter(function ($item) use ($today) {
-                $date = Carbon::parse($item->expiration_date);
-                return $date->gt($today->copy()->addDays(2)) && $date->lte($today->copy()->addDays(7));
-            })->values();
+            $alertService = app(AlertService::class);
+            $expiringAlerts = $alertService->getExpiringAlertIds($user);
 
             $expiringAlerts = [
-                'expired' => $expired,
-                'critical' => $critical,
-                'urgent' => $urgent,
+                'expired' => $expiringAlerts['expired']->values(),
+                'critical' => $expiringAlerts['critical']->values(),
+                'urgent' => $expiringAlerts['urgent']->values(),
             ];
 
-            $expiringCount = $userInventory->count();
+            $expiringCount = $expiringAlerts['expired']->count() + 
+                             $expiringAlerts['critical']->count() + 
+                             $expiringAlerts['urgent']->count();
         }
 
         return array_merge(parent::share($request), [

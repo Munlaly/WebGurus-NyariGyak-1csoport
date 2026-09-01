@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, watchEffect, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import { useDismissedAlerts } from '../Composables/useDismissedAlerts';
 
 interface MacroTarget {
   current: number;
@@ -48,6 +49,7 @@ withDefaults(
 );
 
 const page = usePage();
+const { dismissedIds } = useDismissedAlerts();
 
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
@@ -96,28 +98,16 @@ const availableAlertsCount = computed(() => {
     urgent: [],
   };
 
-  let dismissedIds: number[] = [];
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('dismissed_alerts_history');
-    if (saved) {
-      try {
-        dismissedIds = JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse dismissed alerts', e);
-      }
-    }
-  }
-
   const activeExpired = (alerts.expired || []).filter(
-    (item) => !dismissedIds.includes(item.id),
+    (item) => !dismissedIds.value.includes(item.id),
   );
+
   const critical = alerts.critical || [];
   const urgent = alerts.urgent || [];
 
   return activeExpired.length + critical.length + urgent.length;
 });
 
-// 6. Functions
 function toggleSidebar() {
   isCollapsed.value = !isCollapsed.value;
 }
