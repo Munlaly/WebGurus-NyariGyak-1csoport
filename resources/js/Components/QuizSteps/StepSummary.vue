@@ -27,7 +27,7 @@ const selectedDiets = computed(() => {
   });
 });
 
-const formatActivity = (activity: string) => {
+function formatActivity (activity: string){
   return activity
     .split('_')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))

@@ -1,14 +1,4 @@
 <script setup lang="ts">
-const model = defineModel<{
-  monday: 'rest' | 'moderate' | 'heavy';
-  tuesday: 'rest' | 'moderate' | 'heavy';
-  wednesday: 'rest' | 'moderate' | 'heavy';
-  thursday: 'rest' | 'moderate' | 'heavy';
-  friday: 'rest' | 'moderate' | 'heavy';
-  saturday: 'rest' | 'moderate' | 'heavy';
-  sunday: 'rest' | 'moderate' | 'heavy';
-}>({ required: true });
-
 const days = [
   { key: 'monday', label: 'Monday' },
   { key: 'tuesday', label: 'Tuesday' },
@@ -24,6 +14,16 @@ const activityOptions = [
   { label: 'Moderate (Cardio, light weights)', value: 'moderate' },
   { label: 'Heavy (Intense workout)', value: 'heavy' },
 ];
+
+const model = defineModel<{
+  monday: 'rest' | 'moderate' | 'heavy';
+  tuesday: 'rest' | 'moderate' | 'heavy';
+  wednesday: 'rest' | 'moderate' | 'heavy';
+  thursday: 'rest' | 'moderate' | 'heavy';
+  friday: 'rest' | 'moderate' | 'heavy';
+  saturday: 'rest' | 'moderate' | 'heavy';
+  sunday: 'rest' | 'moderate' | 'heavy';
+}>({ required: true });
 </script>
 
 <template>
@@ -55,7 +55,10 @@ const activityOptions = [
               :items="activityOptions"
               size="lg"
               class="w-full"
-              :ui="{ content: 'z-[100]' }"
+              :ui="{
+                base: 'ring-1 ring-stone-400',
+                content: 'z-[100]',
+              }"
             />
           </UFormField>
         </div>

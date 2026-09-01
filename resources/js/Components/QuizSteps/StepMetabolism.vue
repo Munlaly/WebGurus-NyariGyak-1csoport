@@ -2,36 +2,7 @@
 import { computed, useTemplateRef } from 'vue';
 import { parseDate } from '@internationalized/date';
 
-const sex = defineModel<'male' | 'female'>('sex', { required: true });
-const birthdate = defineModel<string>('birthdate', { required: true });
-const height = defineModel<number | string | undefined>('height', {
-  required: true,
-});
-const weight = defineModel<number | string | undefined>('weight', {
-  required: true,
-});
-const activity = defineModel<
-  'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
->('activity', { required: true });
-
-const sexItems = [
-  { label: 'Male', value: 'male' },
-  { label: 'Female', value: 'female' },
-];
-
-const dateModel = computed({
-  get: () => {
-    if (!birthdate.value) return undefined;
-    try {
-      return parseDate(birthdate.value);
-    } catch {
-      return undefined;
-    }
-  },
-  set: (val) => {
-    birthdate.value = val ? val.toString() : '';
-  },
-});
+const inputDate = useTemplateRef('inputDate');
 
 const activityItems = [
   {
@@ -60,7 +31,37 @@ const activityItems = [
   },
 ];
 
-const inputDate = useTemplateRef('inputDate');
+const sex = defineModel<'male' | 'female'>('sex', { required: true });
+const birthdate = defineModel<string>('birthdate', { required: true });
+const height = defineModel<number | string | undefined>('height', {
+  required: true,
+});
+const weight = defineModel<number | string | undefined>('weight', {
+  required: true,
+});
+
+const activity = defineModel<
+  'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
+>('activity', { required: true });
+
+const sexItems = [
+  { label: 'Male', value: 'male' },
+  { label: 'Female', value: 'female' },
+];
+
+const dateModel = computed({
+  get: () => {
+    if (!birthdate.value) return undefined;
+    try {
+      return parseDate(birthdate.value);
+    } catch {
+      return undefined;
+    }
+  },
+  set: (val) => {
+    birthdate.value = val ? val.toString() : '';
+  },
+});
 </script>
 
 <template>
