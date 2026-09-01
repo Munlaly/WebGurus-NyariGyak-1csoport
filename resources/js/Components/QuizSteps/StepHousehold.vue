@@ -28,6 +28,9 @@ const model = defineModel<number | undefined>({ required: true });
           size="lg"
           placeholder="e.g., 2"
           class="w-full"
+          :ui="{
+            base: 'ring-1 ring-stone-400',
+          }"
         />
       </UFormField>
     </div>

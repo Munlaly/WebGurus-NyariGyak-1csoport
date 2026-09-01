@@ -1,8 +1,4 @@
 <script setup lang="ts">
-const model = defineModel<'lose_weight' | 'maintain' | 'gain_muscle'>({
-  required: true,
-});
-
 const goalItems = [
   {
     label: 'Lose Weight',
@@ -20,6 +16,10 @@ const goalItems = [
     description: 'Caloric surplus to support muscle growth.',
   },
 ];
+
+const model = defineModel<'lose_weight' | 'maintain' | 'gain_muscle'>({
+  required: true,
+});
 </script>
 
 <template>

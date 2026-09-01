@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 
+let debounceTimeout: ReturnType<typeof setTimeout>;
+
 const model = defineModel<{ id: number; label: string }[]>({ required: true });
 
 const searchTerm = ref('');
 const items = ref<{ id: number; label: string }[]>([]);
 const loading = ref(false);
 
-let debounceTimeout: ReturnType<typeof setTimeout>;
+function removeIngredient(idToRemove: number) {
+  model.value = model.value.filter((item) => item.id !== idToRemove);
+}
 
 watch(searchTerm, (query) => {
   clearTimeout(debounceTimeout);
@@ -40,10 +44,6 @@ watch(searchTerm, (query) => {
     }
   }, 300);
 });
-
-function removeIngredient(idToRemove: number) {
-  model.value = model.value.filter((item) => item.id !== idToRemove);
-}
 </script>
 
 <template>
