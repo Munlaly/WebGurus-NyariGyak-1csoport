@@ -6,7 +6,6 @@ import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 const props = defineProps<{
   userSettings: {
     theme: 'light' | 'dark';
-    pushNotifications: boolean;
     inAppAlerts: boolean;
     emailDigests: boolean;
   };
@@ -14,7 +13,6 @@ const props = defineProps<{
 
 const form = useForm({
   theme: props.userSettings?.theme || 'light',
-  pushNotifications: props.userSettings?.pushNotifications ?? true,
   inAppAlerts: props.userSettings?.inAppAlerts ?? true,
   emailDigests: props.userSettings?.emailDigests ?? false,
 });
