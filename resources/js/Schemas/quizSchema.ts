@@ -7,7 +7,9 @@ export const stepGoalSchema = z.object({
 });
 
 export const stepDietSchema = z.object({
-  meal_plan_preferences: z.array(z.number().int().positive()),
+  meal_plan_preferences: z
+    .array(z.number().int().positive())
+    .min(1, 'Please select at least one dietary preference.'),
 });
 
 export const stepDislikedIngredientsSchema = z.object({
