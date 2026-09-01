@@ -123,11 +123,6 @@ function handleLogout() {
   router.post(route('logout'));
 }
 
-function closeTopAlert() {
-  showTopAlert.value = false;
-  sessionStorage.setItem('top_alert_seen', 'true');
-}
-
 function closeFlashToast() {
   showFlashToast.value = false;
 }

@@ -78,7 +78,7 @@ class HandleInertiaRequests extends Middleware
                     return $alerts['expired']->count() + $alerts['critical']->count() + $alerts['urgent']->count();
                 },
             ],
-            'expiringAlerts' => $expiringAlerts,
+            'expiringAlerts' => $getAlerts(),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
