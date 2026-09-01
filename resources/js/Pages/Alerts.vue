@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
+import { useDismissedAlerts } from '../Composables/UseDismissedAlerts';
 
 interface Ingredient {
   id: number;
@@ -21,11 +22,10 @@ interface AlertsData {
 }
 
 const page = usePage();
+const { dismissedIds, dismissAlert, loadDismissedIds } = useDismissedAlerts();
 
-const STORAGE_KEY = 'dismissed_alerts_history';
 const SKIP_CONFIRM_KEY = 'skip_alert_confirm';
 
-const dismissedIds = ref<number[]>([]);
 const isConfirmModalOpen = ref(false);
 const pendingDismissId = ref<number | null>(null);
 const dontAskAgain = ref(false);
@@ -81,30 +81,21 @@ function cancelDismiss() {
   pendingDismissId.value = null;
 }
 
-function dismissAlert(id: number) {
-  if (!dismissedIds.value.includes(id)) {
-    dismissedIds.value.push(id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dismissedIds.value));
-  }
-}
-
 function resetDismissedAlerts() {
   dismissedIds.value = [];
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(SKIP_CONFIRM_KEY);
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('dismissed_alerts_history');
+    localStorage.removeItem(SKIP_CONFIRM_KEY);
+  }
   dontAskAgain.value = false;
 }
 
 onMounted(() => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      dismissedIds.value = JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed to parse dismissed alerts:', e);
-    }
-  }
-  if (localStorage.getItem(SKIP_CONFIRM_KEY) === 'true') {
+  loadDismissedIds();
+  if (
+    typeof window !== 'undefined' &&
+    localStorage.getItem(SKIP_CONFIRM_KEY) === 'true'
+  ) {
     dontAskAgain.value = true;
   }
 });
