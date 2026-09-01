@@ -43,7 +43,19 @@ class QuizController extends Controller
             'prep_time_preference' => 'required|integer|min:1',
             
             // Arrays
-            'meal_plan_preferences' => 'present|array',
+           'meal_plan_preferences' => [
+                'present',
+                'array',
+                function($attribute, $value, $fail){
+                    $selectedSlugs = DietaryOption::whereIn('id', $value)->pluck('slug')->toArray();
+                    $baseDiets = ['vegan', 'vegetarian', 'pescatarian', 'omnivore'];
+                    $selectedBaseDiets = array_intersect($baseDiets, $selectedSlugs);
+
+                    if (count($selectedBaseDiets) > 1) {
+                        $fail('You cannot select conflicting baseline diets (e.g., Vegan and Omnivore). Please select only one primary diet.');
+                    }
+                }
+            ],
             'meal_plan_preferences.*' => 'integer|exists:dietary_options,id',
             'disliked_ingredients' => 'present|array',
             'disliked_ingredients.*' => 'integer|exists:ingredients,id',
@@ -57,6 +69,7 @@ class QuizController extends Controller
             'exercise_schedule.friday' => 'required|in:rest,moderate,heavy',
             'exercise_schedule.saturday' => 'required|in:rest,moderate,heavy',
             'exercise_schedule.sunday' => 'required|in:rest,moderate,heavy',
+
         ]);
 
       // Transaction to prevent corrupted db state
