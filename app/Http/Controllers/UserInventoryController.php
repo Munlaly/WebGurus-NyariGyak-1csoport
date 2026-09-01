@@ -6,16 +6,15 @@ use Illuminate\Http\Request;
 use App\Models\UserInventory;
 use Illuminate\Support\Carbon;
 use App\Models\UserSetting;
+use Inertia\Inertia;
 
 class UserInventoryController extends Controller
 {
     public function index(Request $request) {
         $user = $request->user();
         $now = Carbon::now();
-        $oneWeekFromNow = $now->copy()->addDays(7);
 
         $settings = UserSetting::where("user_id", $user->id)->first();
-
         $inventory = UserInventory::with('ingredient')
             ->where('user_id', $request->user()->id)
             ->orderBy('expiration_date', 'asc')
@@ -45,13 +44,10 @@ class UserInventoryController extends Controller
             }
         }
         
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'attention_needed' => $attentionNeeded,
-                'inventory' => $regularInventory,
-                'current_score' => $settings->zero_waste_score ?? 0
-            ]
+        return Inertia::render('Inventory', [
+            'attentionNeeded' => $attentionNeeded,
+            'inventory' => $inventory,
+            'currentScore' => $settings->zero_waste_score ?? 0,
         ]);
     }
 
@@ -64,7 +60,7 @@ class UserInventoryController extends Controller
             'is_frozen' => 'boolean'
         ]);
 
-        $inventoryItem = UserInventory::create([
+        UserInventory::create([
             'user_id' => $request->user()->id,
             'ingredient_id' => $validated['ingredient_id'],
             'amount_left' => $validated['amount_left'] ?? null,
@@ -73,16 +69,13 @@ class UserInventoryController extends Controller
             'is_frozen' => $validated['is_frozen'] ?? false,
         ]);
 
-        return response()->json([
-            'success'=> true,
-            'message' => 'Item added to inventory succesfully. ',
-            'data' => $inventoryItem,
-        ], 201);
+        return back()->with('success', 'Item added to inventory.');
     }
 
-    public function update(Request $request, $id) {
-        $inventoryItem = UserInventory::where('user_id', $request->user()->id)->findOrFail($id);
-
+    public function update(Request $request, UserInventory $inventory) {
+        if($inventory->user_id !== $request->user()->id) {
+            abort(403);
+        }
         $validated = $request->validate([
             'amount_left' => 'nullable|numeric',
             'status' => 'nullable|in:FULL,OPENED,LOW',
@@ -90,21 +83,15 @@ class UserInventoryController extends Controller
             'is_frozen' => 'boolean'
         ]);
 
-        $inventoryItem->update($validated);
-
-        return response()->json([
-            'success'=> true,
-            'message' => 'Inventory item updated succesfully. ',
-            'data' => $inventoryItem
-        ]);
+        $inventory->update($validated);
+        return back()->with('success', 'Item updated successfully.');
     }
 
-    public function destroy(UserInventory $inventory) {
+    public function destroy(Request $request, UserInventory $inventory) {
+        if($inventory->user_id !== $request->user()->id) {
+            abort(403);
+        }
         $inventory->delete();
-
-        return response()->json([
-            'success' => 'true',
-            'message' => 'Item removed from inventory succesfully.'
-        ]);
+        return back()->with('success', 'Item removed from inventory.');
     }
 }
