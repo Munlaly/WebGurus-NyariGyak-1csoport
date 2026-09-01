@@ -16,9 +16,14 @@ class QuizController extends Controller
             return redirect()->route('dashboard'); 
         }
 
+        $baseDietIds = DietaryOption::whereIn('slug', ['vegan', 'vegetarian', 'pescatarian', 'omnivore'])
+        ->pluck('id')
+        ->toArray();
+
         return Inertia::render('QuizMain', [
            
             'dietaryOptions' => DietaryOption::select('id', 'name', 'description')->get(),
+            'baseDietIds' => $baseDietIds,
         ]);
     }
 
