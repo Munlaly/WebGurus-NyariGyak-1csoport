@@ -99,9 +99,8 @@ class UserInventoryController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, $id) {
-        $inventoryItem = UserInventory::where('user_id', $request->user()->id)->findOrFail($id);
-        $inventoryItem->delete();
+    public function destroy(UserInventory $inventory) {
+        $inventory->delete();
 
         return response()->json([
             'success' => 'true',

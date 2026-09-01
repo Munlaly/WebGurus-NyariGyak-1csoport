@@ -20,7 +20,7 @@ Route::middleware('auth')->group(function(){
 
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
         Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts'); 
-        Route::delete('inventory/{id}', [UserInventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::delete('inventory/{inventory}', [UserInventoryController::class, 'destroy'])->name('inventory.destroy');
 
         Route::prefix('settings')->name('settings.')->group(function () {
         
