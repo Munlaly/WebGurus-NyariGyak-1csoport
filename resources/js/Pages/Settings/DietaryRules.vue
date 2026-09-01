@@ -36,6 +36,13 @@ const activeDietsStringModel = computed({
   },
 });
 
+const hasConflict = computed(() => {
+  const selectedBaseDiets = form.activeDiets.filter((id) =>
+    props.baseDietIds.includes(id),
+  );
+  return selectedBaseDiets.length > 1;
+});
+
 function removeIngredient(idToRemove: number) {
   form.dislikedIngredients = form.dislikedIngredients.filter(
     (item) => item.id !== idToRemove,
@@ -120,11 +127,18 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <div class="md:col-span-2">
-          <UFormField :error="form.errors.activeDiets">
+          <UFormField
+            :error="
+              hasConflict
+                ? 'You cannot select conflicting baseline diets (e.g., Vegetarian and Omnivore). Please select only one.'
+                : undefined
+            "
+          >
             <UCheckboxGroup
               v-model="activeDietsStringModel"
               :items="dietaryItems"
               size="lg"
+              variant="card"
             />
           </UFormField>
         </div>
@@ -189,6 +203,7 @@ onBeforeUnmount(() => {
           type="submit"
           color="primary"
           :loading="form.processing"
+          :disabled="hasConflict"
           class="px-6 py-2 text-sm md:px-8 md:py-3 md:text-base lg:text-lg"
         >
           Save Rules

@@ -93,19 +93,36 @@ class SettingsController extends Controller
     {
         $user = $request->user();
 
+        $baseDietIds = DietaryOption::whereIn('slug', ['vegan', 'vegetarian', 'pescatarian', 'omnivore'])
+            ->pluck('id')
+            ->toArray();
+
         return Inertia::render('Settings/DietaryRules', [
             'activeDiets' => $user->dietaryOptions()->pluck('dietary_options.id')->toArray(),
             'dislikedIngredients' => $user->dislikedIngredients()
                 ->select('ingredients.id', 'ingredients.name as label')
                 ->get(),
             'availableDietOptions' => DietaryOption::select('id', 'name', 'description')->get(),
+            'baseDietIds' => $baseDietIds, 
         ]);
     }
 
     public function updateRules(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-        'activeDiets' => 'present|array',
+        'activeDiets' => [
+                'present',
+                'array',
+                function($attribute, $value, $fail){
+                    $selectedSlugs = DietaryOption::whereIn('id', $value)->pluck('slug')->toArray();
+                    $baseDiets = ['vegan', 'vegetarian', 'pescatarian', 'omnivore'];
+                    $selectedBaseDiets = array_intersect($baseDiets, $selectedSlugs);
+
+                    if (count($selectedBaseDiets) > 1) {
+                        $fail('You cannot select conflicting baseline diets. Please select only one primary diet.');
+                    }
+                }
+        ],
         'activeDiets.*' => 'integer|exists:dietary_options,id',
         'dislikedIngredients' => 'present|array',
         'dislikedIngredients.*' => 'integer|exists:ingredients,id',

@@ -35,6 +35,7 @@ export interface RulesProps {
     name: string;
     description: string | null;
   }[];
+  baseDietIds: number[];
 }
 
 export interface LogisticsProps {
