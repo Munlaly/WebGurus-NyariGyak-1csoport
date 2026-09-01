@@ -27,9 +27,9 @@ function onSubmit() {
   >
     <div class="flex min-h-screen w-full">
       <main
-        class="bg-surface-container-lowest flex w-full flex-col items-center justify-center overflow-y-auto p-6 sm:p-12 lg:w-1/2 lg:p-16"
+        class="bg-surface-container-low z-10 flex w-full shrink-0 flex-col justify-center px-6 py-10 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:w-1/2 md:px-16 lg:w-125"
       >
-        <div class="w-full max-w-md">
+        <div class="mx-auto w-full max-w-md">
           <header class="mb-8">
             <h2
               class="font-display text-primary mb-2 text-[24px] font-bold tracking-tight"
@@ -104,7 +104,9 @@ function onSubmit() {
         </div>
       </main>
 
-      <aside class="bg-surface-variant relative hidden w-1/2 lg:block">
+      <aside
+        class="bg-surface-variant relative hidden grow overflow-hidden md:block"
+      >
         <img
           alt="Fresh ingredients photography"
           class="absolute inset-0 h-full w-full object-cover"
