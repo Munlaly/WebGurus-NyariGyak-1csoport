@@ -191,7 +191,7 @@ function scrollToItem(id: number) {
             />
           </div>
           <button
-            class="bg-tertiary-fixed text-on-tertiary-container font-body-md text-body-md relative flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-sm transition-opacity hover:opacity-90 hover:shadow-md"
+            class="bg-primary text-on-primary font-body-md text-body-md relative flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-sm transition-opacity hover:opacity-90 hover:shadow-md"
           >
             <span class="material-symbols-outlined text-[20px]"
               >fact_check</span

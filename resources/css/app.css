@@ -35,7 +35,7 @@
 
 @layer base {
   .dark {
-    /* Rich purple primary accent */
+    /* Rich purple primary accent for dark mode */
     --color-primary: #d0bcff;
     --color-on-primary: #381e72;
 
@@ -45,24 +45,25 @@
     --color-error-container: #4a1512;
     --color-on-error-container: #f9dedc;
 
-    /* Unified background & surface tones so the sidebar blends seamlessly */
-    --color-background: #121214;
-    --color-on-background: #e4e1e6;
-    --color-surface: #121214;
-    --color-surface-dim: #121214;
-    --color-on-surface: #e4e1e6;
-    --color-surface-variant: #2d2b32;
-    --color-on-surface-variant: #cac4d0;
-    --color-outline-variant: #49454f;
-
-    /* Seamless container hierarchy */
-    --color-surface-container-lowest: #0a0a0c;
-    --color-surface-container-low: #18161c;
-    --color-surface-container: #201e25;
-    --color-surface-container-high: #2a2830;
-
-    /* Soft, muted green for safe states */
     --color-tertiary-fixed: #0f381f;
     --color-on-tertiary-container: #a7f3d0;
+
+    /* Ultra-Dark Midnight Blue Palette */
+    --color-background: #050914; /* Dashboard background (Deep midnight blue) */
+    --color-on-background: #f8fafc;
+
+    --color-surface: #050914;
+    --color-surface-dim: #010308; /* Left Navigation Bar (Almost pure black with a blue tint) */
+    --color-on-surface: #f8fafc;
+
+    --color-surface-variant: #111a30;
+    --color-on-surface-variant: #94a3b8;
+    --color-outline-variant: #1e2b48;
+
+    /* Card and container hierarchy */
+    --color-surface-container-lowest: #03060f; /* Slightly darker than background for cards */
+    --color-surface-container-low: #050914;
+    --color-surface-container: #0b1224;
+    --color-surface-container-high: #111a30;
   }
 }

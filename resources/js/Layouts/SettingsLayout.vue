@@ -56,10 +56,10 @@ const navigationTabs = computed(() => {
       ...tab,
       url: route(tab.routeName),
       linkClass: isActive
-        ? 'border-primary text-primary dark:text-primary-400'
+        ? 'border-primary text-primary'
         : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
       iconClass: isActive
-        ? 'text-primary dark:text-primary-400'
+        ? 'text-primary'
         : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-400',
     };
   });
