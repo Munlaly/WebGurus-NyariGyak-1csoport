@@ -19,11 +19,16 @@ Route::middleware('auth')->group(function(){
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
-        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts'); 
-        Route::delete('inventory/{inventory}', [UserInventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts');
+
+        Route::prefix('inventory')->name('inventory.')->group(function () {
+            Route::get('/', [UserInventoryController::class, 'index'])->name('index');
+            Route::post('/', [UserInventoryController::class, 'store'])->name('store');
+            Route::put('/{id}', [UserInventoryController::class, 'update'])->name('update');
+            Route::delete('/{inventory}', [UserInventoryController::class, 'destroy'])->name('destroy');
+        });
 
         Route::prefix('settings')->name('settings.')->group(function () {
-        
             Route::get('targets', [SettingsController::class, 'targets'])->name('targets');
             Route::put('targets', [SettingsController::class, 'updateTargets']);
             
