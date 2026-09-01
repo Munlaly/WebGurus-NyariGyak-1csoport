@@ -23,7 +23,7 @@ function onSubmit() {
     <main class="flex min-h-screen w-full flex-col md:flex-row">
       <!-- Left Side (Form Area) -->
       <section
-        class="bg-surface-container-low z-10 flex w-full shrink-0 flex-col justify-center px-6 py-10 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:w-1/2 md:px-16 lg:w-125"
+        class="bg-surface-container-low z-10 flex w-full grow shrink-0 flex-col justify-center px-6 py-10 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:grow-0 md:w-1/2 md:px-16 lg:w-125"
       >
         <div class="mx-auto w-full max-w-md space-y-8">
           <!-- Header -->
