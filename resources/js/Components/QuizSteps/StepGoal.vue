@@ -45,6 +45,12 @@ const goalItems = [
           :items="goalItems"
           variant="card"
           size="lg"
+          color="primary"
+          :ui="{
+            label: 'text-slate-900 dark:text-white font-semibold',
+            description: 'text-slate-700 dark:text-gray-300 text-sm',
+            item: 'mt-2 border-slate-300',
+          }"
         />
       </UFormField>
     </div>
