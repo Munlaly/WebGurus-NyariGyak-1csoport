@@ -19,8 +19,6 @@
   --color-tertiary-fixed: #dcfce7;
   --color-on-tertiary-container: #166534;
 
-  --color-background: #fffbfe;
-  --color-on-background: #1c1b1f;
   --color-surface: #fffbfe;
   --color-on-surface: #1c1b1f;
   --color-surface-variant: #e7e0ec;
@@ -37,28 +35,34 @@
 
 @layer base {
   .dark {
-    /* Changed from light purple to bright green for dark mode */
-    --color-primary: #4ade80;
-    --color-on-primary: #052e16;
+    /* Rich purple primary accent */
+    --color-primary: #d0bcff;
+    --color-on-primary: #381e72;
 
+    /* Balanced dark error/warning tones */
     --color-error: #f2b8b5;
     --color-on-error: #601410;
-    --color-error-container: #8c1d18;
+    --color-error-container: #4a1512;
     --color-on-error-container: #f9dedc;
 
-    --color-background: #1c1b1f;
-    --color-on-background: #e6e1e5;
-    --color-surface: #1c1b1f;
-    --color-on-surface: #e6e1e5;
-    --color-surface-variant: #49454f;
+    /* Unified background & surface tones so the sidebar blends seamlessly */
+    --color-background: #121214;
+    --color-on-background: #e4e1e6;
+    --color-surface: #121214;
+    --color-surface-dim: #121214;
+    --color-on-surface: #e4e1e6;
+    --color-surface-variant: #2d2b32;
     --color-on-surface-variant: #cac4d0;
     --color-outline-variant: #49454f;
 
-    --color-surface-container-lowest: #0f0d13;
-    --color-surface-container-low: #1d1b20;
-    --color-surface-container: #211f26;
-    --color-surface-container-high: #2b2930;
-    --color-tertiary-fixed: #14532d;
-    --color-on-tertiary-container: #bbf7d0;
+    /* Seamless container hierarchy */
+    --color-surface-container-lowest: #0a0a0c;
+    --color-surface-container-low: #18161c;
+    --color-surface-container: #201e25;
+    --color-surface-container-high: #2a2830;
+
+    /* Soft, muted green for safe states */
+    --color-tertiary-fixed: #0f381f;
+    --color-on-tertiary-container: #a7f3d0;
   }
 }

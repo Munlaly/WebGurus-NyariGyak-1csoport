@@ -61,14 +61,17 @@ const getItemState = (item: InventoryItem) => {
   const unit = item.ingredient?.base_unit || 'units';
   const qtyText = `${item.amount_left ?? 0} ${unit}`;
 
-  const baseCardClass = 'border-surface-variant/50 bg-surface-container-lowest';
+  const baseCardClass = 'border-surface-variant/40 bg-surface-container-lowest';
+
   if (diffDays !== null && diffDays < 0) {
     return {
       statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
       expText: 'Expired',
       cardClass: baseCardClass,
-      iconClass: 'bg-surface-variant text-on-surface-variant',
-      badgeClass: 'bg-surface-variant text-on-surface-variant',
+      iconClass:
+        'bg-red-50 text-red-700 dark:bg-rose-950/60 dark:text-rose-300 dark:border dark:border-rose-900/40',
+      badgeClass:
+        'bg-red-50 text-red-700 dark:bg-rose-950/60 dark:text-rose-300',
     };
   }
 
@@ -83,8 +86,10 @@ const getItemState = (item: InventoryItem) => {
       statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
       expText: expText,
       cardClass: baseCardClass,
-      iconClass: 'bg-error-container text-on-error-container',
-      badgeClass: 'bg-error-container text-on-error-container',
+      iconClass:
+        'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 dark:border dark:border-orange-900/40',
+      badgeClass:
+        'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
     };
   }
 
@@ -96,9 +101,9 @@ const getItemState = (item: InventoryItem) => {
       expText: expText,
       cardClass: baseCardClass,
       iconClass:
-        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+        'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 dark:border dark:border-amber-900/40',
       badgeClass:
-        'bg-amber-100/90 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+        'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
     };
   }
 
@@ -106,8 +111,10 @@ const getItemState = (item: InventoryItem) => {
     statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
     expText: null,
     cardClass: baseCardClass,
-    iconClass: 'bg-tertiary-fixed text-on-tertiary-container',
-    badgeClass: 'bg-tertiary-fixed text-on-tertiary-container',
+    iconClass:
+      'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border dark:border-emerald-900/40',
+    badgeClass:
+      'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
   };
 };
 
@@ -184,7 +191,7 @@ function scrollToItem(id: number) {
             />
           </div>
           <button
-            class="bg-secondary-fixed text-on-secondary-container font-body-md text-body-md hover:bg-secondary-fixed-dim relative flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-sm transition-colors hover:shadow-md"
+            class="bg-tertiary-fixed text-on-tertiary-container font-body-md text-body-md relative flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-sm transition-opacity hover:opacity-90 hover:shadow-md"
           >
             <span class="material-symbols-outlined text-[20px]"
               >fact_check</span
