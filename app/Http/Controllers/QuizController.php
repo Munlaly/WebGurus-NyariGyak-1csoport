@@ -52,6 +52,7 @@ class QuizController extends Controller
            'meal_plan_preferences' => [
                 'present',
                 'array',
+                'min:1',
                 function($attribute, $value, $fail){
                     $selectedSlugs = DietaryOption::whereIn('id', $value)->pluck('slug')->toArray();
                     $baseDiets = ['vegan', 'vegetarian', 'pescatarian', 'omnivore'];
