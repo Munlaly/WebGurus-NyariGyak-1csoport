@@ -34,39 +34,9 @@ interface QuizPageProps extends PageProps {
   };
   dietaryOptions: { id: number; name: string; description: string | null }[];
 }
+const page = usePage<QuizPageProps>();
 
 const dislikedIngredientsObjects = ref<{ id: number; label: string }[]>([]);
-
-watch(
-  dislikedIngredientsObjects,
-  (newSelection) => {
-    form.disliked_ingredients = newSelection.map((item) => item.id);
-  },
-  { deep: true },
-);
-
-// Grab data from shared props
-const page = usePage<QuizPageProps>();
-const username = computed(() => page.props.auth?.user?.username || 'Guest');
-const dietaryOptions = computed(() => page.props.dietaryOptions || []);
-
-const stepConfig = [
-  { type: 'intro', schema: null },
-  { type: 'question', schema: stepGoalSchema },
-  { type: 'question', schema: stepMetabolismSchema },
-  { type: 'question', schema: stepExerciseSchema },
-  { type: 'question', schema: stepDietSchema },
-  { type: 'question', schema: stepDislikedIngredientsSchema },
-  { type: 'question', schema: stepPrepTimeSchema },
-  { type: 'question', schema: stepHouseholdSchema },
-  { type: 'summary', schema: quizFormSchema },
-];
-
-const currentStep = ref(0);
-
-const totalQuestions = computed(
-  () => stepConfig.filter((s) => s.type === 'question').length,
-);
 
 const form = useForm({
   fitness_goal: '' as QuizFormData['fitness_goal'],
@@ -91,44 +61,25 @@ const form = useForm({
 });
 
 const STORAGE_KEY = 'meal_plan_quiz_progress';
+const stepConfig = [
+  { type: 'intro', schema: null },
+  { type: 'question', schema: stepGoalSchema },
+  { type: 'question', schema: stepMetabolismSchema },
+  { type: 'question', schema: stepExerciseSchema },
+  { type: 'question', schema: stepDietSchema },
+  { type: 'question', schema: stepDislikedIngredientsSchema },
+  { type: 'question', schema: stepPrepTimeSchema },
+  { type: 'question', schema: stepHouseholdSchema },
+  { type: 'summary', schema: quizFormSchema },
+];
 
-// Load saved state
-onMounted(() => {
-  const saved = sessionStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
+const currentStep = ref(0);
 
-      if (parsed.currentStep !== undefined) {
-        currentStep.value = parsed.currentStep;
-      }
-
-      if (parsed.dislikedIngredientsObjects) {
-        dislikedIngredientsObjects.value = parsed.dislikedIngredientsObjects;
-      }
-
-      if (parsed.form) {
-        Object.assign(form, parsed.form);
-      }
-    } catch (e) {
-      console.error('Failed to parse session storage for quiz', e);
-      sessionStorage.removeItem(STORAGE_KEY);
-    }
-  }
-});
-
-watch(
-  () => ({
-    form: form.data(),
-    currentStep: currentStep.value,
-    dislikedIngredientsObjects: dislikedIngredientsObjects.value,
-  }),
-  (newState) => {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-  },
-  { deep: true },
+const username = computed(() => page.props.auth?.user?.username || 'Guest');
+const dietaryOptions = computed(() => page.props.dietaryOptions || []);
+const totalQuestions = computed(
+  () => stepConfig.filter((s) => s.type === 'question').length,
 );
-
 const progressPercentage = computed(() => {
   const step = stepConfig[currentStep.value];
 
@@ -178,6 +129,51 @@ function handleNext() {
     currentStep.value++;
   }
 }
+
+watch(
+  dislikedIngredientsObjects,
+  (newSelection) => {
+    form.disliked_ingredients = newSelection.map((item) => item.id);
+  },
+  { deep: true },
+);
+
+watch(
+  () => ({
+    form: form.data(),
+    currentStep: currentStep.value,
+    dislikedIngredientsObjects: dislikedIngredientsObjects.value,
+  }),
+  (newState) => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+  },
+  { deep: true },
+);
+
+// Load saved state
+onMounted(() => {
+  const saved = sessionStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+
+      if (parsed.currentStep !== undefined) {
+        currentStep.value = parsed.currentStep;
+      }
+
+      if (parsed.dislikedIngredientsObjects) {
+        dislikedIngredientsObjects.value = parsed.dislikedIngredientsObjects;
+      }
+
+      if (parsed.form) {
+        Object.assign(form, parsed.form);
+      }
+    } catch (e) {
+      console.error('Failed to parse session storage for quiz', e);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  }
+});
 </script>
 
 <template>
