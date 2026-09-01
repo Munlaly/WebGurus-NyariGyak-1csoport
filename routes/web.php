@@ -16,7 +16,7 @@ use App\Http\Controllers\MealPlanController;
 
 Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
         Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts'); 
@@ -41,7 +41,7 @@ Route::middleware('auth')->group(function(){
 
             Route::get('security', [SettingsController::class, 'security'])->name('security');
             Route::patch('security/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
-            Route::put('security/password', [SettingsController::class, 'updatePassword'])->name('password.update');
+            Route::post('security/password-link', [SettingsController::class, 'sendPasswordResetLink'])->name('password.link');
         });
 
         Route::prefix('meal-plan')->name('meal-plan.')->group(function () {
