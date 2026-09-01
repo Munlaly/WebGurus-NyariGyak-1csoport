@@ -1,26 +1,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
+import { useActionModal } from '../Composables/useActionModal';
 
-interface Ingredient {
-  id: number;
-  name: string;
-  category?: string;
-  base_unit?: string;
-  emoji?: string;
-}
-
-interface InventoryItem {
-  id: number;
-  user_id: number;
-  ingredient_id: number;
-  amount_left: number | null;
-  status: 'FULL' | 'OPENED' | 'LOW';
-  expiration_date: string | null;
-  is_frozen: boolean;
-  ingredient: Ingredient;
-}
+import {
+  Ingredient,
+  InventoryItem,
+  getStatusLabel,
+  getItemState,
+} from '../utils/inventory';
 
 const props = defineProps<{
   attentionNeeded: InventoryItem[];
@@ -28,123 +17,33 @@ const props = defineProps<{
   currentScore: number;
 }>();
 
-const getStatusLabel = (status: 'FULL' | 'OPENED' | 'LOW') => {
-  switch (status) {
-    case 'LOW':
-      return 'Low Stock';
-    case 'OPENED':
-      return 'Opened';
-    case 'FULL':
-    default:
-      return 'Full';
-  }
-};
-
-const getDiffDays = (dateStr: string | null) => {
-  if (!dateStr) return null;
-  const [datePart] = dateStr.split('T');
-  const [y, m, d] = datePart.split('-').map(Number);
-  const exp = new Date(y, m - 1, d).getTime();
-
-  const nowObj = new Date();
-  const now = new Date(
-    nowObj.getFullYear(),
-    nowObj.getMonth(),
-    nowObj.getDate(),
-  ).getTime();
-
-  return Math.round((exp - now) / (1000 * 60 * 60 * 24));
-};
-
-const getItemState = (item: InventoryItem) => {
-  const diffDays = getDiffDays(item.expiration_date);
-  const unit = item.ingredient?.base_unit || 'units';
-  const qtyText = `${item.amount_left ?? 0} ${unit}`;
-
-  const baseCardClass = 'border-surface-variant/40 bg-surface-container-lowest';
-
-  if (diffDays !== null && diffDays < 0) {
-    return {
-      statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
-      expText: 'Expired',
-      cardClass: baseCardClass,
-      iconClass:
-        'bg-red-50 text-red-700 dark:bg-rose-950/60 dark:text-rose-300 dark:border dark:border-rose-900/40',
-      badgeClass:
-        'bg-red-50 text-red-700 dark:bg-rose-950/60 dark:text-rose-300',
-    };
-  }
-
-  if (item.status === 'LOW' || (diffDays !== null && diffDays <= 1)) {
-    const expText =
-      diffDays === 0
-        ? 'Expiring today'
-        : diffDays === 1
-          ? 'Expiring tomorrow'
-          : 'Critical';
-    return {
-      statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
-      expText: expText,
-      cardClass: baseCardClass,
-      iconClass:
-        'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300 dark:border dark:border-orange-900/40',
-      badgeClass:
-        'bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
-    };
-  }
-
-  if (item.status === 'OPENED' || (diffDays !== null && diffDays <= 7)) {
-    const expText =
-      diffDays !== null ? `Expiring in ${diffDays} days` : 'Urgent';
-    return {
-      statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
-      expText: expText,
-      cardClass: baseCardClass,
-      iconClass:
-        'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 dark:border dark:border-amber-900/40',
-      badgeClass:
-        'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
-    };
-  }
-
-  return {
-    statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
-    expText: null,
-    cardClass: baseCardClass,
-    iconClass:
-      'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border dark:border-emerald-900/40',
-    badgeClass:
-      'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
-  };
-};
-
 const searchQuery = ref('');
 const selectedCategory = ref('All');
 const categories = ['All', 'Produce', 'Meat & Fish', 'Dairy', 'Dry Goods'];
-const isShoppingListModalOpen = ref(false);
-const selectedIngredient = ref(null);
 
-const shoppingListForm = useForm({
-  ingredient_id: null,
-  quantity: 1,
-  unit: 'pcs',
-});
+const shoppingModal = useActionModal<
+  Ingredient,
+  { ingredient_id: number | null; quantity: number; unit: string }
+>(
+  () => route('shopping-list.store'),
+  {
+    ingredient_id: null,
+    quantity: 1,
+    unit: 'pcs',
+  },
+  'post',
+);
 
-const openShoppingListModal = (ingredient) => {
-  selectedIngredient.value = ingredient;
-  shoppingListForm.ingredient_id = ingredient.id;
-  shoppingListForm.quantity = 1;
-  isShoppingListModalOpen.value = true;
-};
-
-const submitToShoppingList = () => {
-  shoppingListForm.post(route('shopping-list.store'), {
-    preserveScroll: true,
-    onSuccess: () => {
-      isShoppingListModalOpen.value = false;
-    },
-  });
-};
+const decreaseModal = useActionModal<
+  InventoryItem,
+  { amount_to_remove: number }
+>(
+  (item) => route('inventory.decrease', item.id),
+  {
+    amount_to_remove: 1,
+  },
+  'put',
+);
 
 const filteredInventory = computed(() => {
   return props.inventory.filter((item) => {
@@ -153,20 +52,6 @@ const filteredInventory = computed(() => {
       .includes(searchQuery.value.toLowerCase());
   });
 });
-
-const updateQuantity = (item: InventoryItem, delta: number) => {
-  const newAmount = (item.amount_left ?? 0) + delta;
-  if (newAmount < 0) return;
-
-  router.put(
-    route('inventory.update', item.id),
-    {
-      amount_left: newAmount,
-      status: newAmount === 0 ? 'LOW' : item.status,
-    },
-    { preserveScroll: true },
-  );
-};
 
 const deleteItem = (id: number) => {
   if (confirm('Are you sure you want to remove this item?')) {
@@ -336,17 +221,34 @@ function scrollToItem(id: number) {
               </span>
             </div>
 
-            <!-- Hover State: Actions (Only + and Delete) -->
+            <!-- Hover State: Actions -->
             <div
               class="absolute bottom-4 left-0 flex w-full translate-y-4 justify-center gap-2 px-2 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100"
             >
+              <!-- Decrease Quantity Button -->
+              <button
+                class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
+                title="Decrease quantity"
+                @click.stop="decreaseModal.open(item, { amount_to_remove: 1 })"
+              >
+                <span class="material-symbols-outlined text-sm">remove</span>
+              </button>
+
+              <!-- Add to Shopping List Button -->
               <button
                 class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
                 title="Add to Shopping List"
-                @click.stop="openShoppingListModal(item.ingredient)"
+                @click.stop="
+                  shoppingModal.open(item.ingredient, {
+                    ingredient_id: item.ingredient.id,
+                    quantity: 1,
+                  })
+                "
               >
                 <span class="material-symbols-outlined text-sm">add</span>
               </button>
+
+              <!-- Delete Item Button -->
               <button
                 class="bg-error-container text-on-error-container hover:bg-error hover:text-on-error ml-1 flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
                 title="Delete item"
@@ -369,9 +271,9 @@ function scrollToItem(id: number) {
       leave-to-class="opacity-0 scale-95"
     >
       <div
-        v-if="isShoppingListModalOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-        @click.self="isShoppingListModalOpen = false"
+        v-if="shoppingModal.isOpen"
+        class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+        @click.self="shoppingModal.isOpen = false"
       >
         <div
           class="bg-surface border-outline-variant w-full max-w-sm rounded-2xl border p-6 shadow-2xl dark:bg-gray-900"
@@ -384,25 +286,27 @@ function scrollToItem(id: number) {
             </h2>
             <button
               class="text-on-surface-variant hover:text-on-surface transition-colors"
-              @click="isShoppingListModalOpen = false"
+              @click="shoppingModal.isOpen = false"
             >
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
 
           <div
-            v-if="selectedIngredient"
+            v-if="shoppingModal.selectedItem"
             class="bg-surface-container-lowest border-outline-variant/30 mb-6 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
           >
-            <span class="text-4xl">{{ selectedIngredient.emoji || '📦' }}</span>
+            <span class="text-4xl">{{
+              shoppingModal.selectedItem.emoji || '📦'
+            }}</span>
             <span class="font-label-lg text-on-surface font-bold capitalize">{{
-              selectedIngredient.name
+              shoppingModal.selectedItem.name
             }}</span>
           </div>
 
           <form
             class="flex flex-col gap-5"
-            @submit.prevent="submitToShoppingList"
+            @submit.prevent="shoppingModal.submit"
           >
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -411,7 +315,7 @@ function scrollToItem(id: number) {
                   >Quantity</label
                 >
                 <input
-                  v-model="shoppingListForm.quantity"
+                  v-model="shoppingModal.form.quantity"
                   type="number"
                   min="0.1"
                   step="0.1"
@@ -425,7 +329,7 @@ function scrollToItem(id: number) {
                   >Unit</label
                 >
                 <select
-                  v-model="shoppingListForm.unit"
+                  v-model="shoppingModal.form.unit"
                   class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
                 >
                   <option value="pcs">Pieces</option>
@@ -441,16 +345,106 @@ function scrollToItem(id: number) {
               <button
                 type="button"
                 class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex-1 rounded-xl py-3 font-bold transition-colors active:scale-95"
-                @click="isShoppingListModalOpen = false"
+                @click="shoppingModal.isOpen = false"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                :disabled="shoppingListForm.processing"
+                :disabled="shoppingModal.form.processing"
                 class="bg-primary text-on-primary flex-1 rounded-xl py-3 font-bold shadow-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
               >
                 Add Item
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Decrease Quantity Modal -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div
+        v-if="decreaseModal.isOpen"
+        class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+        @click.self="decreaseModal.isOpen = false"
+      >
+        <div
+          class="bg-surface border-outline-variant w-full max-w-sm rounded-2xl border p-6 shadow-2xl dark:bg-gray-900"
+        >
+          <div class="mb-6 flex items-center justify-between">
+            <h2
+              class="font-headline-sm text-headline-sm text-on-surface font-bold"
+            >
+              Decrease Quantity
+            </h2>
+            <button
+              class="text-on-surface-variant hover:text-on-surface transition-colors"
+              @click="decreaseModal.isOpen = false"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <div
+            v-if="decreaseModal.selectedItem"
+            class="bg-surface-container-lowest border-outline-variant/30 mb-6 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+          >
+            <span class="text-4xl">{{
+              decreaseModal.selectedItem.ingredient.emoji || '📦'
+            }}</span>
+            <div>
+              <span
+                class="font-label-lg text-on-surface block font-bold capitalize"
+                >{{ decreaseModal.selectedItem.ingredient.name }}</span
+              >
+              <span class="font-body-sm text-on-surface-variant"
+                >Current: {{ decreaseModal.selectedItem.amount_left }}
+                {{ decreaseModal.selectedItem.ingredient.base_unit }}</span
+              >
+            </div>
+          </div>
+
+          <form
+            class="flex flex-col gap-5"
+            @submit.prevent="decreaseModal.submit"
+          >
+            <div>
+              <label
+                class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+                >Amount to remove</label
+              >
+              <input
+                v-model="decreaseModal.form.amount_to_remove"
+                type="number"
+                min="0.1"
+                step="0.1"
+                class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+                required
+              />
+            </div>
+
+            <div class="mt-2 flex gap-3">
+              <button
+                type="button"
+                class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex-1 rounded-xl py-3 font-bold transition-colors active:scale-95"
+                @click="decreaseModal.isOpen = false"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                :disabled="decreaseModal.form.processing"
+                class="bg-error text-on-error flex-1 rounded-xl py-3 font-bold shadow-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+              >
+                Remove
               </button>
             </div>
           </form>

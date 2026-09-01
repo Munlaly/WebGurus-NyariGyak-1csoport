@@ -84,7 +84,40 @@ class UserInventoryController extends Controller
         ]);
 
         $inventory->update($validated);
-        return back()->with('success', 'Item updated successfully.');
+        $inventory->load('ingredient');
+
+        $amount = $inventory->amount_left ?? 0;
+        $unit = $inventory->ingredient->base_unit ?? '';
+        $itemName = $inventory->ingredient->name ?? 'item';
+        $amountText = trim("{$amount} {$unit}");
+
+        return back()->with('success', "Updated {$itemName} quantity to {$amountText} successfully.");
+    }
+
+    public function decrease(Request $request, UserInventory $inventory) {
+        if($inventory->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'amount_to_remove' => 'required|numeric|min:0.1',
+        ]);
+
+        $current = $inventory->amount_left ?? 0;
+        $newAmount = max(0, $current - $validated['amount_to_remove']);
+
+        $inventory->update([
+            'amount_left' => $newAmount,
+            'status' => $newAmount == 0 ? 'LOW' : $inventory->status,
+        ]);
+
+        $inventory->load('ingredient');
+        $unit = $inventory->ingredient->base_unit ?? '';
+        $itemName = $inventory->ingredient->name ?? 'item';
+        $removeAmountText = trim("{$validated['amount_to_remove']} {$unit}");
+        $newAmountText = trim("{$newAmount} {$unit}");
+
+        return back()->with('success', "Removed {$removeAmountText} of {$itemName}. New balance: {$newAmountText}.");
     }
 
     public function destroy(Request $request, UserInventory $inventory) {
