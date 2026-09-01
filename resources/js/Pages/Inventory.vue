@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import { useActionModal } from '../Composables/useActionModal';
+import ActionModal from '../Components/ActionModal.vue';
 
 import {
   Ingredient,
@@ -262,194 +263,105 @@ function scrollToItem(id: number) {
       </section>
     </div>
     <!-- Shopping List Modal -->
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-95"
+    <ActionModal
+      :show="shoppingModal.isOpen"
+      title="Add to Shopping List"
+      :processing="shoppingModal.form.processing"
+      submit-text="Add Item"
+      submit-variant="primary"
+      @close="shoppingModal.isOpen = false"
+      @submit="shoppingModal.submit"
     >
       <div
-        v-if="shoppingModal.isOpen"
-        class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-        @click.self="shoppingModal.isOpen = false"
+        v-if="shoppingModal.selectedItem"
+        class="bg-surface-container-lowest border-outline-variant/30 mb-2 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
       >
-        <div
-          class="bg-surface border-outline-variant w-full max-w-sm rounded-2xl border p-6 shadow-2xl dark:bg-gray-900"
-        >
-          <div class="mb-6 flex items-center justify-between">
-            <h2
-              class="font-headline-sm text-headline-sm text-on-surface font-bold"
-            >
-              Add to Shopping List
-            </h2>
-            <button
-              class="text-on-surface-variant hover:text-on-surface transition-colors"
-              @click="shoppingModal.isOpen = false"
-            >
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
+        <span class="text-4xl">{{
+          shoppingModal.selectedItem.emoji || '📦'
+        }}</span>
+        <span class="font-label-lg text-on-surface font-bold capitalize">
+          {{ shoppingModal.selectedItem.name }}
+        </span>
+      </div>
 
-          <div
-            v-if="shoppingModal.selectedItem"
-            class="bg-surface-container-lowest border-outline-variant/30 mb-6 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+            >Quantity</label
           >
-            <span class="text-4xl">{{
-              shoppingModal.selectedItem.emoji || '📦'
-            }}</span>
-            <span class="font-label-lg text-on-surface font-bold capitalize">{{
-              shoppingModal.selectedItem.name
-            }}</span>
-          </div>
-
-          <form
-            class="flex flex-col gap-5"
-            @submit.prevent="shoppingModal.submit"
+          <input
+            v-model="shoppingModal.form.quantity"
+            type="number"
+            min="0.1"
+            step="0.1"
+            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+            required
+          />
+        </div>
+        <div>
+          <label
+            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+            >Unit</label
           >
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-                  >Quantity</label
-                >
-                <input
-                  v-model="shoppingModal.form.quantity"
-                  type="number"
-                  min="0.1"
-                  step="0.1"
-                  class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-                  >Unit</label
-                >
-                <select
-                  v-model="shoppingModal.form.unit"
-                  class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-                >
-                  <option value="pcs">Pieces</option>
-                  <option value="g">Grams</option>
-                  <option value="kg">Kilos</option>
-                  <option value="ml">mL</option>
-                  <option value="l">Liters</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="mt-2 flex gap-3">
-              <button
-                type="button"
-                class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex-1 rounded-xl py-3 font-bold transition-colors active:scale-95"
-                @click="shoppingModal.isOpen = false"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="shoppingModal.form.processing"
-                class="bg-primary text-on-primary flex-1 rounded-xl py-3 font-bold shadow-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
-              >
-                Add Item
-              </button>
-            </div>
-          </form>
+          <select
+            v-model="shoppingModal.form.unit"
+            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+          >
+            <option value="pcs">Pieces</option>
+            <option value="g">Grams</option>
+            <option value="kg">Kilos</option>
+            <option value="ml">mL</option>
+            <option value="l">Liters</option>
+          </select>
         </div>
       </div>
-    </Transition>
+    </ActionModal>
 
     <!-- Decrease Quantity Modal -->
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 scale-95"
-      enter-to-class="opacity-100 scale-100"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 scale-100"
-      leave-to-class="opacity-0 scale-95"
+    <ActionModal
+      :show="decreaseModal.isOpen"
+      title="Decrease Quantity"
+      :processing="decreaseModal.form.processing"
+      submit-text="Remove"
+      submit-variant="error"
+      @close="decreaseModal.isOpen = false"
+      @submit="decreaseModal.submit"
     >
       <div
-        v-if="decreaseModal.isOpen"
-        class="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-        @click.self="decreaseModal.isOpen = false"
+        v-if="decreaseModal.selectedItem"
+        class="bg-surface-container-lowest border-outline-variant/30 mb-2 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
       >
-        <div
-          class="bg-surface border-outline-variant w-full max-w-sm rounded-2xl border p-6 shadow-2xl dark:bg-gray-900"
-        >
-          <div class="mb-6 flex items-center justify-between">
-            <h2
-              class="font-headline-sm text-headline-sm text-on-surface font-bold"
-            >
-              Decrease Quantity
-            </h2>
-            <button
-              class="text-on-surface-variant hover:text-on-surface transition-colors"
-              @click="decreaseModal.isOpen = false"
-            >
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-
-          <div
-            v-if="decreaseModal.selectedItem"
-            class="bg-surface-container-lowest border-outline-variant/30 mb-6 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+        <span class="text-4xl">{{
+          decreaseModal.selectedItem.ingredient.emoji || '📦'
+        }}</span>
+        <div>
+          <span
+            class="font-label-lg text-on-surface block font-bold capitalize"
           >
-            <span class="text-4xl">{{
-              decreaseModal.selectedItem.ingredient.emoji || '📦'
-            }}</span>
-            <div>
-              <span
-                class="font-label-lg text-on-surface block font-bold capitalize"
-                >{{ decreaseModal.selectedItem.ingredient.name }}</span
-              >
-              <span class="font-body-sm text-on-surface-variant"
-                >Current: {{ decreaseModal.selectedItem.amount_left }}
-                {{ decreaseModal.selectedItem.ingredient.base_unit }}</span
-              >
-            </div>
-          </div>
-
-          <form
-            class="flex flex-col gap-5"
-            @submit.prevent="decreaseModal.submit"
-          >
-            <div>
-              <label
-                class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-                >Amount to remove</label
-              >
-              <input
-                v-model="decreaseModal.form.amount_to_remove"
-                type="number"
-                min="0.1"
-                step="0.1"
-                class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-                required
-              />
-            </div>
-
-            <div class="mt-2 flex gap-3">
-              <button
-                type="button"
-                class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex-1 rounded-xl py-3 font-bold transition-colors active:scale-95"
-                @click="decreaseModal.isOpen = false"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="decreaseModal.form.processing"
-                class="bg-error text-on-error flex-1 rounded-xl py-3 font-bold shadow-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
-              >
-                Remove
-              </button>
-            </div>
-          </form>
+            {{ decreaseModal.selectedItem.ingredient.name }}
+          </span>
+          <span class="font-body-sm text-on-surface-variant">
+            Current: {{ decreaseModal.selectedItem.amount_left }}
+            {{ decreaseModal.selectedItem.ingredient.base_unit }}
+          </span>
         </div>
       </div>
-    </Transition>
+
+      <div>
+        <label
+          class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+          >Amount to remove</label
+        >
+        <input
+          v-model="decreaseModal.form.amount_to_remove"
+          type="number"
+          min="0.1"
+          step="0.1"
+          class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+          required
+        />
+      </div>
+    </ActionModal>
   </AuthenticatedLayout>
 </template>
