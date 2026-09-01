@@ -16,7 +16,7 @@ use App\Http\Controllers\MealPlanController;
 
 Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
         Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts'); 

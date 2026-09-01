@@ -52,7 +52,7 @@ const page = usePage();
 const { dismissedIds } = useDismissedAlerts();
 
 const navigation = [
-  { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
+  { name: "Today's Plans", icon: 'calendar_today', href: '/' },
   { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
   { name: 'My Inventory', icon: 'inventory_2', href: '/inventory' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '#' },

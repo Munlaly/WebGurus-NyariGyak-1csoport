@@ -150,7 +150,7 @@ function onSubmit() {
               Already have an account?
               <Link
                 class="text-primary hover:text-primary-container ml-1 font-semibold transition-colors hover:underline"
-                :href="route('index')"
+                :href="route('login')"
               >
                 Log in
               </Link>

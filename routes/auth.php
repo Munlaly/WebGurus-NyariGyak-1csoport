@@ -7,8 +7,8 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('/', [AuthenticatedSessionController::class, 'create'])
-        ->name('index');
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])
+        ->name('login');
 
     Route::post('register', [RegisteredUserController::class, 'store'])->name('register');
 

@@ -51,6 +51,6 @@ class AuthenticatedSessionController extends Controller
         // Regenerate the CSRF token
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('login');
     }
 }
