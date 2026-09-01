@@ -1,2 +1,61 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #6750a4;
+  --color-on-primary: #ffffff;
+  --color-secondary-fixed: #e8def8;
+  --color-secondary-fixed-dim: #ccc2dc;
+  --color-on-secondary-container: #1d192b;
+
+  --color-error: #b3261e;
+  --color-on-error: #ffffff;
+  --color-error-container: #f9dedc;
+  --color-on-error-container: #410e0b;
+
+  --color-tertiary-fixed: #dcfce7;
+  --color-on-tertiary-container: #166534;
+
+  --color-background: #fffbfe;
+  --color-on-background: #1c1b1f;
+  --color-surface: #fffbfe;
+  --color-on-surface: #1c1b1f;
+  --color-surface-variant: #e7e0ec;
+  --color-on-surface-variant: #49454f;
+  --color-surface-tint: #6750a4;
+  --color-outline-variant: #cac4d0;
+
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f7f2fa;
+  --color-surface-container: #f3edf7;
+  --color-surface-container-high: #ece6f0;
+}
+
+@layer base {
+  .dark {
+    --color-primary: #d0bcff;
+    --color-on-primary: #381e72;
+
+    --color-error: #f2b8b5;
+    --color-on-error: #601410;
+    --color-error-container: #8c1d18;
+    --color-on-error-container: #f9dedc;
+
+    --color-background: #1c1b1f;
+    --color-on-background: #e6e1e5;
+    --color-surface: #1c1b1f;
+    --color-on-surface: #e6e1e5;
+    --color-surface-variant: #49454f;
+    --color-on-surface-variant: #cac4d0;
+    --color-outline-variant: #49454f;
+
+    --color-surface-container-lowest: #0f0d13;
+    --color-surface-container-low: #1d1b20;
+    --color-surface-container: #211f26;
+    --color-surface-container-high: #2b2930;
+    --color-tertiary-fixed: #14532d;
+    --color-on-tertiary-container: #bbf7d0;
+  }
+}
