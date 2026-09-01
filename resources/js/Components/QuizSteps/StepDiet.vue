@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
 const props = defineProps<{
   options: {
@@ -7,17 +7,36 @@ const props = defineProps<{
     name: string;
     description: string | null;
   }[];
+  baseDietIds: number[];
 }>();
+
+const emit = defineEmits(['update:isValid']);
 
 const model = defineModel<number[]>({ required: true });
 
-// map the data for UCheckboxGroup
+const hasConflict = computed(() => {
+  const selectedBaseDiets = model.value.filter((id) =>
+    props.baseDietIds.includes(id),
+  );
+  return selectedBaseDiets.length > 1;
+});
+
+//
 const dietaryItems = computed(() => {
-  return props.options.map((diet) => ({
-    value: String(diet.id),
-    label: diet.name,
-    description: diet.description || undefined,
-  }));
+  return props.options.map((diet) => {
+    const isBaseDiet = props.baseDietIds.includes(diet.id);
+    const isSelected = model.value.includes(diet.id);
+    const isConflictingCard = hasConflict.value && isBaseDiet && isSelected;
+
+    return {
+      value: String(diet.id),
+      label: diet.name,
+      description: diet.description || undefined,
+      class: isConflictingCard
+        ? '!ring-0 !border-2 !border-red-500 bg-red-50'
+        : '',
+    };
+  });
 });
 
 // Converts UI's string array to number array
@@ -27,6 +46,14 @@ const stringModel = computed({
     model.value = val.map(Number);
   },
 });
+
+watch(
+  hasConflict,
+  (conflict) => {
+    emit('update:isValid', !conflict);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -46,7 +73,14 @@ const stringModel = computed({
     </div>
 
     <div class="w-full max-w-md text-left">
-      <UFormField name="meal_plan_preferences">
+      <UFormField
+        name="meal_plan_preferences"
+        :error="
+          hasConflict
+            ? 'You cannot select conflicting baseline diets (e.g., Vegetarian and Omnivore). Please select only one.'
+            : undefined
+        "
+      >
         <div class="mt-2 space-y-4">
           <UCheckboxGroup
             v-model="stringModel"

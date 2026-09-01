@@ -33,6 +33,7 @@ interface QuizPageProps extends PageProps {
     } | null;
   };
   dietaryOptions: { id: number; name: string; description: string | null }[];
+  baseDietIds: number[];
 }
 const page = usePage<QuizPageProps>();
 
@@ -74,6 +75,7 @@ const stepConfig = [
 ];
 
 const currentStep = ref(0);
+const isDietStepValid = ref(true);
 
 const username = computed(() => page.props.auth?.user?.username || 'Guest');
 const dietaryOptions = computed(() => page.props.dietaryOptions || []);
@@ -106,6 +108,10 @@ const nextButtonIcon = computed(() => {
 });
 
 const isSubmitDisabled = computed(() => {
+  if (currentStep.value === 4 && !isDietStepValid.value) {
+    return true;
+  }
+
   if (stepConfig[currentStep.value].type === 'summary') {
     return !quizFormSchema.safeParse(form).success;
   }
@@ -256,6 +262,8 @@ onMounted(() => {
             v-else-if="currentStep === 4"
             v-model="form.meal_plan_preferences"
             :options="dietaryOptions"
+            :base-diet-ids="page.props.baseDietIds"
+            @update:is-valid="isDietStepValid = $event"
           />
 
           <StepDislikedIngredients
