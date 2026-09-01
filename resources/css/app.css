@@ -4,8 +4,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-primary: #6750a4;
+  --color-primary: #15803d;
   --color-on-primary: #ffffff;
+
   --color-secondary-fixed: #e8def8;
   --color-secondary-fixed-dim: #ccc2dc;
   --color-on-secondary-container: #1d192b;
@@ -24,7 +25,8 @@
   --color-on-surface: #1c1b1f;
   --color-surface-variant: #e7e0ec;
   --color-on-surface-variant: #49454f;
-  --color-surface-tint: #6750a4;
+
+  --color-surface-tint: #15803d;
   --color-outline-variant: #cac4d0;
 
   --color-surface-container-lowest: #ffffff;
@@ -35,8 +37,9 @@
 
 @layer base {
   .dark {
-    --color-primary: #d0bcff;
-    --color-on-primary: #381e72;
+    /* Changed from light purple to bright green for dark mode */
+    --color-primary: #4ade80;
+    --color-on-primary: #052e16;
 
     --color-error: #f2b8b5;
     --color-on-error: #601410;

@@ -28,7 +28,6 @@ const props = defineProps<{
   currentScore: number;
 }>();
 
-// 1. Operational Status Text (Full, Opened, Low Stock)
 const getStatusLabel = (status: 'FULL' | 'OPENED' | 'LOW') => {
   switch (status) {
     case 'LOW':
@@ -41,7 +40,6 @@ const getStatusLabel = (status: 'FULL' | 'OPENED' | 'LOW') => {
   }
 };
 
-// Robust date difference calculation avoiding timezone bugs
 const getDiffDays = (dateStr: string | null) => {
   if (!dateStr) return null;
   const [datePart] = dateStr.split('T');
@@ -58,24 +56,22 @@ const getDiffDays = (dateStr: string | null) => {
   return Math.round((exp - now) / (1000 * 60 * 60 * 24));
 };
 
-// 2. Comprehensive Item State Evaluation (Colors & Text)
 const getItemState = (item: InventoryItem) => {
   const diffDays = getDiffDays(item.expiration_date);
   const unit = item.ingredient?.base_unit || 'units';
   const qtyText = `${item.amount_left ?? 0} ${unit}`;
 
-  // Expired -> Gray background
+  const baseCardClass = 'border-surface-variant/50 bg-surface-container-lowest';
   if (diffDays !== null && diffDays < 0) {
     return {
       statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
       expText: 'Expired',
-      cardClass: 'border-gray-300 bg-gray-100 dark:bg-gray-800/40',
-      badgeClass:
-        'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+      cardClass: baseCardClass,
+      iconClass: 'bg-surface-variant text-on-surface-variant',
+      badgeClass: 'bg-surface-variant text-on-surface-variant',
     };
   }
 
-  // Critical condition or Low status -> Red background
   if (item.status === 'LOW' || (diffDays !== null && diffDays <= 1)) {
     const expText =
       diffDays === 0
@@ -86,35 +82,35 @@ const getItemState = (item: InventoryItem) => {
     return {
       statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
       expText: expText,
-      cardClass: 'border-error-container bg-error-container/20',
+      cardClass: baseCardClass,
+      iconClass: 'bg-error-container text-on-error-container',
       badgeClass: 'bg-error-container text-on-error-container',
     };
   }
 
-  // Urgent or Opened -> Soft, muted orange background
   if (item.status === 'OPENED' || (diffDays !== null && diffDays <= 7)) {
     const expText =
       diffDays !== null ? `Expiring in ${diffDays} days` : 'Urgent';
     return {
       statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
       expText: expText,
-      cardClass:
-        'border-amber-200/80 bg-amber-50/60 dark:border-amber-900/40 dark:bg-amber-950/20',
+      cardClass: baseCardClass,
+      iconClass:
+        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
       badgeClass:
         'bg-amber-100/90 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
     };
   }
 
-  // More than 7 days until expiration & Full -> Green/Safe background
   return {
     statusText: `${qtyText} • ${getStatusLabel(item.status)}`,
     expText: null,
-    cardClass: 'border-surface-variant/50 bg-surface-container-lowest',
+    cardClass: baseCardClass,
+    iconClass: 'bg-tertiary-fixed text-on-tertiary-container',
     badgeClass: 'bg-tertiary-fixed text-on-tertiary-container',
   };
 };
 
-// Search & Filtering
 const searchQuery = ref('');
 const selectedCategory = ref('All');
 const categories = ['All', 'Produce', 'Meat & Fish', 'Dairy', 'Dry Goods'];
@@ -127,7 +123,6 @@ const filteredInventory = computed(() => {
   });
 });
 
-// Actions (CRUD via Inertia)
 const updateQuantity = (item: InventoryItem, delta: number) => {
   const newAmount = (item.amount_left ?? 0) + delta;
   if (newAmount < 0) return;
@@ -147,6 +142,17 @@ const deleteItem = (id: number) => {
     router.delete(route('inventory.destroy', id), { preserveScroll: true });
   }
 };
+
+function scrollToItem(id: number) {
+  const element = document.getElementById(`inventory-item-${id}`);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    element.classList.add('ring-2', 'ring-primary', 'transition-all');
+    setTimeout(() => {
+      element.classList.remove('ring-2', 'ring-primary');
+    }, 2000);
+  }
+}
 </script>
 
 <template>
@@ -192,7 +198,7 @@ const deleteItem = (id: number) => {
         </div>
       </section>
 
-      <!-- ZeroWaste Alert Zone -->
+      <!-- ZeroWaste Alert Zone (Clickable to jump down) -->
       <section v-if="attentionNeeded.length > 0" class="flex flex-col gap-4">
         <h2
           class="font-headline-md text-headline-md text-error flex items-center gap-2"
@@ -206,11 +212,10 @@ const deleteItem = (id: number) => {
           <div
             v-for="item in attentionNeeded"
             :key="item.id"
-            class="bg-error-container/20 border-error-container hover:bg-error-container/30 flex items-start gap-3 rounded-xl border p-4 shadow-sm transition-colors"
+            class="border-surface-variant/50 bg-surface-container-lowest hover:bg-surface-container-low flex cursor-pointer items-start gap-3 rounded-xl border p-4 shadow-sm transition-all hover:scale-[1.01]"
+            @click="scrollToItem(item.id)"
           >
-            <div
-              class="bg-surface-container-lowest rounded-lg p-2 text-2xl leading-none shadow-sm"
-            >
+            <div class="mt-1 text-3xl leading-none">
               {{ item.ingredient.emoji || '📦' }}
             </div>
             <div>
@@ -250,11 +255,12 @@ const deleteItem = (id: number) => {
         </div>
       </section>
 
-      <!-- Inventory Grid -->
+      <!-- Inventory Grid (With unique IDs for jumping) -->
       <section>
         <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
           <div
             v-for="item in filteredInventory"
+            :id="`inventory-item-${item.id}`"
             :key="item.id"
             :class="[
               'group relative flex flex-col items-center overflow-hidden rounded-xl border p-4 text-center shadow-[0px_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_10px_30px_rgba(0,0,0,0.08)]',
@@ -262,7 +268,10 @@ const deleteItem = (id: number) => {
             ]"
           >
             <div
-              class="bg-surface mt-2 mb-3 rounded-full p-3 text-4xl transition-transform duration-300 group-hover:scale-110"
+              :class="[
+                'mt-2 mb-3 flex items-center justify-center rounded-full p-3 text-4xl transition-transform duration-300 group-hover:scale-110',
+                getItemState(item).iconClass,
+              ]"
             >
               {{ item.ingredient.emoji || '📦' }}
             </div>
@@ -272,11 +281,10 @@ const deleteItem = (id: number) => {
               {{ item.ingredient.name }}
             </h3>
 
-            <!-- Dual Text Badges (Status + Expiration Timeline with State-based Colors) -->
+            <!-- Dual Text Badges -->
             <div
               class="mt-auto flex w-full flex-col gap-1 pt-2 transition-opacity duration-200 group-hover:pointer-events-none group-hover:opacity-0"
             >
-              <!-- Line 1: Quantity & Operational Status -->
               <span
                 :class="[
                   'inline-block rounded-md px-2 py-0.5 text-[10px] font-bold',
@@ -286,7 +294,6 @@ const deleteItem = (id: number) => {
                 {{ getItemState(item).statusText }}
               </span>
 
-              <!-- Line 2: Expiration Timeline (Only shows if expiring/expired/urgent) -->
               <span
                 v-if="getItemState(item).expText"
                 :class="[
@@ -298,25 +305,21 @@ const deleteItem = (id: number) => {
               </span>
             </div>
 
-            <!-- Hover State: Actions -->
+            <!-- Hover State: Actions (Only + and Delete) -->
             <div
               class="absolute bottom-4 left-0 flex w-full translate-y-4 justify-center gap-2 px-2 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100"
             >
               <button
                 class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
-                @click="updateQuantity(item, -1)"
-              >
-                <span class="material-symbols-outlined text-sm">remove</span>
-              </button>
-              <button
-                class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
-                @click="updateQuantity(item, 1)"
+                title="Add quantity"
+                @click.stop="updateQuantity(item, 1)"
               >
                 <span class="material-symbols-outlined text-sm">add</span>
               </button>
               <button
                 class="bg-error-container text-on-error-container hover:bg-error hover:text-on-error ml-1 flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
-                @click="deleteItem(item.id)"
+                title="Delete item"
+                @click.stop="deleteItem(item.id)"
               >
                 <span class="material-symbols-outlined text-sm">delete</span>
               </button>
