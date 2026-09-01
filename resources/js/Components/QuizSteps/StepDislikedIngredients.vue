@@ -13,6 +13,17 @@ function removeIngredient(idToRemove: number) {
   model.value = model.value.filter((item) => item.id !== idToRemove);
 }
 
+// Clear the search after a selection is made
+watch(
+  () => model.value.length,
+  (newLength, oldLength) => {
+    if (newLength > oldLength) {
+      searchTerm.value = '';
+      items.value = [];
+    }
+  },
+);
+
 watch(searchTerm, (query) => {
   clearTimeout(debounceTimeout);
 
@@ -51,34 +62,17 @@ watch(searchTerm, (query) => {
     class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
   >
     <div class="space-y-4">
-      <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
-      >
+      <h2 class="font-display text-3xl font-bold tracking-tight text-slate-900">
         Ingredients to Exclude
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700">
         Search for specific ingredients you strongly dislike or are allergic to.
         We will ensure these never appear in your weekly plan.
       </p>
     </div>
 
-    <div class="w-full max-w-md text-left">
-      <UFormField name="disliked_ingredients">
-        <USelectMenu
-          v-model="model"
-          v-model:search-term="searchTerm"
-          :items="items"
-          :loading="loading"
-          multiple
-          placeholder="e.g., mushrooms, cilantro..."
-          size="lg"
-          class="w-full"
-          :ui="{ content: 'z-[100]' }"
-        />
-      </UFormField>
-
-      <!-- Selected Items Badges -->
-      <div v-if="model.length > 0" class="mt-4 flex flex-wrap gap-2">
+    <div class="flex w-full max-w-md flex-col gap-4 text-left">
+      <div v-if="model.length > 0" class="flex flex-wrap gap-2">
         <span
           v-for="item in model"
           :key="item.id"
@@ -95,6 +89,38 @@ watch(searchTerm, (query) => {
           </button>
         </span>
       </div>
+
+      <UFormField name="disliked_ingredients">
+        <USelectMenu
+          v-model="model"
+          v-model:search-term="searchTerm"
+          :items="items"
+          :loading="loading"
+          multiple
+          size="lg"
+          class="w-full bg-lime-100"
+          :ui="{
+            content: 'z-[100]',
+          }"
+        >
+          <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-search"
+            class="w-full bg-white shadow-sm ring-1 ring-stone-400 transition-colors ring-inset hover:bg-gray-50 dark:ring-stone-500"
+          >
+            <span>{{
+              searchTerm || 'Search e.g., mushrooms, cilantro...'
+            }}</span>
+          </UButton>
+
+          <template #empty>
+            <div class="p-3 text-center text-sm text-slate-500">
+              No ingredients found.
+            </div>
+          </template>
+        </USelectMenu>
+      </UFormField>
     </div>
   </div>
 </template>

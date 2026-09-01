@@ -51,7 +51,7 @@ const model = defineModel<number | undefined>({ required: true });
           variant="card"
           size="lg"
           :ui="{
-            base: 'ring-1 ring-stone-400',
+            item: ' mt-2 ring-1 ring-stone-400',
           }"
         />
       </UFormField>
