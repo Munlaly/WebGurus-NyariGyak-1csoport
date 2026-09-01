@@ -11,8 +11,7 @@ use App\Http\Middleware\EnsureUserIsOnboarded;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\UserInventoryController;
 use App\Http\Controllers\MealPlanController;
-
-
+use App\Http\Controllers\ShoppingListController;
 
 Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
@@ -68,7 +67,7 @@ Route::middleware('auth')->group(function(){
 
     
     Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
-
+    Route::post('shopping-list', [ShoppingListController::class, 'store'])->name('shopping-list.store');
 });
 
 require __DIR__.'/auth.php';
