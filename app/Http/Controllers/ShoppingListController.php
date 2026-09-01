@@ -14,7 +14,7 @@ class ShoppingListController extends Controller
             'unit' => 'required|string|in:g,kg,ml,l,pcs',
         ]);
 
-        ShoppingListItem::updateOrCreate([
+        $shoppingItem = ShoppingListItem::updateOrCreate([
             'user_id' => $request->user()->id,
             'ingredient_id' => $validated['ingredient_id'],
             'is_checked' => false,
@@ -24,6 +24,13 @@ class ShoppingListController extends Controller
             'unit' => $validated['unit'],
         ]);
 
-        return back()->with('success', 'Item successfully added to your shopping list.');
+        $shoppingItem->load('ingredient');
+
+        $amount = $shoppingItem->quantity ?? 0;
+        $unit = $shoppingItem->ingredient->unit ?? '';
+        $itemName = $shoppingItem->ingredient->name ?? 'item';
+        $amountText = trim("{$amount} {$unit}");
+
+        return back()->with('success', "Added {$amountText} of {$itemName} to your shopping list successfully.");
     }
 }
