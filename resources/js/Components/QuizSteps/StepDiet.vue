@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-const model = defineModel<number[]>({ required: true });
 
 const props = defineProps<{
   options: {
@@ -9,6 +8,8 @@ const props = defineProps<{
     description: string | null;
   }[];
 }>();
+
+const model = defineModel<number[]>({ required: true });
 
 // map the data for UCheckboxGroup
 const dietaryItems = computed(() => {
@@ -52,6 +53,7 @@ const stringModel = computed({
             :items="dietaryItems"
             size="lg"
             class="mt-2"
+            variant="card"
           />
         </div>
       </UFormField>
