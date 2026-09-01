@@ -64,6 +64,7 @@ const navigation = [
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
 const showTopAlert = ref(false);
+const showFlashToast = ref(false);
 
 const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
@@ -90,6 +91,7 @@ const mobileMenuTransformClass = computed(() =>
 const expiringCount = computed(
   () => typedPageProps.value.auth?.expiringCount || 0,
 );
+const flashMessage = computed(() => (page.props as any).flash?.success);
 
 const availableAlertsCount = computed(() => {
   const alerts = typedPageProps.value.expiringAlerts || {
@@ -126,6 +128,10 @@ function closeTopAlert() {
   sessionStorage.setItem('top_alert_seen', 'true');
 }
 
+function closeFlashToast() {
+  showFlashToast.value = false;
+}
+
 watchEffect(() => {
   const userTheme = typedPageProps.value.auth?.theme || 'light';
 
@@ -139,6 +145,15 @@ watchEffect(() => {
 watch(isMobileMenuOpen, (isOpen) => {
   if (typeof document !== 'undefined') {
     document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+});
+
+watch(flashMessage, (newMessage) => {
+  if (newMessage) {
+    showFlashToast.value = true;
+    setTimeout(() => {
+      showFlashToast.value = false;
+    }, 4500);
   }
 });
 
@@ -181,46 +196,36 @@ onUnmounted(() => {
         leave-to-class="opacity-0"
       >
         <div
-          v-if="showTopAlert"
+          v-if="showFlashToast"
           class="fixed top-6 left-1/2 z-100 w-11/12 max-w-md -translate-x-1/2 sm:w-full"
         >
           <div
-            class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-red-900/50 dark:bg-gray-900"
+            class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-emerald-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-emerald-900/50 dark:bg-gray-900"
           >
             <div class="flex items-center gap-4">
               <div
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30"
               >
                 <span
-                  class="material-symbols-outlined text-red-600 dark:text-red-400"
-                  >warning</span
+                  class="material-symbols-outlined text-emerald-600 dark:text-emerald-400"
+                  >check_circle</span
                 >
               </div>
               <div>
                 <p class="text-sm font-bold text-gray-900 dark:text-white">
-                  Inventory Alert
+                  Inventory Updated
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  You have ingredients in your inventory that need your
-                  attention.
+                  {{ flashMessage }}
                 </p>
               </div>
             </div>
-            <div class="flex items-center gap-2">
-              <Link
-                href="/alerts"
-                class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
-                @click="closeTopAlert"
-              >
-                Review
-              </Link>
-              <button
-                class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                @click="closeTopAlert"
-              >
-                <span class="material-symbols-outlined text-[20px]">close</span>
-              </button>
-            </div>
+            <button
+              class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+              @click="closeFlashToast"
+            >
+              <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
           </div>
         </div>
       </Transition>

@@ -91,7 +91,15 @@ class UserInventoryController extends Controller
         if($inventory->user_id !== $request->user()->id) {
             abort(403);
         }
+
+        $inventory->load('ingredient');
+
+        $amount  = $inventory->amount_left ?? '';
+        $unit = $inventory->ingredient->base_unit ?? '';
+        $itemName = $inventory->ingredient->name ?? 'item';
+        $amountText = trim("{$amount} {$unit}");
+
         $inventory->delete();
-        return back()->with('success', 'Item removed from inventory.');
+        return back()->with('success', "{$amountText} of {$itemName} has been removed from your inventory successfully.");
     }
 }
