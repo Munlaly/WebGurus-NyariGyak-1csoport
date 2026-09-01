@@ -6,12 +6,19 @@ import type { RulesProps } from '../../Types/settingInterfaces.js';
 
 const props = defineProps<RulesProps>();
 
-const activeTab = 'rules';
-
 const form = useForm({
   activeDiets: props.activeDiets,
   dislikedIngredients: props.dislikedIngredients,
 });
+
+const activeTab = 'rules';
+let debounceTimeout: ReturnType<typeof setTimeout>;
+let abortController: AbortController | null = null;
+
+const searchTerm = ref('');
+const items = ref<{ id: number; label: string }[]>([]);
+const loading = ref(false);
+const searchError = ref('');
 
 // Mapped dietary options for Nuxt UI CheckBoxGroup
 const dietaryItems = computed(() => {
@@ -29,19 +36,20 @@ const activeDietsStringModel = computed({
   },
 });
 
-// Async Ingredient Search Logic
-const searchTerm = ref('');
-const items = ref<{ id: number; label: string }[]>([]);
-const loading = ref(false);
-const searchError = ref('');
+function removeIngredient(idToRemove: number) {
+  form.dislikedIngredients = form.dislikedIngredients.filter(
+    (item) => item.id !== idToRemove,
+  );
+}
 
-let debounceTimeout: ReturnType<typeof setTimeout>;
-let abortController: AbortController | null = null;
-
-onBeforeUnmount(() => {
-  if (abortController) abortController.abort();
-  clearTimeout(debounceTimeout);
-});
+function onSubmit() {
+  form
+    .transform((data) => ({
+      activeDiets: data.activeDiets,
+      dislikedIngredients: data.dislikedIngredients.map((item) => item.id),
+    }))
+    .put(route('settings.rules'), { preserveScroll: true });
+}
 
 watch(searchTerm, (query) => {
   clearTimeout(debounceTimeout);
@@ -88,21 +96,10 @@ watch(searchTerm, (query) => {
   }, 300);
 });
 
-function removeIngredient(idToRemove: number) {
-  form.dislikedIngredients = form.dislikedIngredients.filter(
-    (item) => item.id !== idToRemove,
-  );
-}
-
-// --- Submission ---
-const onSubmit = () => {
-  form
-    .transform((data) => ({
-      activeDiets: data.activeDiets,
-      dislikedIngredients: data.dislikedIngredients.map((item) => item.id),
-    }))
-    .put(route('settings.rules'), { preserveScroll: true });
-};
+onBeforeUnmount(() => {
+  if (abortController) abortController.abort();
+  clearTimeout(debounceTimeout);
+});
 </script>
 
 <template>
