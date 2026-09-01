@@ -47,9 +47,9 @@ const goalItems = [
           size="lg"
           color="primary"
           :ui="{
-            label: 'text-slate-900 dark:text-white font-semibold',
-            description: 'text-slate-700 dark:text-gray-300 text-sm',
-            item: 'mt-2 border-slate-300',
+            label: 'text-slate-900  font-semibold',
+            description: 'text-slate-700  text-sm',
+            item: 'mt-2 border-stone-400',
           }"
         />
       </UFormField>

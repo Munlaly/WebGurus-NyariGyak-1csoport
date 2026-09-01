@@ -90,7 +90,10 @@ const inputDate = useTemplateRef('inputDate');
             :items="sexItems"
             placeholder="Select your biological sex"
             class="mt-2"
-            :ui="{ content: 'z-[100]' }"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+              content: 'z-[100]',
+            }"
           />
         </UFormField>
 
@@ -100,11 +103,16 @@ const inputDate = useTemplateRef('inputDate');
             v-model="dateModel"
             size="lg"
             class="w-full"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+            }"
           >
             <template #trailing>
               <UPopover
                 :reference="inputDate?.inputsRef[3]?.$el"
-                :ui="{ content: 'z-[100]' }"
+                :ui="{
+                  content: 'z-[100]',
+                }"
               >
                 <UButton
                   color="neutral"
@@ -132,6 +140,9 @@ const inputDate = useTemplateRef('inputDate');
             size="lg"
             placeholder="e.g., 180"
             class="w-full"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+            }"
           />
         </UFormField>
 
@@ -142,6 +153,9 @@ const inputDate = useTemplateRef('inputDate');
             size="lg"
             placeholder="e.g., 75"
             class="w-full"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+            }"
           />
         </UFormField>
       </div>
@@ -152,7 +166,13 @@ const inputDate = useTemplateRef('inputDate');
           v-model="activity"
           :items="activityItems"
           variant="card"
+          color="primary"
           class="mt-2"
+          :ui="{
+            label: 'text-slate-900  font-semibold',
+            description: 'text-slate-700  text-sm',
+            item: 'mt-2 border-stone-400',
+          }"
         />
       </UFormField>
     </div>
