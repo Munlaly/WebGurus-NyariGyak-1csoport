@@ -78,27 +78,11 @@ class HandleInertiaRequests extends Middleware
                     return $alerts['expired']->count() + $alerts['critical']->count() + $alerts['urgent']->count();
                 },
             ],
-            'expiringAlerts' => function() use ($user, $getAlerts) {
-                if(!$user) {
-                    return [];
-                }
-                $alerts = $getAlerts();
-                $formatAlert = function($item) {
-                    return [
-                        'id' => $item->id,
-                        'expiration_date' => $item->expiration_date,
-                        'ingredient' => $item->ingredient ? [
-                            'name' => $item->ingredient->name,
-                        ]: null,
-                    ];
-                };
-
-                return [
-                    'expired' => $alerts['expired']->values()->map($formatAlert)->toArray(),
-                    'critical' => $alerts['critical']->values()->map($formatAlert)->toArray(),
-                    'urgent' => $alerts['urgent']->values()->map($formatAlert)->toArray(),
-                ];
-            },
+            'expiringAlerts' => $expiringAlerts,
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ]);
     }
 }
