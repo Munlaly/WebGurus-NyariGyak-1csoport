@@ -2,9 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\UserInventory;
 use App\Models\UserSetting;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use App\Services\AlertService;
@@ -46,8 +44,7 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $theme = 'light';
         $inAppAlerts = true;
-        $expiringCount = 0;
-        $expiringAlerts = [];
+
         if ($user) {
             $settings = UserSetting::where('user_id', $user->id)->first();
             if ($settings && $settings->system_preferences) {
@@ -55,20 +52,15 @@ class HandleInertiaRequests extends Middleware
                 $theme = $prefs['theme'] ?? 'light';
                 $inAppAlerts = $prefs['inAppAlerts'] ?? true;
             }
-
-            $alertService = app(AlertService::class);
-            $expiringAlerts = $alertService->getExpiringAlertIds($user);
-
-            $expiringAlerts = [
-                'expired' => $expiringAlerts['expired']->values(),
-                'critical' => $expiringAlerts['critical']->values(),
-                'urgent' => $expiringAlerts['urgent']->values(),
-            ];
-
-            $expiringCount = $expiringAlerts['expired']->count() + 
-                             $expiringAlerts['critical']->count() + 
-                             $expiringAlerts['urgent']->count();
         }
+
+        $getAlerts = function () use ($user) {
+            static $alerts = null;
+            if ($alerts === null && $user) {
+                $alerts = app(AlertService::class)->getExpiringAlertIds($user);
+            }
+            return $alerts;
+        };
 
         return array_merge(parent::share($request), [
             'auth' => [
@@ -78,9 +70,35 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
                 'theme' => $theme,
                 'inAppAlerts' => $inAppAlerts,
-                'expiringCount' => $expiringCount,
+                'expiringCount' => function() use ($user, $getAlerts) {
+                    if (!$user) {
+                        return 0;
+                    }
+                    $alerts = $getAlerts();
+                    return $alerts['expired']->count() + $alerts['critical']->count() + $alerts['urgent']->count();
+                },
             ],
-            'expiringAlerts' => $expiringAlerts,
+            'expiringAlerts' => function() use ($user, $getAlerts) {
+                if(!$user) {
+                    return [];
+                }
+                $alerts = $getAlerts();
+                $formatAlert = function($item) {
+                    return [
+                        'id' => $item->id,
+                        'expiration_date' => $item->expiration_date,
+                        'ingredient' => $item->ingredient ? [
+                            'name' => $item->ingredient->name,
+                        ]: null,
+                    ];
+                };
+
+                return [
+                    'expired' => $alerts['expired']->values()->map($formatAlert)->toArray(),
+                    'critical' => $alerts['critical']->values()->map($formatAlert)->toArray(),
+                    'urgent' => $alerts['urgent']->values()->map($formatAlert)->toArray(),
+                ];
+            },
         ]);
     }
 }
