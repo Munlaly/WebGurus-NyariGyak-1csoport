@@ -127,7 +127,6 @@ class SettingsController extends Controller
        return Inertia::render('Settings/System', [
             'userSettings' => [
                 'theme' => $sysPrefs['theme'] ?? 'light',
-                'pushNotifications' => $sysPrefs['pushNotifications'] ?? true,
                 'inAppAlerts' => $sysPrefs['inAppAlerts'] ?? true,
                 'emailDigests' => $sysPrefs['emailDigests'] ?? false,
             ]
@@ -138,7 +137,6 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'theme' => 'required|string|in:light,dark',
-            'pushNotifications' => 'required|boolean',
             'inAppAlerts' => 'required|boolean',
             'emailDigests' => 'required|boolean',
         ]);

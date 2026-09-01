@@ -9,6 +9,7 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Middleware\EnsureUserIsOnboarded;
 use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\UserInventoryController;
 use App\Http\Controllers\MealPlanController;
 
 
@@ -18,6 +19,8 @@ Route::middleware('auth')->group(function(){
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
+        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts'); 
+        Route::delete('inventory/{inventory}', [UserInventoryController::class, 'destroy'])->name('inventory.destroy');
 
         Route::prefix('settings')->name('settings.')->group(function () {
         

@@ -5,6 +5,9 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use App\Http\Middleware\HandleInertiaRequests;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,4 +25,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
-    })->create();
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
+        if (
+                !app()->environment(['local', 'testing'])
+                && in_array($response->getStatusCode(), [403, 404, 419, 500, 503])
+            ) {
+                return Inertia::render('Error', ['status' => $response->getStatusCode()])
+                    ->toResponse($request)
+                    ->setStatusCode($response->getStatusCode());
+            }
+
+            return $response;
+    });
+})->create();

@@ -1,10 +1,29 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { ref, computed, watch, onUnmounted, watchEffect, onMounted } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { useDismissedAlerts } from '../Composables/useDismissedAlerts';
 
 interface MacroTarget {
   current: number;
   target: number;
+}
+
+interface InventoryItem {
+  id: number;
+  expiration_date: string;
+}
+
+interface CustomPageProps {
+  auth: {
+    theme?: string;
+    inAppAlerts?: boolean;
+    expiringCount?: number;
+  };
+  expiringAlerts?: {
+    expired?: InventoryItem[];
+    critical?: InventoryItem[];
+    urgent?: InventoryItem[];
+  };
 }
 
 withDefaults(
@@ -29,46 +48,65 @@ withDefaults(
   },
 );
 
+const page = usePage();
+const { dismissedIds } = useDismissedAlerts();
+
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/dashboard' },
   { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
-  { name: 'My Inventory', icon: 'inventory_2', href: '#' },
+  { name: 'My Inventory', icon: 'inventory_2', href: '/inventory' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
+  { name: 'Alerts', icon: 'notifications', href: '/alerts' },
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
 
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
+const showTopAlert = ref(false);
 
+const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
-
 const navItemSpacingClass = computed(() =>
   isCollapsed.value ? 'justify-center p-3' : 'gap-3 px-4 py-3.5',
 );
-
 const toggleBtnSpacingClass = computed(() =>
   isCollapsed.value ? 'justify-center p-3' : 'gap-3 px-4 py-3',
 );
-
 const toggleBtnArrowType = computed(() =>
   isCollapsed.value
     ? 'keyboard_double_arrow_right'
     : 'keyboard_double_arrow_left',
 );
-
 const mainContentMarginClass = computed(() =>
   isCollapsed.value ? 'md:ml-20' : 'md:ml-72',
 );
-
-// Dynamically offset the fixed header on desktop based on sidebar state
 const headerPositionClass = computed(() =>
   isCollapsed.value ? 'left-0 md:left-20' : 'left-0 md:left-72',
 );
-
 const mobileMenuTransformClass = computed(() =>
   isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
 );
+const expiringCount = computed(
+  () => typedPageProps.value.auth?.expiringCount || 0,
+);
+
+const availableAlertsCount = computed(() => {
+  const alerts = typedPageProps.value.expiringAlerts || {
+    expired: [],
+    critical: [],
+    urgent: [],
+  };
+
+  const activeExpired = (alerts.expired || []).filter(
+    (item) => !dismissedIds.value.includes(item.id),
+  );
+
+  const critical = alerts.critical || [];
+  const urgent = alerts.urgent || [];
+
+  return activeExpired.length + critical.length + urgent.length;
+});
 
 function toggleSidebar() {
   isCollapsed.value = !isCollapsed.value;
@@ -80,14 +118,39 @@ function toggleMobileMenu() {
 
 function handleLogout() {
   sessionStorage.clear();
-
   router.post(route('logout'));
 }
 
-// Prevent scrolling the body when the Slider is open
+function closeTopAlert() {
+  showTopAlert.value = false;
+  sessionStorage.setItem('top_alert_seen', 'true');
+}
+
+watchEffect(() => {
+  const userTheme = typedPageProps.value.auth?.theme || 'light';
+
+  if (userTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
+
 watch(isMobileMenuOpen, (isOpen) => {
   if (typeof document !== 'undefined') {
     document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+});
+
+onMounted(() => {
+  const inAppAlertsEnabled = typedPageProps.value.auth?.inAppAlerts ?? true;
+
+  if (inAppAlertsEnabled && expiringCount.value > 0) {
+    if (!sessionStorage.getItem('top_alert_seen')) {
+      setTimeout(() => {
+        showTopAlert.value = true;
+      }, 800);
+    }
   }
 });
 
@@ -103,6 +166,60 @@ onUnmounted(() => {
     <div
       class="bg-background text-on-background font-body-md relative flex min-h-screen w-full overflow-x-hidden antialiased"
     >
+      <!-- TOP CENTER NOTIFICATION -->
+      <Transition
+        enter-active-class="transition ease-out duration-300 transform"
+        enter-from-class="-translate-y-full opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="showTopAlert"
+          class="fixed top-6 left-1/2 z-100 w-11/12 max-w-md -translate-x-1/2 sm:w-full"
+        >
+          <div
+            class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-red-900/50 dark:bg-gray-900"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
+              >
+                <span
+                  class="material-symbols-outlined text-red-600 dark:text-red-400"
+                  >warning</span
+                >
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900 dark:text-white">
+                  Inventory Alert
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  You have ingredients in your inventory that need your
+                  attention.
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <Link
+                href="/alerts"
+                class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+                @click="closeTopAlert"
+              >
+                Review
+              </Link>
+              <button
+                class="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                @click="closeTopAlert"
+              >
+                <span class="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
       <!-- DESKTOP SIDEBAR -->
       <nav
         :class="[
@@ -148,19 +265,44 @@ onUnmounted(() => {
             <li v-for="item in navigation" :key="item.name">
               <Link
                 :href="item.href"
-                class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low flex items-center rounded-xl transition-all duration-200 active:scale-95"
+                class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low relative flex items-center justify-between rounded-xl transition-all duration-200 active:scale-95"
                 :class="navItemSpacingClass"
                 :title="isCollapsed ? item.name : ''"
               >
-                <span class="material-symbols-outlined shrink-0 text-[22px]">{{
-                  item.icon
-                }}</span>
+                <div class="flex items-center gap-3">
+                  <span
+                    class="material-symbols-outlined shrink-0 text-[22px]"
+                    >{{ item.icon }}</span
+                  >
+                  <span
+                    v-if="!isCollapsed"
+                    class="font-body-md text-body-md font-medium whitespace-nowrap"
+                  >
+                    {{ item.name }}
+                  </span>
+                </div>
+
+                <!-- Live Counter Badge -->
                 <span
-                  v-if="!isCollapsed"
-                  class="font-body-md text-body-md font-medium whitespace-nowrap"
+                  v-if="
+                    item.name === 'Alerts' &&
+                    availableAlertsCount > 0 &&
+                    !isCollapsed
+                  "
+                  class="rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-600 dark:bg-red-900/40 dark:text-red-400"
                 >
-                  {{ item.name }}
+                  {{ availableAlertsCount }}
                 </span>
+
+                <!-- Red dot indicator when sidebar is collapsed -->
+                <span
+                  v-if="
+                    item.name === 'Alerts' &&
+                    availableAlertsCount > 0 &&
+                    isCollapsed
+                  "
+                  class="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-white dark:ring-gray-900"
+                ></span>
               </Link>
             </li>
           </ul>
@@ -193,7 +335,7 @@ onUnmounted(() => {
         <!-- TOP APP BAR -->
         <header
           :class="[
-            'border-surface-container fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-white px-3 transition-all duration-300 ease-in-out md:px-8',
+            'border-surface-container bg-background fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b px-3 transition-all duration-300 ease-in-out md:px-8',
             headerPositionClass,
           ]"
         >
@@ -249,7 +391,7 @@ onUnmounted(() => {
               <span>{{ fat.current ?? 0 }}g</span>
             </div>
 
-            <!-- Logout Button -->
+            <!-- Logout Button (Using Bence's handleLogout) -->
             <button
               class="text-on-surface-variant hover:text-error active:bg-error/10 flex items-center justify-center rounded-full p-2 transition-colors active:scale-95 md:px-3 md:py-1.5"
               title="Log out"
@@ -336,7 +478,7 @@ onUnmounted(() => {
 
         <!-- Weekly Planner -->
         <Link
-          href="/meal-plan/"
+          href="/meal-plan"
           class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
           @click="isMobileMenuOpen = false"
         >

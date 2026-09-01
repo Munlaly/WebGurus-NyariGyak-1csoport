@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPlan;
+use App\Models\UserInventory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Carbon;
+use App\Services\AlertService;
+
+use function Symfony\Component\String\b;
 
 class DashboardController extends Controller
 {
@@ -68,6 +72,16 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'mealsByOffset' => $mealsByOffset,
+        ]);
+    }
+
+    public function alerts(Request $request, AlertService $alertService): Response {
+        $user = $request->user();
+
+        $expiringAlerts = $alertService->getExpiringAlertIds($user);
+
+        return Inertia::render('Alerts', [
+            'expiringAlerts' => $expiringAlerts
         ]);
     }
 

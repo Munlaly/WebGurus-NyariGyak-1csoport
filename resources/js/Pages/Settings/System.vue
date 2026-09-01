@@ -1,25 +1,23 @@
 <script setup lang="ts">
+import { computed, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
-import { computed } from 'vue';
 
 const props = defineProps<{
   userSettings: {
     theme: 'light' | 'dark';
-    pushNotifications: boolean;
     inAppAlerts: boolean;
     emailDigests: boolean;
   };
 }>();
 
-const activeTab = 'system';
-
 const form = useForm({
   theme: props.userSettings?.theme || 'light',
-  pushNotifications: props.userSettings?.pushNotifications ?? true,
   inAppAlerts: props.userSettings?.inAppAlerts ?? true,
   emailDigests: props.userSettings?.emailDigests ?? false,
 });
+
+const activeTab = 'system';
 
 const themeButtonClasses = computed(() => {
   const base =
@@ -33,9 +31,21 @@ const themeButtonClasses = computed(() => {
   };
 });
 
-const submitSystemSettings = () => {
+function submitSystemSettings() {
   form.put(route('settings.system'), { preserveScroll: true });
-};
+}
+
+watch(
+  () => form.theme,
+  (newTheme) => {
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -91,21 +101,10 @@ const submitSystemSettings = () => {
           <div class="flex items-center justify-between">
             <div>
               <p class="font-semibold text-gray-900 dark:text-white">
-                Browser Push Notifications
-              </p>
-              <p class="text-sm text-gray-500 dark:text-gray-400">
-                Real-time alerts for expiring ingredients.
-              </p>
-            </div>
-            <USwitch v-model="form.pushNotifications" />
-          </div>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="font-semibold text-gray-900 dark:text-white">
                 In-App Alerts
               </p>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                Updates shown within the dashboard.
+                Real-time alerts for expiring ingredients.
               </p>
             </div>
             <USwitch v-model="form.inAppAlerts" />
