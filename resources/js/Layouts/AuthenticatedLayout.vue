@@ -24,6 +24,9 @@ interface CustomPageProps {
     critical?: InventoryItem[];
     urgent?: InventoryItem[];
   };
+  flash?: {
+    success?: string;
+  };
 }
 
 withDefaults(
@@ -91,7 +94,7 @@ const mobileMenuTransformClass = computed(() =>
 const expiringCount = computed(
   () => typedPageProps.value.auth?.expiringCount || 0,
 );
-const flashMessage = computed(() => (page.props as any).flash?.success);
+const flashMessage = computed(() => typedPageProps.value.flash?.success);
 
 const availableAlertsCount = computed(() => {
   const alerts = typedPageProps.value.expiringAlerts || {
