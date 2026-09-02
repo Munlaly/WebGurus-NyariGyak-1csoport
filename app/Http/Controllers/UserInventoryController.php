@@ -55,6 +55,7 @@ class UserInventoryController extends Controller
         $validated = $request->validate([
             'ingredient_id' => 'required|exists:ingredients,id',
             'amount_left' => 'nullable|numeric',
+            'unit' => 'required|string|in:g,kg,ml,l,pcs',
             'status' => 'nullable|in:FULL,OPENED,LOW',
             'expiration_date' => 'nullable|date',
             'is_frozen' => 'boolean'
@@ -64,6 +65,7 @@ class UserInventoryController extends Controller
             'user_id' => $request->user()->id,
             'ingredient_id' => $validated['ingredient_id'],
             'amount_left' => $validated['amount_left'] ?? null,
+            'unit' => $validated['unit'],
             'status' => $validated['status'] ?? 'FULL',
             'expiration_date' => !empty($validated['expiration_date']) 
                 ? Carbon::parse($validated['expiration_date'])->format('Y-m-d') 

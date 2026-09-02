@@ -11,6 +11,7 @@ class UserInventory extends Model
         'user_id',
         'ingredient_id',
         'amount_left', 
+        'unit',
         'status',
         'expiration_date',
         'is_frozen',
