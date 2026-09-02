@@ -65,7 +65,9 @@ class UserInventoryController extends Controller
             'ingredient_id' => $validated['ingredient_id'],
             'amount_left' => $validated['amount_left'] ?? null,
             'status' => $validated['status'] ?? 'FULL',
-            'expiration_date' => $validated['expiration_date'] ?? null,
+            'expiration_date' => !empty($validated['expiration_date']) 
+                ? Carbon::parse($validated['expiration_date'])->format('Y-m-d') 
+                : null,
             'is_frozen' => $validated['is_frozen'] ?? false,
         ]);
 

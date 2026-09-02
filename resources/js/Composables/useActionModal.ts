@@ -20,8 +20,6 @@ export function useActionModal<TItem, TForm extends Record<string, any>>(
   };
 
   const submit = () => {
-    if (!selectedItem.value) return;
-
     const action = method === 'post' ? form.post : form.put;
 
     action(routeFn(selectedItem.value), {
