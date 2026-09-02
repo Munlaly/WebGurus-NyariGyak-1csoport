@@ -67,11 +67,11 @@ Route::middleware('auth')->group(function(){
     });
 
     Route::prefix('shopping-list')->name('shopping-list.')->group(function () {
-        Route::get('/', [ShoppingListController::class, 'index'])->name('shopping-list.index');
-        Route::post('/', [ShoppingListController::class, 'store'])->name('shopping-list.store');
-        Route::put('/{shoppingList}', [ShoppingListController::class, 'update'])->name('shopping-list.update');
-        Route::delete('/{shoppingList}', [ShoppingListController::class, 'destroy'])->name('shopping-list.destroy');
-        Route::post('/finish', [ShoppingListController::class, 'finish'])->name('shopping-list.finish');
+        Route::get('/', [ShoppingListController::class, 'index'])->name('index');
+        Route::post('/', [ShoppingListController::class, 'store'])->name('store');
+        Route::put('/{item}', [ShoppingListController::class, 'update'])->name('update');
+        Route::delete('/{item}', [ShoppingListController::class, 'destroy'])->name('destroy');
+        Route::post('/finish', [ShoppingListController::class, 'finish'])->name('finish');
     });
 
     

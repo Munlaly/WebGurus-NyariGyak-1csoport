@@ -5,7 +5,6 @@ import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import ActionModal from '../Components/Modals/ActionModal.vue';
 import { useIngredientSearch } from '../Composables/useIngredientSearch';
 
-// --- Interfaces ---
 interface Category {
   id: number;
   name: string;
@@ -34,12 +33,10 @@ const props = defineProps<{
   items: ShoppingListItem[];
 }>();
 
-// --- Computed Properties ---
 const checkedItemsCount = computed(
   () => props.items.filter((i) => i.is_checked).length,
 );
 
-// --- Item Actions ---
 function toggleCheck(item: ShoppingListItem) {
   // We send a put request instantly when the checkbox is clicked
   router.put(
@@ -55,13 +52,19 @@ function deleteItem(id: number) {
   }
 }
 
-// --- Add Item Modal ---
 const isAddModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const editingItem = ref<ShoppingListItem | null>(null);
 const { searchTerm, searchResults, isSearchLoading, isDropdownOpen } =
   useIngredientSearch();
 
 const addForm = useForm({
   ingredient_id: null as number | null,
+  quantity: 1,
+  unit: 'pcs',
+});
+
+const editForm = useForm({
   quantity: 1,
   unit: 'pcs',
 });
@@ -83,7 +86,25 @@ function submitAdd() {
   });
 }
 
-// --- Finish Shopping Modal (Smart Expiration) ---
+function openEditModal(item: ShoppingListItem) {
+  editingItem.value = item;
+  editForm.quantity = item.quantity;
+  editForm.unit = item.unit;
+  isEditModalOpen.value = true;
+}
+
+function submitEdit() {
+  if (!editingItem.value) return;
+
+  editForm.put(route('shopping-list.update', editingItem.value.id), {
+    preserveScroll: true,
+    onSuccess: () => {
+      isEditModalOpen.value = false;
+      editingItem.value = null;
+    },
+  });
+}
+
 const isFinishModalOpen = ref(false);
 
 const finishForm = useForm<{
@@ -98,11 +119,9 @@ function openFinishModal() {
 
   const today = new Date();
 
-  // Populate the form with items and calculate their default expiration dates
   finishForm.items = checkedItems.map((item) => {
     const shelfLife = item.ingredient.category?.default_shelf_life_days ?? 7;
 
-    // Calculate future date
     const expDate = new Date(today);
     expDate.setDate(today.getDate() + shelfLife);
 
@@ -110,7 +129,7 @@ function openFinishModal() {
       id: item.id,
       name: item.ingredient.name,
       emoji: item.ingredient.emoji || '🛒',
-      expiration_date: expDate.toISOString().split('T')[0], // Format to YYYY-MM-DD
+      expiration_date: expDate.toISOString().split('T')[0],
     };
   });
 
@@ -230,14 +249,26 @@ function submitFinish() {
               </div>
             </div>
 
-            <!-- Right Side: Delete -->
-            <button
-              class="text-on-surface-variant hover:bg-error-container hover:text-on-error-container flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors"
-              title="Delete item"
-              @click="deleteItem(item.id)"
-            >
-              <span class="material-symbols-outlined">delete</span>
-            </button>
+            <!-- Right Side: Actions -->
+            <div class="flex shrink-0 items-center gap-1">
+              <button
+                class="text-on-surface-variant hover:bg-surface-container-high hover:text-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+                title="Edit item"
+                @click="openEditModal(item)"
+              >
+                <span class="material-symbols-outlined text-[20px]">edit</span>
+              </button>
+
+              <button
+                class="text-on-surface-variant hover:bg-error-container hover:text-on-error-container flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+                title="Delete item"
+                @click="deleteItem(item.id)"
+              >
+                <span class="material-symbols-outlined text-[20px]"
+                  >delete</span
+                >
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -250,6 +281,7 @@ function submitFinish() {
       :processing="addForm.processing"
       submit-text="Add to List"
       submit-variant="primary"
+      :submit-disabled="!addForm.ingredient_id"
       @close="isAddModalOpen = false"
       @submit="submitAdd"
     >
@@ -268,6 +300,12 @@ function submitFinish() {
             required
             @focus="searchTerm.length > 0 ? (isDropdownOpen = true) : null"
           />
+          <div
+            v-if="addForm.errors.ingredient_id"
+            class="text-error mt-1 text-xs font-medium"
+          >
+            Please select an ingredient from the dropdown.
+          </div>
           <span
             v-if="isSearchLoading"
             class="absolute top-3 right-3 text-sm text-gray-400"
@@ -342,7 +380,7 @@ function submitFinish() {
       <p class="font-body-sm text-on-surface-variant mb-4">
         We've estimated how long these items will stay fresh based on their
         category. Please adjust any dates if necessary before adding them to
-        your zero-waste inventory.
+        your inventory.
       </p>
 
       <div class="flex max-h-[60vh] flex-col gap-3 overflow-y-auto pr-2">
@@ -366,6 +404,49 @@ function submitFinish() {
               required
             />
           </div>
+        </div>
+      </div>
+    </ActionModal>
+    <!-- 3. EDIT ITEM MODAL -->
+    <ActionModal
+      :show="isEditModalOpen"
+      :title="'Edit ' + (editingItem?.ingredient?.name || 'Item')"
+      :processing="editForm.processing"
+      submit-text="Save Changes"
+      submit-variant="primary"
+      @close="isEditModalOpen = false"
+      @submit="submitEdit"
+    >
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+            >Quantity</label
+          >
+          <input
+            v-model="editForm.quantity"
+            type="number"
+            min="0.1"
+            step="0.1"
+            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+            required
+          />
+        </div>
+        <div>
+          <label
+            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+            >Unit</label
+          >
+          <select
+            v-model="editForm.unit"
+            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+          >
+            <option value="pcs">Pieces (pcs)</option>
+            <option value="g">Grams (g)</option>
+            <option value="kg">Kilos (kg)</option>
+            <option value="ml">Milliliters (ml)</option>
+            <option value="l">Liters (l)</option>
+          </select>
         </div>
       </div>
     </ActionModal>

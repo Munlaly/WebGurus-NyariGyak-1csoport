@@ -56,14 +56,14 @@ class ShoppingListController extends Controller
         }
 
         $validated = $request->validate([
-            'is_checked' => 'required|boolean',
+            'is_checked' => 'sometimes|boolean',
+            'quantity' => 'sometimes|numeric|min:0.1',
+            'unit' => 'sometimes|string|in:g,kg,ml,l,pcs',
         ]);
 
-        $item->update([
-            'is_checked' => $validated['is_checked']
-        ]);
+        $item->update($validated);
 
-        return back()->with('success', 'Shopping list item updated successfully.');
+        return back()->with('success');
     }
 
     public function destroy(Request $request, ShoppingListItem $item) {
@@ -79,7 +79,7 @@ class ShoppingListController extends Controller
 
     public function finish(Request $request) {
         $validated = $request->validate([
-            'items' => 'required|array',
+            'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:shopping_list_items,id',
             'items.*.expiration_date' => 'required|date',
         ]);
