@@ -63,13 +63,18 @@ class QuizController extends Controller
         DB::transaction(function () use ($user, $validated) {
             
             // Save Profile Data
-            $user->profile()->create([
+            $profile = $user->profile()->create([
                 'sex' => $validated['sex'],
                 'birthdate' => $validated['birthdate'],
                 'height_cm' => $validated['height_cm'],
                 'weight_kg' => $validated['weight_kg'],
                 'baseline_activity' => $validated['baseline_activity'],
                 'fitness_goal' => $validated['fitness_goal'],
+            ]);
+
+            $targets = (new MealPlanController())->calculateNutritionalTargets($profile);
+            $profile->update([
+                'weekly_calorie_target' => $targets['calories'] * 7,
             ]);
 
             // Save App Settings

@@ -18,7 +18,7 @@ use Inertia\Inertia;
 
 class MealPlanController extends Controller
 {
-    private function calculateNutritionalTargets(UserProfile $profile) {
+    public function calculateNutritionalTargets(UserProfile $profile) {
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
