@@ -106,16 +106,21 @@ class UserInventoryController extends Controller
         $current = $inventory->amount_left ?? 0;
         $newAmount = max(0, $current - $validated['amount_to_remove']);
 
-        $inventory->update([
-            'amount_left' => $newAmount,
-            'status' => $newAmount == 0 ? 'LOW' : $inventory->status,
-        ]);
-
         $inventory->load('ingredient');
         $unit = $inventory->ingredient->base_unit ?? '';
         $itemName = $inventory->ingredient->name ?? 'item';
         $removeAmountText = trim("{$validated['amount_to_remove']} {$unit}");
         $newAmountText = trim("{$newAmount} {$unit}");
+
+         if($newAmount <= 0) {
+            $inventory->delete();
+            return back()->with('success', "You've completely used up {$itemName}.");
+        }
+
+        $inventory->update([
+            'amount_left' => $newAmount,
+            'status' => $newAmount == 0 ? 'LOW' : $inventory->status,
+        ]);
 
         return back()->with('success', "Removed {$removeAmountText} of {$itemName}. New balance: {$newAmountText}.");
     }
