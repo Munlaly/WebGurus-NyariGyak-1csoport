@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ShoppingListItem extends Model
 {
@@ -19,7 +20,7 @@ class ShoppingListItem extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function ingredient()
+    public function ingredient(): BelongsTo
     {
         return $this->belongsTo(Ingredient::class);
     }
