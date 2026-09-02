@@ -3,8 +3,8 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import { useActionModal } from '../Composables/useActionModal';
-import ActionModal from '../Components/ActionModal.vue';
-import AddInventoryModal from '../Components/AddInventoryModal.vue';
+import ActionModal from '../Components/Modals/ActionModal.vue';
+import AddInventoryModal from '../Components/Modals/AddInventoryModal.vue';
 import {
   Ingredient,
   InventoryItem,

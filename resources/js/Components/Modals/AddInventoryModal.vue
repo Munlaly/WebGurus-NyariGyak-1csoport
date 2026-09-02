@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useActionModal } from '../Composables/useActionModal';
+import { useActionModal } from '../../Composables/useActionModal';
 import ActionModal from './ActionModal.vue';
-import { useIngredientSearch } from '../Composables/useIngredientSearch';
+import { useIngredientSearch } from '../../Composables/useIngredientSearch';
 
 const { searchTerm, searchResults, isSearchLoading, isDropdownOpen } =
   useIngredientSearch();
