@@ -1,7 +1,14 @@
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  default_shelf_life_days?: number;
+}
+
 export interface Ingredient {
   id: number;
   name: string;
-  category?: string;
+  category?: Category;
   base_unit?: string;
   emoji?: string;
 }

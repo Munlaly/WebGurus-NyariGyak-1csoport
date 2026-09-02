@@ -42,7 +42,15 @@ const decreaseModal = useActionModal<
   'put',
 );
 
-const categories = ['All', 'Produce', 'Meat & Fish', 'Dairy', 'Dry Goods'];
+const categories = [
+  'All',
+  'Produce',
+  'Meat',
+  'Seafood',
+  'Milk, Eggs, other Dairy',
+  'Cheese',
+  'Pasta and Rice',
+];
 
 const searchQuery = ref('');
 const selectedCategory = ref('All');
@@ -52,9 +60,17 @@ const addInventoryModalRef = ref<InstanceType<typeof AddInventoryModal> | null>(
 
 const filteredInventory = computed(() => {
   return props.inventory.filter((item) => {
-    return item.ingredient.name
+    const matchesSearch = item.ingredient.name
       .toLowerCase()
       .includes(searchQuery.value.toLowerCase());
+
+    const itemCategoryName = item.ingredient.category?.name || '';
+
+    const matchesCategory =
+      selectedCategory.value === 'All' ||
+      itemCategoryName.toLowerCase() === selectedCategory.value.toLowerCase();
+
+    return matchesSearch && matchesCategory;
   });
 });
 

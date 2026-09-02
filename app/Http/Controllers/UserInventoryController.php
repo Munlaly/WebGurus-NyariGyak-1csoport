@@ -15,7 +15,7 @@ class UserInventoryController extends Controller
         $now = Carbon::now();
 
         $settings = UserSetting::where("user_id", $user->id)->first();
-        $inventory = UserInventory::with('ingredient')
+        $inventory = UserInventory::with('ingredient.category')
             ->where('user_id', $request->user()->id)
             ->orderBy('expiration_date', 'asc')
             ->get();
@@ -57,7 +57,7 @@ class UserInventoryController extends Controller
             'amount_left' => 'nullable|numeric',
             'unit' => 'required|string|in:g,kg,ml,l,pcs',
             'status' => 'nullable|in:FULL,OPENED,LOW',
-            'expiration_date' => 'nullable|date',
+            'expiration_date' => 'required|date',
             'is_frozen' => 'boolean'
         ]);
 

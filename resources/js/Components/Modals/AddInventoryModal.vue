@@ -155,6 +155,7 @@ defineExpose({
           v-model="addModal.form.expiration_date"
           type="date"
           class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+          required
         />
       </div>
     </div>
