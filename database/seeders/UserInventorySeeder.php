@@ -17,7 +17,7 @@ class UserInventorySeeder extends Seeder
         // 1. Clear the table first so we don't duplicate data on re-runs
         DB::table('user_inventories')->truncate();
 
-        $user = User::where('email', 'test@example.com')->first();
+        $user = User::where('email', 'banat@banat.banat')->first();
 
         if(! $user) {
             return;
