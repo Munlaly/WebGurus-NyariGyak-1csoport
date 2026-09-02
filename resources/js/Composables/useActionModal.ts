@@ -1,8 +1,9 @@
 // resources/js/Composables/useActionModal.ts
 import { ref, reactive } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import type { FormDataType } from '@inertiajs/core';
 
-export function useActionModal<TItem, TForm extends Record<string, any>>(
+export function useActionModal<TItem, TForm extends FormDataType<TForm>>(
   routeFn: (item: TItem) => string,
   initialForm: TForm,
   method: 'post' | 'put' = 'post',
