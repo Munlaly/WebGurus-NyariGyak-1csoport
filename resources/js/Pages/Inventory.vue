@@ -4,7 +4,7 @@ import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import { useActionModal } from '../Composables/useActionModal';
 import ActionModal from '../Components/ActionModal.vue';
-
+import AddInventoryModal from '../Components/AddInventoryModal.vue';
 import {
   Ingredient,
   InventoryItem,
@@ -17,10 +17,6 @@ const props = defineProps<{
   inventory: InventoryItem[];
   currentScore: number;
 }>();
-
-const searchQuery = ref('');
-const selectedCategory = ref('All');
-const categories = ['All', 'Produce', 'Meat & Fish', 'Dairy', 'Dry Goods'];
 
 const shoppingModal = useActionModal<
   Ingredient,
@@ -46,6 +42,14 @@ const decreaseModal = useActionModal<
   'put',
 );
 
+const categories = ['All', 'Produce', 'Meat & Fish', 'Dairy', 'Dry Goods'];
+
+const searchQuery = ref('');
+const selectedCategory = ref('All');
+const addInventoryModalRef = ref<InstanceType<typeof AddInventoryModal> | null>(
+  null,
+);
+
 const filteredInventory = computed(() => {
   return props.inventory.filter((item) => {
     return item.ingredient.name
@@ -54,11 +58,11 @@ const filteredInventory = computed(() => {
   });
 });
 
-const deleteItem = (id: number) => {
+function deleteItem(id: number) {
   if (confirm('Are you sure you want to remove this item?')) {
     router.delete(route('inventory.destroy', id), { preserveScroll: true });
   }
-};
+}
 
 function scrollToItem(id: number) {
   const element = document.getElementById(`inventory-item-${id}`);
@@ -70,27 +74,6 @@ function scrollToItem(id: number) {
     }, 2000);
   }
 }
-
-const addModal = useActionModal<
-  null,
-  {
-    ingredient_id: number | null;
-    amount_left: number;
-    status: 'FULL' | 'OPENED' | 'LOW';
-    expiration_date: string;
-    is_frozen: boolean;
-  }
->(
-  () => route('inventory.store'),
-  {
-    ingredient_id: null,
-    amount_left: 1,
-    status: 'FULL',
-    expiration_date: '',
-    is_frozen: false,
-  },
-  'post',
-);
 </script>
 
 <template>
@@ -123,7 +106,7 @@ const addModal = useActionModal<
           </div>
           <button
             class="bg-primary text-on-primary font-body-md text-body-md relative flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-sm transition-opacity hover:opacity-90 hover:shadow-md"
-            @click="addModal.open(null)"
+            @click="addInventoryModalRef?.open()"
           >
             <span class="material-symbols-outlined text-[20px]">add</span>
             Add Item
@@ -379,83 +362,6 @@ const addModal = useActionModal<
         />
       </div>
     </ActionModal>
-    <!-- Add Item Modal -->
-    <ActionModal
-      :show="addModal.isOpen"
-      title="Add to Inventory"
-      :processing="addModal.form.processing"
-      submit-text="Add Item"
-      submit-variant="primary"
-      @close="addModal.isOpen = false"
-      @submit="addModal.submit"
-    >
-      <div>
-        <label
-          class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-          >Ingredient ID</label
-        >
-        <input
-          v-model="addModal.form.ingredient_id"
-          type="number"
-          class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-          placeholder="Enter ingredient ID"
-          required
-        />
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label
-            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-            >Initial Amount</label
-          >
-          <input
-            v-model="addModal.form.amount_left"
-            type="number"
-            min="0"
-            step="0.1"
-            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-          />
-        </div>
-        <div>
-          <label
-            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-            >Status</label
-          >
-          <select
-            v-model="addModal.form.status"
-            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-          >
-            <option value="FULL">Full</option>
-            <option value="OPENED">Opened</option>
-            <option value="LOW">Low</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label
-          class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-          >Expiration Date</label
-        >
-        <input
-          v-model="addModal.form.expiration_date"
-          type="date"
-          class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-        />
-      </div>
-
-      <div class="flex items-center gap-3 pt-2">
-        <input
-          id="is_frozen"
-          v-model="addModal.form.is_frozen"
-          type="checkbox"
-          class="border-outline-variant text-primary focus:ring-primary h-5 w-5 rounded"
-        />
-        <label for="is_frozen" class="font-label-md text-on-surface font-medium"
-          >Is Frozen?</label
-        >
-      </div>
-    </ActionModal>
+    <AddInventoryModal ref="addInventoryModalRef" />
   </AuthenticatedLayout>
 </template>

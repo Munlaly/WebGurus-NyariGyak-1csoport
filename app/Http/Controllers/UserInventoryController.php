@@ -85,6 +85,9 @@ class UserInventoryController extends Controller
             'is_frozen' => 'boolean'
         ]);
 
+        if(!empty($validated['expiration_date'])) {
+            $validated['expiration_date'] = Carbon::parse($validated['expiration_date'])->format('Y-m-d');
+        }
         $inventory->update($validated);
         $inventory->load('ingredient');
 

@@ -19,7 +19,7 @@ class UserInventory extends Model
 
     protected $casts = [
         'is_frozen' => 'boolean',
-        'expiration_date' => 'date',
+        'expiration_date' => 'date:Y-m-d',
         'last_audited_at' => 'datetime',
     ];
 
