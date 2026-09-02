@@ -2,10 +2,11 @@
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ActionModal from '../../Components/Modals/ActionModal.vue';
+import { ShoppingListItem } from '../../utils/shopping_list.js';
 
 const props = defineProps<{
   show: boolean;
-  item: any;
+  item: ShoppingListItem | null;
 }>();
 
 const emit = defineEmits(['close']);
