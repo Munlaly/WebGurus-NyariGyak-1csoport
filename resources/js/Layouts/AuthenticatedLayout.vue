@@ -340,7 +340,7 @@ onUnmounted(() => {
         <!-- TOP APP BAR -->
         <header
           :class="[
-            'border-surface-container bg-background fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b px-3 transition-all duration-300 ease-in-out md:px-8',
+            'border-surface-container bg-surface fixed top-0 right-0 z-50 flex h-16 items-center justify-between border-b px-3 transition-all duration-300 ease-in-out md:px-8',
             headerPositionClass,
           ]"
         >

@@ -11,6 +11,7 @@ export interface InventoryItem {
   user_id: number;
   ingredient_id: number;
   amount_left: number | null;
+  unit: string;
   status: 'FULL' | 'OPENED' | 'LOW';
   expiration_date: string | null;
   is_frozen: boolean;
@@ -47,7 +48,7 @@ export const getDiffDays = (dateStr: string | null) => {
 
 export const getItemState = (item: InventoryItem) => {
   const diffDays = getDiffDays(item.expiration_date);
-  const unit = item.ingredient?.base_unit || 'units';
+  const unit = item.unit || item.ingredient?.base_unit || 'pcs';
   const qtyText = `${item.amount_left ?? 0} ${unit}`;
 
   const baseCardClass = 'border-surface-variant/40 bg-surface-container-lowest';

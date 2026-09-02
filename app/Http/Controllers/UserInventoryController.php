@@ -82,6 +82,7 @@ class UserInventoryController extends Controller
         }
         $validated = $request->validate([
             'amount_left' => 'nullable|numeric',
+            'unit' => 'required|string|in:g,kg,ml,l,pcs',
             'status' => 'nullable|in:FULL,OPENED,LOW',
             'expiration_date' => 'nullable|date',
             'is_frozen' => 'boolean'
@@ -94,7 +95,7 @@ class UserInventoryController extends Controller
         $inventory->load('ingredient');
 
         $amount = $inventory->amount_left ?? 0;
-        $unit = $inventory->ingredient->base_unit ?? '';
+        $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
         $itemName = $inventory->ingredient->name ?? 'item';
         $amountText = trim("{$amount} {$unit}");
 
