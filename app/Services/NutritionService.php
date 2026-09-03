@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 class NutritionService
 {
     public function calculateNutritionalTargets(UserProfile $profile) {
-        $goal = $profile->fitness_goal?->value ?? 'maintain';
+        $goal = $profile->fitness_goal->value ?? 'maintain';
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30];
 
         // adjust macros based on goal
@@ -29,8 +29,8 @@ class NutritionService
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
 
-        $sex = $profile->sex?->value ?? 'male';
-        $activity = $profile->baseline_activity?->value ?? 'sedentary';
+        $sex = $profile->sex->value ?? 'male';
+        $activity = $profile->baseline_activity->value ?? 'sedentary';
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
