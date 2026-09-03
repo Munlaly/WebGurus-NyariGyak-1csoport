@@ -15,32 +15,23 @@ class UserInventoryController extends Controller
         $now = Carbon::now();
 
         $settings = UserSetting::where("user_id", $user->id)->first();
-        $inventory = UserInventory::with('ingredient')
+        $inventory = UserInventory::with('ingredient.category')
             ->where('user_id', $request->user()->id)
             ->orderBy('expiration_date', 'asc')
             ->get();
 
         $attentionNeeded = [];
-        $regularInventory = [];
 
         foreach($inventory as $item) {
-            $needsAttention = false;
+            $isExpiring = false;
             if($item->expiration_date) {
                 $expDate = Carbon::parse($item->expiration_date)->startOfDay();
                 $targetDate = $now->copy()->addDays(7)->startOfDay();
-                if($expDate->isPast() || $expDate->isBefore($targetDate)) {
-                    $needsAttention = true;
-                }
+                $isExpiring = $expDate->isPast() || $expDate->isBefore($targetDate);
             }
 
-            if($item->status === 'LOW') {
-                $needsAttention = true;
-            }
-
-            if($needsAttention) {
+            if($item->status === 'LOW' || $isExpiring) {
                 $attentionNeeded[] = $item;
-            } else {
-                $regularInventory[] = $item;
             }
         }
         
@@ -55,8 +46,9 @@ class UserInventoryController extends Controller
         $validated = $request->validate([
             'ingredient_id' => 'required|exists:ingredients,id',
             'amount_left' => 'nullable|numeric',
+            'unit' => 'required|string|in:g,kg,ml,l,pcs',
             'status' => 'nullable|in:FULL,OPENED,LOW',
-            'expiration_date' => 'nullable|date',
+            'expiration_date' => 'required|date',
             'is_frozen' => 'boolean'
         ]);
 
@@ -64,8 +56,11 @@ class UserInventoryController extends Controller
             'user_id' => $request->user()->id,
             'ingredient_id' => $validated['ingredient_id'],
             'amount_left' => $validated['amount_left'] ?? null,
+            'unit' => $validated['unit'],
             'status' => $validated['status'] ?? 'FULL',
-            'expiration_date' => $validated['expiration_date'] ?? null,
+            'expiration_date' => !empty($validated['expiration_date']) 
+                ? Carbon::parse($validated['expiration_date'])->format('Y-m-d') 
+                : null,
             'is_frozen' => $validated['is_frozen'] ?? false,
         ]);
 
@@ -78,20 +73,69 @@ class UserInventoryController extends Controller
         }
         $validated = $request->validate([
             'amount_left' => 'nullable|numeric',
+            'unit' => 'required|string|in:g,kg,ml,l,pcs',
             'status' => 'nullable|in:FULL,OPENED,LOW',
             'expiration_date' => 'nullable|date',
             'is_frozen' => 'boolean'
         ]);
 
+        if(!empty($validated['expiration_date'])) {
+            $validated['expiration_date'] = Carbon::parse($validated['expiration_date'])->format('Y-m-d');
+        }
         $inventory->update($validated);
-        return back()->with('success', 'Item updated successfully.');
+        $inventory->load('ingredient');
+
+        $amount = $inventory->amount_left ?? 0;
+        $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
+        $itemName = $inventory->ingredient->name ?? 'item';
+        $amountText = trim("{$amount} {$unit}");
+
+        return back()->with('success', "Updated {$itemName} quantity to {$amountText} successfully.");
+    }
+
+    public function decrease(Request $request, UserInventory $inventory) {
+        if($inventory->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'amount_to_remove' => 'required|numeric|min:0.1',
+        ]);
+
+        $current = $inventory->amount_left ?? 0;
+        $newAmount = max(0, $current - $validated['amount_to_remove']);
+
+        $inventory->load('ingredient');
+        $unit = $inventory->ingredient->base_unit ?? '';
+        $itemName = $inventory->ingredient->name ?? 'item';
+        $removeAmountText = trim("{$validated['amount_to_remove']} {$unit}");
+        $newAmountText = trim("{$newAmount} {$unit}");
+
+         if($newAmount <= 0) {
+            $inventory->delete();
+            return back()->with('success', "You've completely used up {$itemName}.");
+        }
+
+        $inventory->update([
+            'amount_left' => $newAmount,
+        ]);
+
+        return back()->with('success', "Removed {$removeAmountText} of {$itemName}. New balance: {$newAmountText}.");
     }
 
     public function destroy(Request $request, UserInventory $inventory) {
         if($inventory->user_id !== $request->user()->id) {
             abort(403);
         }
+
+        $inventory->load('ingredient');
+
+        $amount  = $inventory->amount_left ?? '';
+        $unit = $inventory->ingredient->base_unit ?? '';
+        $itemName = $inventory->ingredient->name ?? 'item';
+        $amountText = trim("{$amount} {$unit}");
+
         $inventory->delete();
-        return back()->with('success', 'Item removed from inventory.');
+        return back()->with('success', "{$amountText} of {$itemName} has been removed from your inventory successfully.");
     }
 }

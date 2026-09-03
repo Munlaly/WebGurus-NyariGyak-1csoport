@@ -11,6 +11,7 @@ class UserInventory extends Model
         'user_id',
         'ingredient_id',
         'amount_left', 
+        'unit',
         'status',
         'expiration_date',
         'is_frozen',
@@ -19,7 +20,7 @@ class UserInventory extends Model
 
     protected $casts = [
         'is_frozen' => 'boolean',
-        'expiration_date' => 'date',
+        'expiration_date' => 'date:Y-m-d',
         'last_audited_at' => 'datetime',
     ];
 

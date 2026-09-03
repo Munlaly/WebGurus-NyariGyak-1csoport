@@ -1,2 +1,72 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #15803d;
+  --color-on-primary: #ffffff;
+
+  --color-background: #fffbfe;
+  --color-on-background: #1c1b1f;
+
+  --color-secondary-fixed: #e8def8;
+  --color-secondary-fixed-dim: #ccc2dc;
+  --color-on-secondary-container: #1d192b;
+
+  --color-error: #b3261e;
+  --color-on-error: #ffffff;
+  --color-error-container: #f9dedc;
+  --color-on-error-container: #410e0b;
+
+  --color-tertiary-fixed: #dcfce7;
+  --color-on-tertiary-container: #166534;
+
+  --color-surface: #fffbfe;
+  --color-on-surface: #1c1b1f;
+  --color-surface-variant: #e7e0ec;
+  --color-on-surface-variant: #49454f;
+
+  --color-surface-tint: #15803d;
+  --color-outline-variant: #cac4d0;
+
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f7f2fa;
+  --color-surface-container: #f3edf7;
+  --color-surface-container-high: #ece6f0;
+}
+
+@layer base {
+  .dark {
+    /* Rich purple primary accent for dark mode */
+    --color-primary: #d0bcff;
+    --color-on-primary: #381e72;
+
+    /* Balanced dark error/warning tones */
+    --color-error: #f2b8b5;
+    --color-on-error: #601410;
+    --color-error-container: #4a1512;
+    --color-on-error-container: #f9dedc;
+
+    --color-tertiary-fixed: #0f381f;
+    --color-on-tertiary-container: #a7f3d0;
+
+    /* Ultra-Dark Midnight Blue Palette */
+    --color-background: #050914; /* Dashboard background (Deep midnight blue) */
+    --color-on-background: #f8fafc;
+
+    --color-surface: #050914;
+    --color-surface-dim: #010308; /* Left Navigation Bar (Almost pure black with a blue tint) */
+    --color-on-surface: #f8fafc;
+
+    --color-surface-variant: #111a30;
+    --color-on-surface-variant: #94a3b8;
+    --color-outline-variant: #1e2b48;
+
+    /* Card and container hierarchy */
+    --color-surface-container-lowest: #03060f; /* Slightly darker than background for cards */
+    --color-surface-container-low: #050914;
+    --color-surface-container: #0b1224;
+    --color-surface-container-high: #111a30;
+  }
+}

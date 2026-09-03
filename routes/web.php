@@ -11,19 +11,24 @@ use App\Http\Middleware\EnsureUserIsOnboarded;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\UserInventoryController;
 use App\Http\Controllers\MealPlanController;
-
-
+use App\Http\Controllers\ShoppingListController;
 
 Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
-        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts'); 
-        Route::delete('inventory/{inventory}', [UserInventoryController::class, 'destroy'])->name('inventory.destroy');
+        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts');
+
+        Route::prefix('inventory')->name('inventory.')->group(function () {
+            Route::get('/', [UserInventoryController::class, 'index'])->name('index');
+            Route::post('/', [UserInventoryController::class, 'store'])->name('store');
+            Route::put('/{inventory}', [UserInventoryController::class, 'update'])->name('update');
+            Route::put('/{inventory}/decrease', [UserInventoryController::class, 'decrease'])->name('decrease');
+            Route::delete('/{inventory}', [UserInventoryController::class, 'destroy'])->name('destroy');
+        });
 
         Route::prefix('settings')->name('settings.')->group(function () {
-        
             Route::get('targets', [SettingsController::class, 'targets'])->name('targets');
             Route::put('targets', [SettingsController::class, 'updateTargets']);
             
@@ -63,7 +68,7 @@ Route::middleware('auth')->group(function(){
 
     
     Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
-
+    Route::post('shopping-list', [ShoppingListController::class, 'store'])->name('shopping-list.store');
 });
 
 require __DIR__.'/auth.php';

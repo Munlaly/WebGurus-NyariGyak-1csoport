@@ -22,8 +22,7 @@ const activeTab = 'system';
 const themeButtonClasses = computed(() => {
   const base =
     'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition-all';
-  const active =
-    'text-primary dark:text-primary-400 bg-white shadow-sm dark:bg-gray-700';
+  const active = 'text-primary bg-white shadow-sm dark:bg-gray-700';
   const inactive = 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700';
   return {
     light: [base, form.theme === 'light' ? active : inactive],
