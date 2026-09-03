@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 
-import { ShoppingListItem } from '../utils/shopping_list';
+import { ShoppingListItem } from '../Types/shoppingListInterfaces.js';
 
 import AddItemModal from '../Components/Modals/AddItemModal.vue';
 import EditItemModal from '../Components/Modals/EditItemModal.vue';

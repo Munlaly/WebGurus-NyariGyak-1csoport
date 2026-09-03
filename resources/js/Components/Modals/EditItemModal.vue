@@ -2,7 +2,7 @@
 import { watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ActionModal from '../../Components/Modals/ActionModal.vue';
-import { ShoppingListItem } from '../../utils/shopping_list.js';
+import { ShoppingListItem } from '../../Types/shoppingListInterfaces.js';
 
 const props = defineProps<{
   show: boolean;
