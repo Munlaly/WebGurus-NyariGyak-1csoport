@@ -6,8 +6,10 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Recipe;
+use App\Services\IngredientService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use App\Services\NutritionService;
 
 class FetchSpoonacularData extends Command
 {
@@ -160,6 +162,8 @@ class FetchSpoonacularData extends Command
             }
 
             if(!$exist) {
+                $ingredientService = app(IngredientService::class);
+
                 // Saving to DB
                 $rawImage = $recipeData['image'] ?? null;
                 $cleanImage = $rawImage ? str_replace(['\\/', '\\'], ['', ''], $rawImage) : null;
@@ -177,6 +181,22 @@ class FetchSpoonacularData extends Command
                     'carbs' => $macros['carbs'] !== null ? (float) $macros['carbs'] : null,
                     'diets' => $currentDiets,
                 ]);
+
+                $processedIngredients = [];
+                if(!empty($recipeData['extendedIngredients'])) {
+                    foreach($recipeData['extendedIngredients'] as $ingredient) {
+                        $rawName = !empty($ingredient['nameClean']) ? $ingredient['nameClean'] : ($ingredient['name'] ?? '');
+                        $rawUnit = $ingredient['unit'] ?? '';
+
+                        $processedIngredients[] = [
+                            'name' => $ingredientService->sanitizeName($rawName),
+                            'amount' => $ingredient['amount'] ?? null,
+                            'unit' => $ingredientService->standardizeUnit($rawUnit),
+                            'aisle' => $ingredient['aisle'] ?? 'Uncategorized',
+                        ];
+                    }
+                }
+
                 $newRecipes[] = [
                     'title' => $recipeData['title'],
                     'prep_time' => $recipeData['readyInMinutes'] ?? null,
@@ -186,12 +206,7 @@ class FetchSpoonacularData extends Command
                     'instructions' => $finalInstructions,
                     'meal_types' => $finalMealTypes,
                     'image' => $cleanImage,
-                    'ingredients' => array_map(fn($ingr) => [
-                            'name' => $ingr['nameClean'] ?? null,
-                            'amount' => $ingr['amount'] ?? null,
-                            'unit' => $ingr['unit'] ?? null,
-                            'aisle' => $ingr['aisle'] ?? 'Uncategorized',
-                    ], $recipeData['extendedIngredients'] ?? []),
+                    'ingredients' => $processedIngredients,
                 ];
                 $saveCount++;
             }
