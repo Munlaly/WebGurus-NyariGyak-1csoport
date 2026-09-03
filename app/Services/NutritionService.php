@@ -29,8 +29,8 @@ class NutritionService
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
         
-        $sex = $profile->sex->value ?? 'male';
-        $activity = $profile->baseline_activity->value ?? 'sedentary';
+        $sex = $profile->sex ?? ($profile->sex->value ?? 'male');
+        $activity = $profile->baseline_activity ?? ($profile->baseline_activity->value ?? 'sedentary');
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -44,7 +44,7 @@ class NutritionService
             'very_active' => 1.725,
         ];
 
-        $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
+        $tdee = $bmr * $multipliers[$activity];
         
         $targetCalories = $tdee;
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
@@ -62,7 +62,6 @@ class NutritionService
     }
 
     public function updateProfileWeeklyCalories(UserProfile $profile): void {
-        $tempWeeklyCalories = $profile->weekly_calories;
         $profile->weekly_calories = null;
 
         $targets = $this->calculateNutritionalTargets($profile);

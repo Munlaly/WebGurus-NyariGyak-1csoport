@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DietaryOption;
+use App\Services\NutritionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -73,9 +74,9 @@ class QuizController extends Controller
                 'fitness_goal' => $validated['fitness_goal'],
             ]);
 
-            $targets = (new MealPlanController())->calculateNutritionalTargets($profile);
+            $targets = (new NutritionService())->calculateNutritionalTargets($profile);
             $profile->update([
-                'weekly_calorie_target' => $targets['calories'] * 7,
+                'weekly_calories' => $targets['calories'] * 7,
             ]);
 
             // Save App Settings

@@ -72,7 +72,8 @@ class MealPlanController extends Controller
         $settings = UserSetting::where('user_id', $user->id)->first();
         $profile = UserProfile::where('user_id', $user->id)->first();
 
-        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile) : ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
+        $nutritionService = app(NutritionService::class);
+        $nutritionTargets = $profile ? $nutritionService->calculateNutritionalTargets($profile) : ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
         $targetCalories = $nutritionTargets['calories'];
         $macroTargets = $nutritionTargets['macros'];
 
@@ -369,7 +370,9 @@ class MealPlanController extends Controller
         $plan = $validated['plan'];
         $startOfWeek = Carbon::now()->startOfWeek();
         $profile = UserProfile::where('user_id', $user->id)->first();
-        $nutritionTargets = $profile ? $this->calculateNutritionalTargets($profile): ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
+
+        $nutritionService = app(NutritionService::class);
+        $nutritionTargets = $profile ? $nutritionService->calculateNutritionalTargets($profile): ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
 
         $dayMapping = [
             'Monday' => 0,
