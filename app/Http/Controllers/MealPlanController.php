@@ -59,7 +59,7 @@ class MealPlanController extends Controller
     }
 
     public function index( Request $request){
-        $hasPlan = \App\Models\DailyPlan::where('user_id', $request->user()->id)
+        $hasPlan = DailyPlan::where('user_id', $request->user()->id)
             ->where('date', '>=', Carbon::now()->startOfWeek()->toDateString())
             ->exists();
 
