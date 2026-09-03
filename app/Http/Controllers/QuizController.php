@@ -63,6 +63,7 @@ class QuizController extends Controller
         DB::transaction(function () use ($user, $validated) {
             
             // Save Profile Data
+            /** @var \App\Models\UserProfile $profile */
             $profile = $user->profile()->create([
                 'sex' => $validated['sex'],
                 'birthdate' => $validated['birthdate'],

@@ -23,9 +23,9 @@ class MealPlanController extends Controller
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
         
-        $sex = $profile->sex instanceof \BackedEnum ? $profile->sex->value : ($profile->sex ?? 'male');
-        $activity = $profile->baseline_activity instanceof \BackedEnum ? $profile->baseline_activity->value : ($profile->baseline_activity ?? 'sedentary');
-        $goal = $profile->fitness_goal instanceof \BackedEnum ? $profile->fitness_goal->value : ($profile->fitness_goal ?? 'maintain');
+        $sex = $profile->sex->value ?? 'male';
+        $activity = $profile->baseline_activity->value ?? 'sedentary';
+        $goal = $profile->fitness_goal->value ?? 'maintain';
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
