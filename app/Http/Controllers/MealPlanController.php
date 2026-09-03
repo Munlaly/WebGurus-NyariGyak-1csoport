@@ -541,6 +541,7 @@ class MealPlanController extends Controller
         return response()->json([
             'success' => true,
             'plan' => $weeklyPlan,
+            'target_calories' => $dailyPlans->first()->target_calories ?? null,
         ]);
     }
 
