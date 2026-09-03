@@ -6,6 +6,7 @@ use App\Models\UserSetting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use App\Services\AlertService;
+use Inertia\Inertia;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -78,7 +79,7 @@ class HandleInertiaRequests extends Middleware
                     return $alerts['expired']->count() + $alerts['critical']->count() + $alerts['urgent']->count();
                 },
             ],
-            'expiringAlerts' => $getAlerts(),
+            'expiringAlerts' => Inertia::lazy(fn () => $getAlerts()),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
