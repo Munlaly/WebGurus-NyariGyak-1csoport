@@ -57,7 +57,7 @@ function formatTags(meal: PlannerMeal) {
       <PlannerMealCard
         v-for="meal in meals"
         :id="meal.id"
-        :key="meal.id"
+        :key="meal.id + '-' + meal.meal_type"
         :meal-type="meal.meal_type"
         :title="meal.name"
         :calories="meal.calories"

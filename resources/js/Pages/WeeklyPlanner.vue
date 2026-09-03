@@ -64,22 +64,7 @@ function togglePin(dayName: string, mealId: number) {
 async function fetchInitialPlan() {
   try {
     const response = await axios.post(route('meal-plan.generate'));
-    const newPlan = response.data.plan;
-
-    const types = [
-      MealType.Breakfast,
-      MealType.Lunch,
-      MealType.Dinner,
-      MealType.Snack,
-    ];
-
-    for (const day in newPlan) {
-      newPlan[day].meals.forEach((meal: PlannerMeal, index: number) => {
-        meal.meal_type = types[index] || MealType.Snack;
-      });
-    }
-
-    weeklyPlan.value = newPlan;
+    weeklyPlan.value = response.data.plan;
   } catch (error) {
     console.error('Failed to fetch plan:', error);
   }
@@ -126,17 +111,92 @@ async function rerollMeal(dayName: string, mealId: number, mealType: string) {
 }
 
 async function regenerateUnpinned() {
-  const promises: Promise<void>[] = [];
+  try {
+    // Call the main backend generate endpoint for the whole upcoming week
+    const response = await axios.post(route('meal-plan.generate'));
+    const freshPlan = response.data.plan;
 
-  for (const [dayName, dayData] of Object.entries(weeklyPlan.value)) {
-    for (const meal of dayData.meals) {
-      if (!meal.isPinned && !meal.isRolling) {
-        promises.push(rerollMeal(dayName, meal.id, meal.meal_type));
+    // If there are existing pinned meals, preserve them in their slots
+    for (const dayName in freshPlan) {
+      if (weeklyPlan.value[dayName]) {
+        const existingMeals = weeklyPlan.value[dayName].meals;
+
+        freshPlan[dayName].meals = freshPlan[dayName].meals.map(
+          (newMeal: PlannerMeal, index: number) => {
+            const oldMeal = existingMeals[index];
+            if (oldMeal && oldMeal.isPinned) {
+              return oldMeal; // Keep the pinned meal intact
+            }
+            return newMeal; // Replace unpinned meal with fresh generated one
+          },
+        );
+
+        // Recalculate daily total calories including any preserved pinned meals
+        freshPlan[dayName].total_calories = freshPlan[dayName].meals.reduce(
+          (sum: number, m: PlannerMeal) => sum + Number(m.calories || 0),
+          0,
+        );
       }
     }
+
+    weeklyPlan.value = freshPlan;
+
+    toast.add({
+      title: 'Menu Regenerated',
+      description: 'Unpinned meals refreshed for the upcoming week!',
+      color: 'success',
+      icon: 'i-heroicons-arrow-path',
+    });
+  } catch (error: unknown) {
+    console.error('Failed to regenerate plan:', error);
+    let backendMessage =
+      'Failed to regenerate the meal plan. Please try again.';
+    if (axios.isAxiosError(error)) {
+      backendMessage = error.response?.data?.message || backendMessage;
+    }
+    toast.add({
+      title: 'Error',
+      description: backendMessage,
+      color: 'error',
+      icon: 'i-heroicons-x-circle',
+    });
+  }
+}
+
+async function deleteWeeklyPlan() {
+  if (
+    !confirm(
+      'Are you sure you want to delete your entire weekly plan and start over?',
+    )
+  ) {
+    return;
   }
 
-  await Promise.allSettled(promises);
+  try {
+    const response = await axios.delete(route('meal-plan.destroy'));
+    if (response.data.success) {
+      weeklyPlan.value = {};
+      isAlreadySaved.value = false;
+      sessionStorage.removeItem(STORAGE_KEY);
+
+      toast.add({
+        title: 'Plan Reset',
+        description: 'Weekly plan cleared. Generating a fresh plan...',
+        color: 'success',
+        icon: 'i-heroicons-trash',
+      });
+
+      fetchInitialPlan();
+    }
+  } catch (error) {
+    console.error('Failed to delete plan:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to delete the plan. Please try again.',
+      color: 'error',
+      icon: 'i-heroicons-x-circle',
+    });
+  }
 }
 
 async function acceptAndFinalize() {
@@ -270,6 +330,16 @@ onMounted(() => {
           </button>
 
           <button
+            class="text-error hover:bg-error-50 border-error/50 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
+            @click="deleteWeeklyPlan"
+          >
+            <span class="material-symbols-outlined text-[18px]"
+              >delete_sweep</span
+            >
+            Delete Plan
+          </button>
+
+          <button
             class="text-primary hover:bg-primary-50 border-primary flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
             @click="regenerateUnpinned"
           >
@@ -350,7 +420,7 @@ onMounted(() => {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-.scrollbar-hide {
+Planner .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

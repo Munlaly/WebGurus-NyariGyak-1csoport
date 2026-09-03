@@ -22,7 +22,10 @@ class MealPlanController extends Controller
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
-        $sex = $profile->sex->value;
+        
+        $sex = $profile->sex instanceof \BackedEnum ? $profile->sex->value : ($profile->sex ?? 'male');
+        $activity = $profile->baseline_activity instanceof \BackedEnum ? $profile->baseline_activity->value : ($profile->baseline_activity ?? 'sedentary');
+        $goal = $profile->fitness_goal instanceof \BackedEnum ? $profile->fitness_goal->value : ($profile->fitness_goal ?? 'maintain');
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -36,12 +39,8 @@ class MealPlanController extends Controller
             'very_active' => 1.725,
         ];
 
-        $activity = $profile->baseline_activity->value;
-        // Total Daily Energy Expenditure
         $tdee = $bmr * $multipliers[$activity];
-
-        $goal = $profile->fitness_goal->value;
-
+        
         $targetCalories = $tdee;
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
 
@@ -260,7 +259,7 @@ class MealPlanController extends Controller
 
                     if($perfectMeals->isNotEmpty()) {
                         $b = $perfectMeals->sortByDesc($zeroWasteScorer)->first();
-                        $dailyMeals = collect(array_filter([$b, $l, $d, $snack]));
+                        $dailyMeals = ['breakfast' => $b, 'lunch' => $l, 'dinner' => $d, 'snack' => $snack];
                         break;
                     }
                     $b = $breakfasts->random();
@@ -277,7 +276,7 @@ class MealPlanController extends Controller
 
                     if($perfectMeals->isNotEmpty()) {
                         $l = $perfectMeals->sortByDesc($zeroWasteScorer)->first();
-                        $dailyMeals = collect(array_filter([$b, $l, $d, $snack]));
+                        $dailyMeals = ['breakfast' => $b, 'lunch' => $l, 'dinner' => $d, 'snack' => $snack];
                         break;
                     }
                     $l = $lunches->random();
@@ -294,7 +293,8 @@ class MealPlanController extends Controller
 
                     if($perfectMeals->isNotEmpty()) {
                         $d = $perfectMeals->sortByDesc($zeroWasteScorer)->first();
-                        $dailyMeals = collect(array_filter([$b, $l, $d, $snack]));
+                        $d->temp_meal_type = 'dinner';
+                        $dailyMeals = ['breakfast' => $b, 'lunch' => $l, 'dinner' => $d, 'snack' => $snack];
                         break;
                     }
                     $d = $dinners->random();
@@ -305,16 +305,15 @@ class MealPlanController extends Controller
 
                 if($difference < $closestDifference) {
                     $closestDifference = $difference;
-                    $bestAttempt = collect(array_filter([$b, $l, $d, $snack]));
+                    $bestAttempt = ['breakfast' => $b, 'lunch' => $l, 'dinner' => $d, 'snack' => $snack];
                 }
                 $attempts++;
             }
 
-            if(!$dailyMeals) {
-                $dailyMeals = $bestAttempt;
-            }
+            $finalMeals = $dailyMeals ?? $bestAttempt;
+            $finalMeals = array_filter($finalMeals);
 
-            foreach($dailyMeals as $meal) {
+            foreach($finalMeals as $meal) {
                 /** @var \App\Models\Ingredient $ingredient */
                 foreach($meal->ingredients as $ingredient) {
                     $ingId = $ingredient->id;
@@ -330,9 +329,16 @@ class MealPlanController extends Controller
 
             $weeklyActiveIngredients = array_unique($weeklyActiveIngredients);
 
+            $formattedMeals = [];
+            foreach($finalMeals as $type => $meal) {
+                $m = $meal->toArray();
+                $m['meal_type'] = $type;
+                $formattedMeals[] = $m;
+            }
+
             $weeklyPlan[$day] = [
-                'meals' => $dailyMeals->values(),
-                'total_calories' => $dailyMeals->sum('calories'),
+                'meals' => $formattedMeals,
+                'total_calories' => collect($formattedMeals)->sum('calories'),
                 'has_snack' => $includeSnack,
                 'perfect_match' => $attempts < $maxAttempts
             ];
@@ -376,7 +382,8 @@ class MealPlanController extends Controller
             ], 400);
         }
 
-        $newMeal = $filteredPool->random();
+        $newMeal = $filteredPool->random()->toArray();
+        $newMeal['meal_type'] = $mealType;
         return response()->json([
             'success'=> true,
             'recipe' => $newMeal
@@ -517,6 +524,26 @@ class MealPlanController extends Controller
         return response()->json([
             'success' => true,
             'plan' => $weeklyPlan,
+        ]);
+    }
+
+    public function destroy(Request $request) {
+        $user = $request->user();
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
+        $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
+
+        $dailyPlans = DailyPlan::where('user_id', $user->id)
+            ->whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->get();
+
+        MealPlan::whereIn('daily_plan_id', $dailyPlans->pluck('id'))->delete();
+        foreach($dailyPlans as $dp) {
+            $dp->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Weekly plan cleared successfully.'
         ]);
     }
 }
