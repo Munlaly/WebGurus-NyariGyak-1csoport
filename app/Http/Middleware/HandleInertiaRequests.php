@@ -6,7 +6,6 @@ use App\Models\UserSetting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use App\Services\AlertService;
-use Inertia\Inertia;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -45,6 +44,7 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $theme = 'light';
         $inAppAlerts = true;
+        $alertsCache = null;
 
         if ($user) {
             $settings = UserSetting::where('user_id', $user->id)->first();
@@ -63,6 +63,10 @@ class HandleInertiaRequests extends Middleware
             return $alerts;
         };
 
+        $resolveAlerts = function () use (&$alertsCache, $getAlerts) {
+            return $alertsCache ??= $getAlerts();
+        };
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
@@ -71,15 +75,15 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
                 'theme' => $theme,
                 'inAppAlerts' => $inAppAlerts,
-                'expiringCount' => function() use ($user, $getAlerts) {
+                'expiringCount' => function() use ($user, $resolveAlerts) {
                     if (!$user) {
                         return 0;
                     }
-                    $alerts = $getAlerts();
+                    $alerts = $resolveAlerts();
                     return $alerts['expired']->count() + $alerts['critical']->count() + $alerts['urgent']->count();
                 },
             ],
-            'expiringAlerts' => Inertia::lazy(fn () => $getAlerts()),
+            'expiringAlerts' => fn() => $resolveAlerts(),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
