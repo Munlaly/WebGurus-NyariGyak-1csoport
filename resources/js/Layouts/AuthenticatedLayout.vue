@@ -66,7 +66,6 @@ const navigation = [
 
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
-const showTopAlert = ref(false);
 const showFlashToast = ref(false);
 
 const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
@@ -90,9 +89,6 @@ const headerPositionClass = computed(() =>
 );
 const mobileMenuTransformClass = computed(() =>
   isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
-);
-const expiringCount = computed(
-  () => typedPageProps.value.auth?.expiringCount || 0,
 );
 const flashMessage = computed(() => typedPageProps.value.flash?.success);
 
@@ -152,18 +148,6 @@ watch(flashMessage, (newMessage) => {
     setTimeout(() => {
       showFlashToast.value = false;
     }, 4500);
-  }
-});
-
-onMounted(() => {
-  const inAppAlertsEnabled = typedPageProps.value.auth?.inAppAlerts ?? true;
-
-  if (inAppAlertsEnabled && expiringCount.value > 0) {
-    if (!sessionStorage.getItem('top_alert_seen')) {
-      setTimeout(() => {
-        showTopAlert.value = true;
-      }, 800);
-    }
   }
 });
 
