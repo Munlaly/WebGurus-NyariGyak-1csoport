@@ -111,12 +111,19 @@ async function rerollMeal(dayName: string, mealId: number, mealType: string) {
 }
 
 async function regenerateUnpinned() {
+  for (const day in weeklyPlan.value) {
+    weeklyPlan.value[day].meals.forEach((meal) => {
+      if (!meal.isPinned) {
+        meal.isRolling = true;
+      }
+    });
+  }
+
   try {
-    // Call the main backend generate endpoint for the whole upcoming week
     const response = await axios.post(route('meal-plan.generate'));
     const freshPlan = response.data.plan;
 
-    // If there are existing pinned meals, preserve them in their slots
+    // if there are pinned meals, preserve them
     for (const dayName in freshPlan) {
       if (weeklyPlan.value[dayName]) {
         const existingMeals = weeklyPlan.value[dayName].meals;
@@ -125,13 +132,13 @@ async function regenerateUnpinned() {
           (newMeal: PlannerMeal, index: number) => {
             const oldMeal = existingMeals[index];
             if (oldMeal && oldMeal.isPinned) {
-              return oldMeal; // Keep the pinned meal intact
+              return oldMeal;
             }
-            return newMeal; // Replace unpinned meal with fresh generated one
+            return newMeal; // replace unpinned with new one
           },
         );
 
-        // Recalculate daily total calories including any preserved pinned meals
+        // recalculating daily aclorie target
         freshPlan[dayName].total_calories = freshPlan[dayName].meals.reduce(
           (sum: number, m: PlannerMeal) => sum + Number(m.calories || 0),
           0,
