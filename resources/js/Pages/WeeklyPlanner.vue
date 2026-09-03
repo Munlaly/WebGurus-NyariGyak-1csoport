@@ -28,7 +28,7 @@ const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
 const activeDay = ref<string>('');
 const isSaving = ref(false);
 const isAlreadySaved = ref(false);
-const weeklyCalorieTarget = ref<number | null>(null);
+const dailyCalorieTarget = ref<number | null>(null);
 
 const saveButtonText = computed(() =>
   isAlreadySaved.value ? 'Update Plan' : 'Accept & Finalize',
@@ -67,9 +67,9 @@ function recomputeDayMatch(day: DayPlan) {
     (sum, m) => sum + Number(m.calories || 0),
     0,
   );
-  if (weeklyCalorieTarget.value) {
-    const min = weeklyCalorieTarget.value * 0.85;
-    const max = weeklyCalorieTarget.value * 1.15;
+  if (dailyCalorieTarget.value) {
+    const min = dailyCalorieTarget.value * 0.85;
+    const max = dailyCalorieTarget.value * 1.15;
     day.perfect_match = day.total_calories >= min && day.total_calories <= max;
   }
 }
@@ -78,7 +78,7 @@ async function fetchInitialPlan() {
   try {
     const response = await axios.post(route('meal-plan.generate'));
     weeklyPlan.value = response.data.plan;
-    weeklyCalorieTarget.value = response.data.target_calories;
+    dailyCalorieTarget.value = response.data.target_calories;
   } catch (error) {
     console.error('Failed to fetch plan:', error);
   }
@@ -134,7 +134,7 @@ async function regenerateUnpinned() {
   try {
     const response = await axios.post(route('meal-plan.generate'));
     const freshPlan = response.data.plan;
-    weeklyCalorieTarget.value = response.data.target_calories;
+    dailyCalorieTarget.value = response.data.target_calories;
 
     // if there are pinned meals, preserve them
     for (const dayName in freshPlan) {
@@ -266,7 +266,7 @@ watch(
     weeklyPlan: weeklyPlan.value,
     activeDay: activeDay.value,
     isAlreadySaved: isAlreadySaved.value,
-    weeklyCalorieTarget: weeklyCalorieTarget.value,
+    dailyCalorieTarget: dailyCalorieTarget.value,
   }),
   (newState) => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
@@ -284,8 +284,8 @@ onMounted(() => {
       if (parsed.activeDay) activeDay.value = parsed.activeDay;
       if (parsed.isAlreadySaved !== undefined)
         isAlreadySaved.value = parsed.isAlreadySaved;
-      if (parsed.weeklyCaloryTarget)
-        weeklyCalorieTarget.value = parsed.targetCalories;
+      if (parsed.dailyCalorieTarget)
+        dailyCalorieTarget.value = parsed.targetCalories;
     } catch (e) {
       console.error('Failed to load planner state', e);
     }
@@ -308,7 +308,7 @@ onMounted(() => {
         if (response.data.success) {
           weeklyPlan.value = response.data.plan;
           isAlreadySaved.value = true;
-          weeklyCalorieTarget.value = response.data.target_calories ?? null;
+          dailyCalorieTarget.value = response.data.target_calories ?? null;
         }
       })
       .catch((error) => {
@@ -358,7 +358,7 @@ onMounted(() => {
           </button>
 
           <button
-            class="text-primary hover:bg-primary-50 border-primary flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
+            class="border-primary text-primary hover:bg-primary/10 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
             @click="regenerateUnpinned"
           >
             <span class="material-symbols-outlined text-[18px]">sync</span>
@@ -367,7 +367,7 @@ onMounted(() => {
 
           <button
             :disabled="isSaving"
-            class="bg-primary text-on-primary hover:bg-primary-600 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-70 sm:w-full md:w-auto"
+            class="bg-primary text-on-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-70 sm:w-full md:w-auto dark:hover:bg-[#b080ea]"
             @click="acceptAndFinalize"
           >
             <span

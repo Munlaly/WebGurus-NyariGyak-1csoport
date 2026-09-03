@@ -31,7 +31,7 @@ const emit = defineEmits<{
 
 const pinButtonClass = computed(() =>
   props.isPinned
-    ? 'bg-primary-50 text-primary-700 border-primary-200 hover:bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400 dark:border-primary-800'
+    ? 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/20'
     : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high border-transparent',
 );
 

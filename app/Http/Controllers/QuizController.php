@@ -76,7 +76,7 @@ class QuizController extends Controller
 
             $targets = (new NutritionService())->calculateNutritionalTargets($profile);
             $profile->update([
-                'weekly_calories' => $targets['calories'] * 7,
+                'weekly_calorie_target' => $targets['calories'] * 7,
             ]);
 
             // Save App Settings

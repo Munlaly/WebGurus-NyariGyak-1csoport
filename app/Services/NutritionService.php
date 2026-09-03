@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 class NutritionService
 {
     public function calculateNutritionalTargets(UserProfile $profile) {
-        $goal = $profile->fitness_goal->value ?? ($profile->fitness_goal ?? 'maintain');
+        $goal = $profile->fitness_goal?->value ?? 'maintain';
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30];
 
         // adjust macros based on goal
@@ -18,9 +18,9 @@ class NutritionService
             $macros = ['protein' => 30, 'carbs' => 50, 'fat' => 20];
         }
 
-        if (!empty($profile->weekly_calories)) {
+        if (!empty($profile->weekly_calorie_target)) {
             return [
-                'calories' => (int) round($profile->weekly_calories / 7),
+                'calories' => (int) round($profile->weekly_calorie_target / 7),
                 'macros' => $macros,
             ];
         }
@@ -28,9 +28,9 @@ class NutritionService
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
-        
-        $sex = $profile->sex ?? ($profile->sex->value ?? 'male');
-        $activity = $profile->baseline_activity ?? ($profile->baseline_activity->value ?? 'sedentary');
+
+        $sex = $profile->sex?->value ?? 'male';
+        $activity = $profile->baseline_activity?->value ?? 'sedentary';
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -62,10 +62,10 @@ class NutritionService
     }
 
     public function updateProfileWeeklyCalories(UserProfile $profile): void {
-        $profile->weekly_calories = null;
+        $profile->weekly_calorie_target = null;
 
         $targets = $this->calculateNutritionalTargets($profile);
-        $profile->weekly_calories = $targets['calories'] * 7;
+        $profile->weekly_calorie_target = $targets['calories'] * 7;
         $profile->save();
     }
 }
