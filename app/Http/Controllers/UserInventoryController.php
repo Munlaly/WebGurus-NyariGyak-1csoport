@@ -21,26 +21,17 @@ class UserInventoryController extends Controller
             ->get();
 
         $attentionNeeded = [];
-        $regularInventory = [];
 
         foreach($inventory as $item) {
-            $needsAttention = false;
+            $isExpiring = false;
             if($item->expiration_date) {
                 $expDate = Carbon::parse($item->expiration_date)->startOfDay();
                 $targetDate = $now->copy()->addDays(7)->startOfDay();
-                if($expDate->isPast() || $expDate->isBefore($targetDate)) {
-                    $needsAttention = true;
-                }
+                $isExpiring = $expDate->isPast() || $expDate->isBefore($targetDate);
             }
 
-            if($item->status === 'LOW') {
-                $needsAttention = true;
-            }
-
-            if($needsAttention) {
+            if($item->status === 'LOW' || $isExpiring) {
                 $attentionNeeded[] = $item;
-            } else {
-                $regularInventory[] = $item;
             }
         }
         
@@ -127,7 +118,6 @@ class UserInventoryController extends Controller
 
         $inventory->update([
             'amount_left' => $newAmount,
-            'status' => $newAmount == 0 ? 'LOW' : $inventory->status,
         ]);
 
         return back()->with('success', "Removed {$removeAmountText} of {$itemName}. New balance: {$newAmountText}.");
