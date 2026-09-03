@@ -172,11 +172,6 @@ onUnmounted(() => {
     document.body.style.overflow = '';
   }
 });
-onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = '';
-  }
-});
 </script>
 
 <template>

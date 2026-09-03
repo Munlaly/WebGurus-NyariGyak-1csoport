@@ -14,20 +14,19 @@ class ShoppingListController extends Controller
             'unit' => 'required|string|in:g,kg,ml,l,pcs',
         ]);
 
-        $shoppingItem = ShoppingListItem::updateOrCreate([
+        $shoppingItem = ShoppingListItem::firstOrNew([
             'user_id' => $request->user()->id,
             'ingredient_id' => $validated['ingredient_id'],
             'is_checked' => false,
-        ], 
-        [
-            'quantity' => $validated['quantity'],
-            'unit' => $validated['unit'],
         ]);
 
-        $shoppingItem->load('ingredient');
+        $shoppingItem->quantity = ($shoppingItem->quantity ?? 0) + (float) $validated['quantity'];
+        $shoppingItem->unit = $validated['unit'];
 
-        $amount = $shoppingItem->quantity ?? 0;
-        $unit = $shoppingItem->ingredient->unit ?? '';
+        $shoppingItem->save();
+
+        $amount = $shoppingItem->quantity;
+        $unit = $validated['unit'];
         $itemName = $shoppingItem->ingredient->name ?? 'item';
         $amountText = trim("{$amount} {$unit}");
 
