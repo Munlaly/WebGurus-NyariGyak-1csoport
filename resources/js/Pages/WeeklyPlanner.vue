@@ -28,6 +28,7 @@ const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
 const activeDay = ref<string>('');
 const isSaving = ref(false);
 const isAlreadySaved = ref(false);
+const targetCalories = ref<number>(2000);
 
 const saveButtonText = computed(() =>
   isAlreadySaved.value ? 'Update Plan' : 'Accept & Finalize',
@@ -65,6 +66,9 @@ async function fetchInitialPlan() {
   try {
     const response = await axios.post(route('meal-plan.generate'));
     weeklyPlan.value = response.data.plan;
+    if (response.data.target_calories) {
+      targetCalories.value = response.data.target_calories;
+    }
   } catch (error) {
     console.error('Failed to fetch plan:', error);
   }
@@ -106,6 +110,9 @@ async function rerollMeal(dayName: string, mealId: number, mealType: string) {
       (sum, m) => sum + Number(m.calories),
       0,
     );
+    const min = targetCalories.value * 0.85;
+    const max = targetCalories.value * 1.15;
+    day.perfect_match = day.total_calories >= min && day.total_calories <= max;
   } catch (error) {
     console.error('Failed to reroll meal:', error);
     targetMeal.isRolling = false;
@@ -124,6 +131,10 @@ async function regenerateUnpinned() {
   try {
     const response = await axios.post(route('meal-plan.generate'));
     const freshPlan = response.data.plan;
+
+    if (response.data.target_calories) {
+      targetCalories.value = response.data.target_calories;
+    }
 
     // if there are pinned meals, preserve them
     for (const dayName in freshPlan) {
@@ -145,6 +156,12 @@ async function regenerateUnpinned() {
           (sum: number, m: PlannerMeal) => sum + Number(m.calories || 0),
           0,
         );
+
+        const min = targetCalories.value * 0.85;
+        const max = targetCalories.value * 1.15;
+        freshPlan[dayName].perfect_match =
+          freshPlan[dayName].total_calories >= min &&
+          freshPlan[dayName].total_calories <= max;
       }
     }
 
@@ -261,6 +278,7 @@ watch(
     weeklyPlan: weeklyPlan.value,
     activeDay: activeDay.value,
     isAlreadySaved: isAlreadySaved.value,
+    targetCalories: targetCalories.value,
   }),
   (newState) => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
@@ -278,6 +296,7 @@ onMounted(() => {
       if (parsed.activeDay) activeDay.value = parsed.activeDay;
       if (parsed.isAlreadySaved !== undefined)
         isAlreadySaved.value = parsed.isAlreadySaved;
+      if (parsed.targetCalories) targetCalories.value = parsed.targetCalories;
     } catch (e) {
       console.error('Failed to load planner state', e);
     }

@@ -19,13 +19,29 @@ use Inertia\Inertia;
 class MealPlanController extends Controller
 {
     public function calculateNutritionalTargets(UserProfile $profile) {
+        $goal = $profile->fitness_goal->value ?? ($profile->fitness_goal ?? 'maintain');
+        $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30];
+
+        // adjust macros based on goal
+        if(in_array($goal, ['lose_weight', 'lose weight'])) {
+            $macros = ['protein' => 40, 'carbs' => 30, 'fat' => 30];
+        } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+            $macros = ['protein' => 30, 'carbs' => 50, 'fat' => 20];
+        }
+
+        if (!empty($profile->weekly_calories)) {
+            return [
+                'calories' => (int) round($profile->weekly_calories / 7),
+                'macros' => $macros,
+            ];
+        }
+    
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
         
         $sex = $profile->sex->value ?? 'male';
         $activity = $profile->baseline_activity->value ?? 'sedentary';
-        $goal = $profile->fitness_goal->value ?? 'maintain';
 
         // calculate Basal Metabolic Rate (Mifflin-St Jeor)
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
@@ -39,17 +55,15 @@ class MealPlanController extends Controller
             'very_active' => 1.725,
         ];
 
-        $tdee = $bmr * $multipliers[$activity];
+        $tdee = $bmr * ($multipliers[$activity] ?? 1.2);
         
         $targetCalories = $tdee;
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
 
         if(in_array($goal, ['lose_weight', 'lose weight'])) {
             $targetCalories = $tdee - 500;
-            $macros = ['protein' => 40, 'carbs' => 30, 'fat' => 30];
         } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
             $targetCalories = $tdee + 500;
-            $macros = ['protein' => 30, 'carbs' => 50, 'fat' => 20];
         }
 
         return [
@@ -336,11 +350,14 @@ class MealPlanController extends Controller
                 $formattedMeals[] = $m;
             }
 
+            $dayTotal = collect($formattedMeals)->sum('calories');
+            $perfectMatch = $dayTotal >= $minCalories && $dayTotal <= $maxCalories;
+
             $weeklyPlan[$day] = [
                 'meals' => $formattedMeals,
                 'total_calories' => collect($formattedMeals)->sum('calories'),
                 'has_snack' => $includeSnack,
-                'perfect_match' => $attempts < $maxAttempts
+                'perfect_match' => $perfectMatch,
             ];
         }
 
