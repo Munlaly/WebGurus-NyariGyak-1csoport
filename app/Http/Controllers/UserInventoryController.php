@@ -118,7 +118,6 @@ class UserInventoryController extends Controller
 
         $inventory->update([
             'amount_left' => $newAmount,
-            'status' => $newAmount == 0 ? 'LOW' : $inventory->status,
         ]);
 
         return back()->with('success', "Removed {$removeAmountText} of {$itemName}. New balance: {$newAmountText}.");
