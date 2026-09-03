@@ -74,7 +74,9 @@ async function rerollMeal(dayName: string, mealId: number, mealType: string) {
   const day = weeklyPlan.value[dayName];
   if (!day) return;
 
-  const mealIndex = day.meals.findIndex((m) => m.id === mealId);
+  const mealIndex = day.meals.findIndex(
+    (m) => m.id === mealId && m.meal_type === mealType,
+  );
   if (mealIndex === -1) return;
 
   const targetMeal = day.meals[mealIndex];
