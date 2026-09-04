@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Recipe;
 use App\Models\UserInventory;
+use App\Models\DailyPlan;
 
 class CookMealController extends Controller
 {
@@ -109,18 +110,20 @@ class CookMealController extends Controller
                 }
             }
 
-            DB::table('meal_plans')
-                ->join('daily_plans', 'meal_plans.daily_plan_id', '=', 'daily_plans.id')
-                ->where('daily_plans.user_id', $user->id)
-                ->where('meal_plans.recipe_id', $recipe->id)
-                ->where('daily_plans.date', now()->toDateString())
-                ->update(['meal_plans.is_prepared' => true]);
+            $dailyPlan = DailyPlan::where('user_id', $user->id)
+                ->whereDate('date', now()->toDateString())
+                ->first();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Meal cooked! Inventory has been automatically updated.',
-                'details' => $usedIngredients
-            ]);
+            if(!$dailyPlan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No meal plan found for today, so this meal cannot be marked as cooked.',
+                ], 404);
+            }
+
+            $dailyPlan->mealPlans()
+                ->where('recipe_id', $recipe->id)
+                ->update(['status' => 'EATEN']);            
         });
     }
 }

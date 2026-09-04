@@ -33,6 +33,7 @@ class DashboardController extends Controller
                 'imageUrl' => $this->getRecipeImageUrl($recipe->image),
                 'imageAlt' => $recipe->name,
                 'isPrepared' => $mealPlan->status === 'EATEN',
+                'isFavorite' => (bool) $mealPlan->is_favorite,
             ];
         };
 

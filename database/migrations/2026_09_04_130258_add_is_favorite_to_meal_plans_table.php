@@ -9,13 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('meal_plans', function (Blueprint $table) {
-            $table->boolean('is_prepared')->default(false);
+            $table->boolean('is_favorite')->default(false);
         });
     }
+    
     public function down(): void
     {
         Schema::table('meal_plans', function (Blueprint $table) {
-            $table->dropColumn('is_prepared');
+            $table->dropColumn('is_favorite');
         });
     }
 };
