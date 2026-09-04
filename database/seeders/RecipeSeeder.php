@@ -86,15 +86,16 @@ class RecipeSeeder extends Seeder {
                     $cleanName = $ingredientService->sanitizeName($rawName);
                     
                     $rawUnit = $ingData['unit'] ?? '';
-                    $standardUnit = $ingredientService->standardizeUnit($rawUnit);
+                    $rawAmount = (float) ($ingData['amount'] ?? 0);
 
-                    $rawUnit = $ingData['unit'] ?? null;    
+                    $baseMetricUnit = $ingredientService->getBaseMetricUnit($rawUnit);
+                    $metricAmount = $ingredientService->convertToBaseAmount($rawAmount, $rawUnit);
 
                     $ingredient = Ingredient::firstOrCreate(
                         ['name' => $cleanName],
                         [
                             'category_id' => $categoryId,
-                            'base_unit' => $standardUnit,
+                            'base_unit' => $baseMetricUnit,
                         ]
                     );
 
@@ -104,8 +105,8 @@ class RecipeSeeder extends Seeder {
                             'ingredient_id' => $ingredient->id,
                         ],
                         [
-                            'amount' => $ingData['amount'] ?? 0,
-                            'unit'   => $standardUnit,
+                            'amount' => $metricAmount,
+                            'unit'   => $baseMetricUnit,
                         ]
                     );
                 }

@@ -24,9 +24,6 @@ class IngredientService
         return trim(preg_replace('/\s+/', ' ', $name));
     }
 
-    /**
-     * Standardizes wildly different API units into a few base categories.
-     */
     public function standardizeUnit(string $rawUnit): string
     {
         $unit = strtolower(trim($rawUnit));
@@ -48,8 +45,85 @@ class IngredientService
         if (empty($unit) || in_array($unit, ['serving', 'servings', 'piece', 'pieces', 'pcs'])) {
             return 'pcs';
         }
-
         // if not recognized, return the original
         return $unit;
+    }
+
+    public function getBaseMetricUnit(string $rawUnit) : string {
+        $standardUnit = $this->standardizeUnit($rawUnit);
+        if(in_array($standardUnit, ['g', 'kg', 'oz', 'lb'])) return 'g';
+        if(in_array($standardUnit, ['ml', 'l', 'cup', 'tsp', 'tbsp'])) return 'ml';
+
+        return 'pcs';
+    }
+
+    public function convertToBaseAmount(float $amount, string $rawUnit): float {
+        $standardUnit = $this->standardizeUnit($rawUnit);
+
+        $multipliers = [
+            'g' => 1.0,
+            'kg' => 1000.0,
+            'oz' => 28.3495,
+            'lb' => 453.592,
+
+            'ml' => 1.0,
+            'l' => 1000.0,
+            'cup' => 236.588,
+            'tbsp' => 14.7868,
+            'tsp' => 4.92892,
+
+            'pcs' => 1.0,
+        ];
+
+        $multiplier = $multipliers[$rawUnit] ?? 1.0;
+
+        return round($amount * $multiplier, 2);
+    }
+
+    public function formatForDisplay(float $amount, string $baseUnit, string $systemPreference = 'metric') : array {
+        if($systemPreference === 'metric' || $baseUnit === 'pcs') {
+            return [
+                'amount' => round($amount, 2),
+                'unit' => $baseUnit,
+            ];
+        }
+
+        if($baseUnit === 'g') {
+            if($amount >= 453.592) {
+                return [
+                    'amount' => round($amount / 453.592, 2),
+                    'unit' => 'lb',
+                ];
+            }
+
+            return [
+                'amount' => round($amount / 28.3495, 2),
+                'unit' => 'oz',
+            ];
+        }
+
+        if($baseUnit === 'ml') {
+            if($amount >= 236.588) {
+                return [
+                    'amount' => round($amount / 236.588, 2),
+                    'unit' => 'cup',
+                ];
+            }
+            if($amount >= 14.7868) {
+                return [
+                    'amount' => round($amount / 14.7868, 2),
+                    'unit' => 'tbsp',
+                ];
+            }
+            return [
+                'amount' => round($amount / 4.92892, 2),
+                'unit' => 'tsp',
+            ];
+        }
+
+        return [
+            'amount' => round($amount, 2),
+            'unit' => $baseUnit,
+        ];
     }
 }
