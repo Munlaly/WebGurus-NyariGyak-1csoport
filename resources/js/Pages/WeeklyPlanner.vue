@@ -163,6 +163,13 @@ async function regenerateUnpinned() {
     });
   } catch (error: unknown) {
     console.error('Failed to regenerate plan:', error);
+
+    for (const day in weeklyPlan.value) {
+      weeklyPlan.value[day].meals.forEach((meal) => {
+        meal.isRolling = false;
+      });
+    }
+
     let backendMessage =
       'Failed to regenerate the meal plan. Please try again.';
     if (axios.isAxiosError(error)) {
