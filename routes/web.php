@@ -76,7 +76,6 @@ Route::middleware('auth')->group(function(){
 
     
     Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
-    Route::post('shopping-list', [ShoppingListController::class, 'store'])->name('shopping-list.store');
 });
 
 require __DIR__.'/auth.php';

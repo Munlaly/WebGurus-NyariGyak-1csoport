@@ -62,7 +62,7 @@ class ShoppingListController extends Controller
 
         $item->update($validated);
 
-        return back()->with('success');
+        return back()->with('success', 'Shopping list updated successfully.');
     }
 
     public function destroy(Request $request, ShoppingListItem $item) {
