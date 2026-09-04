@@ -24,7 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const btnText = computed(() =>
-  props.isPrepared ? 'Cooked (Click to undo)' : 'Mark as Cooked',
+  props.isPrepared ? 'Cooked' : 'Mark as Cooked',
 );
 
 const buttonClass = computed(() =>

@@ -6,16 +6,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Recipe;
 use App\Models\UserInventory;
+
 class CookMealController extends Controller
 {
-    public function cook(Request $request, $recipeId) {
+    public function cook(Request $request, int $recipeId) {
         $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
         $user = $request->user();
 
+        $isConfirmed = $request->boolean('confirmed', false);
         $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
 
-        return DB::transaction(function() use ($recipe, $user, $scale) {
+        return DB::transaction(function() use ($recipe, $user, $scale, $isConfirmed) {
             $missingIngredients = [];
             $mismatchedUnits = [];
             $availableIngredients = [];
@@ -24,14 +26,28 @@ class CookMealController extends Controller
             foreach($recipe->ingredients as $recipeIngredient) {
                 /** @var \App\Models\Ingredient $recipeIngredient */
                 $baseAmount = $recipeIngredient->pivot->amount ?? 1;
+                $requiredUnit = $recipeIngredient->pivot->unit ?? 'pcs';
                 $requiredAmount = $baseAmount * $scale;
-                $requiredUnit = $recipeIngredient->pivot->unit;
 
                 $inventoryItems = UserInventory::where('user_id', $user->id)
                     ->where('ingredient_id', $recipeIngredient->id)
                     ->orderBy('expiration_date', 'asc')
                     ->lockForUpdate()
                     ->get();
+
+                if($inventoryItems->isNotEmpty()) {
+                    $firstItemUnit = $inventoryItems->first()->unit;
+                    if($firstItemUnit !== $requiredUnit) {
+                        $mismatchedUnits[] = [
+                            'ingredient' => $recipeIngredient->name,
+                            'recipe_requires' => $requiredAmount . ' ' . $requiredUnit,
+                            'user_has' => $inventoryItems->sum('amount_left') . ' ' . $firstItemUnit,
+                        ];
+                        if(!$isConfirmed) {
+                            continue;
+                        }
+                    }
+                }
 
                 $totalAvailable = $inventoryItems->sum('amount_left');
 
@@ -43,25 +59,29 @@ class CookMealController extends Controller
 
                 if($totalAvailable < $requiredAmount) {
                     $missingIngredients[] = $ingredientDetails;
-                } else {
-                    $availableIngredients[] = $ingredientDetails;
-
-                    $itemsToProcess[] = [
-                        'items' => $inventoryItems,
-                        'remainingToDeduct' => $requiredAmount,
-                    ];
+                    if(!$isConfirmed) {
+                        continue;
+                    }
                 }
+                
+                $availableIngredients[] = $ingredientDetails;
+                $itemsToProcess[] = [
+                    'items' => $inventoryItems,
+                    'remainingToDeduct' => min($requiredAmount, $totalAvailable),
+                ];
             }
 
-            if(!empty($missingIngredients)) {
+            if((!empty($missingIngredients) || !empty($mismatchedUnits)) && !$isConfirmed) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Not enough ingredients for this meal!',
+                    'requires_confirmation' => true,
+                    'message' => 'Some ingredients have shortages or unit mismatches. Do you still want to cook?',
                     'summary' => [
                         'have' => $availableIngredients,
-                        'missing' => $missingIngredients
+                        'missing' => $missingIngredients,
+                        'mismatched' => $mismatchedUnits,
                     ]
-                ], 400);
+                ], 200);
             }
 
             $usedIngredients = [];
