@@ -294,7 +294,7 @@ onMounted(() => {
       if (parsed.isAlreadySaved !== undefined)
         isAlreadySaved.value = parsed.isAlreadySaved;
       if (parsed.dailyCalorieTarget)
-        dailyCalorieTarget.value = parsed.targetCalories;
+        dailyCalorieTarget.value = parsed.dailyCalorieTarget;
     } catch (e) {
       console.error('Failed to load planner state', e);
     }
