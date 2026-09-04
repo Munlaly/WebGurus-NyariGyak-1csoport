@@ -58,7 +58,7 @@ const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/' },
   { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
   { name: 'My Inventory', icon: 'inventory_2', href: '/inventory' },
-  { name: 'Shopping List', icon: 'shopping_cart', href: '#' },
+  { name: 'Shopping List', icon: 'shopping_cart', href: '/shopping-list' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
   { name: 'Alerts', icon: 'notifications', href: '/alerts' },
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },

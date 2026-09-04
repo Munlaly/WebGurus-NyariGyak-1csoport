@@ -5,12 +5,8 @@ import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import { useActionModal } from '../Composables/useActionModal';
 import ActionModal from '../Components/Modals/ActionModal.vue';
 import AddInventoryModal from '../Components/Modals/AddInventoryModal.vue';
-import {
-  Ingredient,
-  InventoryItem,
-  getStatusLabel,
-  getItemState,
-} from '../utils/inventory';
+import { Ingredient, InventoryItem } from '../Types/inventoryInterfaces';
+import { getStatusLabel, getItemState } from '../utils/inventory';
 
 const props = defineProps<{
   attentionNeeded: InventoryItem[];

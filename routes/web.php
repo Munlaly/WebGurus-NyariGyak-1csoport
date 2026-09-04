@@ -66,9 +66,16 @@ Route::middleware('auth')->group(function(){
         Route::post('store', [QuizController::class, 'store'])->name('store');
     });
 
+    Route::prefix('shopping-list')->name('shopping-list.')->group(function () {
+        Route::get('/', [ShoppingListController::class, 'index'])->name('index');
+        Route::post('/', [ShoppingListController::class, 'store'])->name('store');
+        Route::put('/{item}', [ShoppingListController::class, 'update'])->name('update');
+        Route::delete('/{item}', [ShoppingListController::class, 'destroy'])->name('destroy');
+        Route::post('/finish', [ShoppingListController::class, 'finish'])->name('finish');
+    });
+
     
     Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
-    Route::post('shopping-list', [ShoppingListController::class, 'store'])->name('shopping-list.store');
 });
 
 require __DIR__.'/auth.php';
