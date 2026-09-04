@@ -17,6 +17,7 @@ class CookMealController extends Controller
 
         return DB::transaction(function() use ($recipe, $user, $scale) {
             $missingIngredients = [];
+            $mismatchedUnits = [];
             $availableIngredients = [];
             $itemsToProcess = [];
 
@@ -24,6 +25,7 @@ class CookMealController extends Controller
                 /** @var \App\Models\Ingredient $recipeIngredient */
                 $baseAmount = $recipeIngredient->pivot->amount ?? 1;
                 $requiredAmount = $baseAmount * $scale;
+                $requiredUnit = $recipeIngredient->pivot->unit;
 
                 $inventoryItems = UserInventory::where('user_id', $user->id)
                     ->where('ingredient_id', $recipeIngredient->id)

@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('recipe_id')->constrained()->cascadeOnDelete();
             $table->foreignId('ingredient_id')->constrained()->cascadeOnDelete();
-            $table->decimal('amount');
+            $table->decimal('amount', 8, 2);
             $table->string('unit')->nullable();
+            $table->decimal('raw_amount', 8, 2)->nullable();
+            $table->string('raw_unit')->nullable();
             $table->timestamps();
 
             $table->index('recipe_id', 'idx_recipe_ingredients_recipe');

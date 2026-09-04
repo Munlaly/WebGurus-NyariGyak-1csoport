@@ -107,7 +107,9 @@ class RecipeSeeder extends Seeder {
                         [
                             'amount' => $metricAmount,
                             'unit'   => $baseMetricUnit,
-                        ]
+                            'raw_amount' => $rawAmount,
+                            'raw_unit' => $rawUnit,
+                        ],
                     );
                 }
             }
