@@ -106,6 +106,12 @@ class QuizController extends Controller
             [
                 'household_size' => $validated['household_size'],
                 'prep_time_preference' => $validated['prep_time_preference'],
+                'system_preferences' => [
+                    'theme' => 'light',
+                    'inAppAlerts' => 'true',
+                    'emailDigests' => 'false',
+                    'unitSystem' =>  'metric',
+                ],
             ]);
 
             // Map string days to integer values for the DB
