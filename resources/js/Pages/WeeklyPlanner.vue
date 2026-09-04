@@ -28,6 +28,7 @@ const weeklyPlan = ref<Record<string, DayPlan>>(props.initialPlan || {});
 const activeDay = ref<string>('');
 const isSaving = ref(false);
 const isAlreadySaved = ref(false);
+const dailyCalorieTarget = ref<number | null>(null);
 
 const saveButtonText = computed(() =>
   isAlreadySaved.value ? 'Update Plan' : 'Accept & Finalize',
@@ -61,25 +62,23 @@ function togglePin(dayName: string, mealId: number) {
   }
 }
 
+function recomputeDayMatch(day: DayPlan) {
+  day.total_calories = day.meals.reduce(
+    (sum, m) => sum + Number(m.calories || 0),
+    0,
+  );
+  if (dailyCalorieTarget.value) {
+    const min = dailyCalorieTarget.value * 0.85;
+    const max = dailyCalorieTarget.value * 1.15;
+    day.perfect_match = day.total_calories >= min && day.total_calories <= max;
+  }
+}
+
 async function fetchInitialPlan() {
   try {
     const response = await axios.post(route('meal-plan.generate'));
-    const newPlan = response.data.plan;
-
-    const types = [
-      MealType.Breakfast,
-      MealType.Lunch,
-      MealType.Dinner,
-      MealType.Snack,
-    ];
-
-    for (const day in newPlan) {
-      newPlan[day].meals.forEach((meal: PlannerMeal, index: number) => {
-        meal.meal_type = types[index] || MealType.Snack;
-      });
-    }
-
-    weeklyPlan.value = newPlan;
+    weeklyPlan.value = response.data.plan;
+    dailyCalorieTarget.value = response.data.target_calories;
   } catch (error) {
     console.error('Failed to fetch plan:', error);
   }
@@ -89,7 +88,9 @@ async function rerollMeal(dayName: string, mealId: number, mealType: string) {
   const day = weeklyPlan.value[dayName];
   if (!day) return;
 
-  const mealIndex = day.meals.findIndex((m) => m.id === mealId);
+  const mealIndex = day.meals.findIndex(
+    (m) => m.id === mealId && m.meal_type === mealType,
+  );
   if (mealIndex === -1) return;
 
   const targetMeal = day.meals[mealIndex];
@@ -114,11 +115,7 @@ async function rerollMeal(dayName: string, mealId: number, mealType: string) {
       isPinned: false,
       isRolling: false,
     };
-
-    day.total_calories = day.meals.reduce(
-      (sum, m) => sum + Number(m.calories),
-      0,
-    );
+    recomputeDayMatch(day);
   } catch (error) {
     console.error('Failed to reroll meal:', error);
     targetMeal.isRolling = false;
@@ -126,17 +123,103 @@ async function rerollMeal(dayName: string, mealId: number, mealType: string) {
 }
 
 async function regenerateUnpinned() {
-  const promises: Promise<void>[] = [];
-
-  for (const [dayName, dayData] of Object.entries(weeklyPlan.value)) {
-    for (const meal of dayData.meals) {
-      if (!meal.isPinned && !meal.isRolling) {
-        promises.push(rerollMeal(dayName, meal.id, meal.meal_type));
+  for (const day in weeklyPlan.value) {
+    weeklyPlan.value[day].meals.forEach((meal) => {
+      if (!meal.isPinned) {
+        meal.isRolling = true;
       }
-    }
+    });
   }
 
-  await Promise.allSettled(promises);
+  try {
+    const response = await axios.post(route('meal-plan.generate'));
+    const freshPlan = response.data.plan;
+    dailyCalorieTarget.value = response.data.target_calories;
+
+    // if there are pinned meals, preserve them
+    for (const dayName in freshPlan) {
+      if (weeklyPlan.value[dayName]) {
+        const existingMeals = weeklyPlan.value[dayName].meals;
+
+        freshPlan[dayName].meals = freshPlan[dayName].meals.map(
+          (newMeal: PlannerMeal) => {
+            const oldMeal = existingMeals.find(
+              (m) => m.meal_type === newMeal.meal_type,
+            );
+            return oldMeal?.isPinned ? oldMeal : newMeal;
+          },
+        );
+      }
+    }
+
+    weeklyPlan.value = freshPlan;
+    for (const dayName in weeklyPlan.value) {
+      recomputeDayMatch(weeklyPlan.value[dayName]);
+    }
+
+    toast.add({
+      title: 'Menu Regenerated',
+      description: 'Unpinned meals refreshed for the upcoming week!',
+      color: 'success',
+      icon: 'i-heroicons-arrow-path',
+    });
+  } catch (error: unknown) {
+    console.error('Failed to regenerate plan:', error);
+
+    for (const day in weeklyPlan.value) {
+      weeklyPlan.value[day].meals.forEach((meal) => {
+        meal.isRolling = false;
+      });
+    }
+
+    let backendMessage =
+      'Failed to regenerate the meal plan. Please try again.';
+    if (axios.isAxiosError(error)) {
+      backendMessage = error.response?.data?.message || backendMessage;
+    }
+    toast.add({
+      title: 'Error',
+      description: backendMessage,
+      color: 'error',
+      icon: 'i-heroicons-x-circle',
+    });
+  }
+}
+
+async function deleteWeeklyPlan() {
+  if (
+    !confirm(
+      'Are you sure you want to delete your entire weekly plan and start over?',
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const response = await axios.delete(route('meal-plan.destroy'));
+    if (response.data.success) {
+      weeklyPlan.value = {};
+      isAlreadySaved.value = false;
+      sessionStorage.removeItem(STORAGE_KEY);
+
+      toast.add({
+        title: 'Plan Reset',
+        description: 'Weekly plan cleared. Generating a fresh plan...',
+        color: 'success',
+        icon: 'i-heroicons-trash',
+      });
+
+      fetchInitialPlan();
+    }
+  } catch (error) {
+    console.error('Failed to delete plan:', error);
+    toast.add({
+      title: 'Error',
+      description: 'Failed to delete the plan. Please try again.',
+      color: 'error',
+      icon: 'i-heroicons-x-circle',
+    });
+  }
 }
 
 async function acceptAndFinalize() {
@@ -192,6 +275,7 @@ watch(
     weeklyPlan: weeklyPlan.value,
     activeDay: activeDay.value,
     isAlreadySaved: isAlreadySaved.value,
+    dailyCalorieTarget: dailyCalorieTarget.value,
   }),
   (newState) => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
@@ -209,6 +293,8 @@ onMounted(() => {
       if (parsed.activeDay) activeDay.value = parsed.activeDay;
       if (parsed.isAlreadySaved !== undefined)
         isAlreadySaved.value = parsed.isAlreadySaved;
+      if (parsed.dailyCalorieTarget)
+        dailyCalorieTarget.value = parsed.dailyCalorieTarget;
     } catch (e) {
       console.error('Failed to load planner state', e);
     }
@@ -231,6 +317,7 @@ onMounted(() => {
         if (response.data.success) {
           weeklyPlan.value = response.data.plan;
           isAlreadySaved.value = true;
+          dailyCalorieTarget.value = response.data.target_calories ?? null;
         }
       })
       .catch((error) => {
@@ -270,7 +357,17 @@ onMounted(() => {
           </button>
 
           <button
-            class="text-primary hover:bg-primary-50 border-primary flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
+            class="text-error hover:bg-error-50 border-error/50 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
+            @click="deleteWeeklyPlan"
+          >
+            <span class="material-symbols-outlined text-[18px]"
+              >delete_sweep</span
+            >
+            Delete Plan
+          </button>
+
+          <button
+            class="border-primary text-primary hover:bg-primary/10 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
             @click="regenerateUnpinned"
           >
             <span class="material-symbols-outlined text-[18px]">sync</span>
@@ -279,7 +376,7 @@ onMounted(() => {
 
           <button
             :disabled="isSaving"
-            class="bg-primary text-on-primary hover:bg-primary-600 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-70 sm:w-full md:w-auto"
+            class="bg-primary text-on-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-colors disabled:opacity-70 sm:w-full md:w-auto dark:hover:bg-[#b080ea]"
             @click="acceptAndFinalize"
           >
             <span
@@ -350,7 +447,7 @@ onMounted(() => {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-.scrollbar-hide {
+PlannerDayColumn .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

@@ -8,6 +8,7 @@ use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use App\Models\DietaryOption;
+use App\Services\NutritionService;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Password;
 
@@ -52,7 +53,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function updateTargets(Request $request): RedirectResponse
+    public function updateTargets(Request $request, NutritionService $nutritionService): RedirectResponse
     {
         $validated = $request->validate([
             'fitness_goal' => 'required|string|in:lose_weight,maintain,gain_muscle',
@@ -60,10 +61,11 @@ class SettingsController extends Controller
             'schedule.*' => 'required|string|in:rest,moderate,heavy',
         ]);
 
-        DB::transaction(function () use ($request, $validated) {
+        DB::transaction(function () use ($request, $validated, $nutritionService) {
             $user = $request->user();
 
-            $user->profile()->updateOrCreate(
+            /** @var \App\Models\UserProfile $profile */
+            $profile = $user->profile()->updateOrCreate(
                 ['user_id' => $user->id],
                 ['fitness_goal' => $validated['fitness_goal']]
             );
@@ -79,7 +81,7 @@ class SettingsController extends Controller
                 );
             }
 
-            // TODO Recalculate weekly calorie target
+            $nutritionService->updateProfileWeeklyCalories($profile);
 
         });
 
@@ -110,9 +112,9 @@ class SettingsController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $validated) {
-        $user = $request->user();
-        $user->dietaryOptions()->sync($validated['activeDiets']);
-        $user->dislikedIngredients()->sync($validated['dislikedIngredients']);
+            $user = $request->user();
+            $user->dietaryOptions()->sync($validated['activeDiets']);
+            $user->dislikedIngredients()->sync($validated['dislikedIngredients']);
         });
 
         return back()->with('success', 'Dietary rules updated.');
@@ -167,7 +169,7 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function updateBiometrics(Request $request): RedirectResponse
+    public function updateBiometrics(Request $request, NutritionService $nutritionService): RedirectResponse
     {
         $validated = $request->validate([
             'sex' => 'required|string|in:male,female',
@@ -177,14 +179,17 @@ class SettingsController extends Controller
             'baseline_activity' => 'required|string|in:sedentary,lightly_active,moderately_active,very_active',
         ]);
 
-        $user = $request->user();
+        DB::transaction(function() use ($request, $validated, $nutritionService) {
+            $user = $request->user();
 
-        $user->profile()->updateOrCreate(
-            ['user_id' => $user->id],
-            $validated
-        );
+            /** @var \App\Models\UserProfile $profile */
+            $profile = $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                $validated
+            );
 
-        // TODO Update the weekly calorie target
+            $nutritionService->updateProfileWeeklyCalories($profile);
+        });
 
         return back()->with('success', 'Biometrics updated. Caloric targets recalculated.');
     }

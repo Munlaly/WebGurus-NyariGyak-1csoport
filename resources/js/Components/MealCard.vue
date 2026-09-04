@@ -30,7 +30,7 @@ const btnText = computed(() =>
 const buttonClass = computed(() =>
   props.isPrepared
     ? 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high border border-outline-variant'
-    : 'bg-primary text-white hover:bg-primary-600 shadow-sm',
+    : 'bg-primary text-on-primary hover:bg-primary/90 dark:hover:bg-[#b080ea] shadow-sm',
 );
 
 const imageStateClass = computed(() =>
@@ -106,7 +106,7 @@ const favoriteTooltipText = computed(() =>
       <div class="mb-4 flex items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-2">
           <div
-            class="bg-primary-50 text-primary-700 dark:bg-primary-950/50 dark:text-primary-300 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
+            class="bg-surface-container text-on-surface flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold"
           >
             <span class="material-symbols-outlined text-[18px]"
               >local_fire_department</span
