@@ -255,7 +255,6 @@ class MealPlanController extends Controller
 
                     if($perfectMeals->isNotEmpty()) {
                         $d = $perfectMeals->sortByDesc($zeroWasteScorer)->first();
-                        $d->temp_meal_type = 'dinner';
                         $dailyMeals = ['breakfast' => $b, 'lunch' => $l, 'dinner' => $d, 'snack' => $snack];
                         break;
                     }
