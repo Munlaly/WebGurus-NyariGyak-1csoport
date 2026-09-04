@@ -142,8 +142,10 @@ async function regenerateUnpinned() {
         const existingMeals = weeklyPlan.value[dayName].meals;
 
         freshPlan[dayName].meals = freshPlan[dayName].meals.map(
-          (newMeal: PlannerMeal, index: number) => {
-            const oldMeal = existingMeals[index];
+          (newMeal: PlannerMeal) => {
+            const oldMeal = existingMeals.find(
+              (m) => m.meal_type === newMeal.meal_type,
+            );
             return oldMeal?.isPinned ? oldMeal : newMeal;
           },
         );
