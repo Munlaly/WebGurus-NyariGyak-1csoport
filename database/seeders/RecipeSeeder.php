@@ -8,6 +8,7 @@ use App\Models\Recipe;
 use App\Models\Ingredient;
 use App\Models\Category;
 use App\Models\RecipeIngredient;
+use App\Services\IngredientService;
 
 class RecipeSeeder extends Seeder {
     public function run() {
@@ -76,33 +77,24 @@ class RecipeSeeder extends Seeder {
             );
 
             if(!empty($data['ingredients'])) {
+                $ingredientService = app(IngredientService::class);
                 foreach($data['ingredients'] as $ingData) {
                     $category = Category::where('name', $ingData['aisle'] ?? 'Uncategorized')->first();
                     $categoryId = $category ? $category->id : $uncategorized->id;
 
-                    $ingredientName = strtolower(trim($ingData['name']));
-
-                    // 1. Remove anything before a colon
-                    if (strpos($ingredientName, ':') !== false) {
-                        $parts = explode(':', $ingredientName);
-                        $ingredientName = end($parts); 
-                    }
-                    // 2. Remove stray parentheses
-                    $ingredientName = str_replace(['(', ')'], '', $ingredientName);
-                    // 3. REGEX: Remove asterisks and any numbers following them (fixes "*1", "*2")
-                    $ingredientName = preg_replace('/\*[0-9]+/', '', $ingredientName);
-                    // 4. REGEX: Remove leading prepositions like "of " at the very start of the string
-                    $ingredientName = preg_replace('/^of\s+/', '', $ingredientName);
-                    // 5. Final trim to catch any leftover spaces
-                    $ingredientName = trim($ingredientName);
+                    $rawName = $ingData['nameClean'] ?? $ingData['name'] ?? '';
+                    $cleanName = $ingredientService->sanitizeName($rawName);
+                    
+                    $rawUnit = $ingData['unit'] ?? '';
+                    $standardUnit = $ingredientService->standardizeUnit($rawUnit);
 
                     $rawUnit = $ingData['unit'] ?? null;    
 
                     $ingredient = Ingredient::firstOrCreate(
-                        ['name' => $ingredientName],
+                        ['name' => $cleanName],
                         [
                             'category_id' => $categoryId,
-                            'base_unit' => !empty($rawUnit) ? strtolower(trim($rawUnit)) : 'pcs',
+                            'base_unit' => $standardUnit,
                         ]
                     );
 
@@ -113,7 +105,7 @@ class RecipeSeeder extends Seeder {
                         ],
                         [
                             'amount' => $ingData['amount'] ?? 0,
-                            'unit'   => !empty($rawUnit) ? trim($rawUnit) : 'pcs',
+                            'unit'   => $standardUnit,
                         ]
                     );
                 }

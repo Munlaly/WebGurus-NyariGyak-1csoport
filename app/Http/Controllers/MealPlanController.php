@@ -404,9 +404,12 @@ class MealPlanController extends Controller
                 $dayNum = ($dayMapping[$dayName] ?? 0) +1 ;
                 $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate->value;
 
-                $dailyPlan = DailyPlan::create([
+                $dailyPlan = DailyPlan::updateOrCreate(
+                [   
                     'user_id' => $user->id,
                     'date' => $scheduledDate,
+                ],
+                [
                     'day_type' => $dayType,
                     'target_calories' => $nutritionTargets['calories'],
                     'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
@@ -414,6 +417,8 @@ class MealPlanController extends Controller
                     'target_fat_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['fat'] / 100)) / 9),
                     'status' => EntityStatus::Draft->value,
                 ]);
+
+                MealPlan::where('daily_plan_id', $dailyPlan->id)->delete();
 
                 foreach($dayData['meals'] as $index => $meal) {
                     $mealType = $meal['meal_type'] ?? ($mealTypesArray[$index] ?? 'snack');
