@@ -30,9 +30,10 @@ class MealPlanController extends Controller
     }
 
     private function getFilteredRecipes(int $userId, ?UserSetting $settings) {
-        $dislikedIngredientIds = DB::table('user_disliked_ingredients')
-            ->where('user_id', $userId)
-            ->pluck('ingredient_id')
+        $dislikedIngredientNames = DB::table('user_disliked_ingredients')
+            ->join('ingredients', 'user_disliked_ingredients.ingredient_id', '=', 'ingredients.id')
+            ->where('user_disliked_ingredients.user_id', $userId)
+            ->pluck('ingredients.name')
             ->toArray();
 
         $dietaryOptions = DietaryOption::whereHas('users', function ($query) use ($userId) {
@@ -45,9 +46,17 @@ class MealPlanController extends Controller
 
         $validRecipes = Recipe::with('ingredients');
 
-        if(!empty($dislikedIngredientIds)) {
-            $validRecipes->whereDoesntHave('ingredients', function ($query) use ($dislikedIngredientIds) {
-                $query->whereIn('ingredients.id', $dislikedIngredientIds);
+        if(!empty($dislikedIngredientNames)) {
+            $validRecipes->where(function ($query) use ($dislikedIngredientNames) {
+                foreach($dislikedIngredientNames as $name) {
+                    $searchTerm = '%' . $name . '%';
+
+                    $query->where('name', 'NOT LIKE', $searchTerm)
+                          ->where('instructions', 'NOT LIKE', $searchTerm)
+                          ->whereDoesntHave('ingredients', function ($q) use ($searchTerm) {
+                                $q->where('ingredients.name', 'LIKE', $searchTerm);
+                          });
+                }
             });
         }
         if($settings && $settings->prep_time_preference) {
