@@ -447,7 +447,7 @@ onMounted(() => {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-Planner .scrollbar-hide {
+PlannerDayColumn .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
