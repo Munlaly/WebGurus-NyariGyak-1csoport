@@ -1,5 +1,23 @@
 import { z } from 'zod';
 
+export const createStepDietSchema = (baseDietIds: number[]) => {
+  return z.object({
+    meal_plan_preferences: z
+      .array(z.number().int().positive())
+      .min(1, 'Please select at least one dietary preference. ')
+      .superRefine((val, ctx) => {
+        const selectedBaseDiets = val.filter((id) => baseDietIds.includes(id));
+
+        if (selectedBaseDiets.length > 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              'You cannot select conflicting baseline diets (e.g., Vegetarian and Omnivore). Please select only one.',
+          });
+        }
+      }),
+  });
+};
 export const stepGoalSchema = z.object({
   fitness_goal: z.enum(['lose_weight', 'maintain', 'gain_muscle'] as const, {
     message: 'Please seelct a valid fitness goal',
@@ -7,7 +25,9 @@ export const stepGoalSchema = z.object({
 });
 
 export const stepDietSchema = z.object({
-  meal_plan_preferences: z.array(z.number().int().positive()),
+  meal_plan_preferences: z
+    .array(z.number().int().positive())
+    .min(1, 'Please select at least one dietary preference.'),
 });
 
 export const stepDislikedIngredientsSchema = z.object({
@@ -85,15 +105,17 @@ export const stepExerciseSchema = z.object({
   }),
 });
 
-export const quizFormSchema = stepGoalSchema
-  .merge(stepDietSchema)
-  .merge(stepDislikedIngredientsSchema)
-  .merge(stepMetabolismSchema)
-  .merge(stepHouseholdSchema)
-  .merge(stepPrepTimeSchema)
-  .merge(stepExerciseSchema);
+export const createQuizFormSchema = (baseDietIds: number[]) => {
+  return stepGoalSchema
+    .merge(createStepDietSchema(baseDietIds))
+    .merge(stepDislikedIngredientsSchema)
+    .merge(stepMetabolismSchema)
+    .merge(stepHouseholdSchema)
+    .merge(stepPrepTimeSchema)
+    .merge(stepExerciseSchema);
+};
 
-export type QuizFormData = z.infer<typeof quizFormSchema>;
+export type QuizFormData = z.infer<ReturnType<typeof createQuizFormSchema>>;
 
 export interface CategoryOption {
   id: number;

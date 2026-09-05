@@ -1,14 +1,4 @@
 <script setup lang="ts">
-const model = defineModel<{
-  monday: 'rest' | 'moderate' | 'heavy';
-  tuesday: 'rest' | 'moderate' | 'heavy';
-  wednesday: 'rest' | 'moderate' | 'heavy';
-  thursday: 'rest' | 'moderate' | 'heavy';
-  friday: 'rest' | 'moderate' | 'heavy';
-  saturday: 'rest' | 'moderate' | 'heavy';
-  sunday: 'rest' | 'moderate' | 'heavy';
-}>({ required: true });
-
 const days = [
   { key: 'monday', label: 'Monday' },
   { key: 'tuesday', label: 'Tuesday' },
@@ -24,6 +14,16 @@ const activityOptions = [
   { label: 'Moderate (Cardio, light weights)', value: 'moderate' },
   { label: 'Heavy (Intense workout)', value: 'heavy' },
 ];
+
+const model = defineModel<{
+  monday: 'rest' | 'moderate' | 'heavy';
+  tuesday: 'rest' | 'moderate' | 'heavy';
+  wednesday: 'rest' | 'moderate' | 'heavy';
+  thursday: 'rest' | 'moderate' | 'heavy';
+  friday: 'rest' | 'moderate' | 'heavy';
+  saturday: 'rest' | 'moderate' | 'heavy';
+  sunday: 'rest' | 'moderate' | 'heavy';
+}>({ required: true });
 </script>
 
 <template>
@@ -31,12 +31,10 @@ const activityOptions = [
     class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
   >
     <div class="space-y-4">
-      <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
-      >
+      <h2 class="font-display text-3xl font-bold tracking-tight text-slate-900">
         Weekly Training Schedule
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700">
         Adjust the days you actively train. We use this to calculate your daily
         caloric fluctuations and optimize recovery meals.
       </p>
@@ -55,7 +53,10 @@ const activityOptions = [
               :items="activityOptions"
               size="lg"
               class="w-full"
-              :ui="{ content: 'z-[100]' }"
+              :ui="{
+                base: 'ring-1 ring-stone-400',
+                content: 'z-[100]',
+              }"
             />
           </UFormField>
         </div>

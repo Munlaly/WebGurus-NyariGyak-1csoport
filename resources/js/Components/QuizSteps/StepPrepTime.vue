@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// Allowing string to handle the initial empty state from QuizMain.vue
-const model = defineModel<number | undefined>({ required: true });
-
 const prepTimeOptions = [
   {
     label: 'Quick (Under 15 minutes)',
@@ -25,6 +22,9 @@ const prepTimeOptions = [
       'I enjoy cooking and do not mind spending extra time in the kitchen.',
   },
 ];
+
+// Allowing string to handle the initial empty state from QuizMain.vue
+const model = defineModel<number | undefined>({ required: true });
 </script>
 
 <template>
@@ -33,11 +33,11 @@ const prepTimeOptions = [
   >
     <div class="space-y-4">
       <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
+        class="font-display text-slate-900 text-3xl font-bold tracking-tight"
       >
         Preparation Time
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-slate-700 text-lg leading-relaxed">
         How much time are you willing to spend preparing a single meal? We will
         filter your weekly recipes to match your schedule.
       </p>
@@ -50,6 +50,9 @@ const prepTimeOptions = [
           :items="prepTimeOptions"
           variant="card"
           size="lg"
+          :ui="{
+            item: ' mt-2 ring-1 ring-stone-400',
+          }"
         />
       </UFormField>
     </div>

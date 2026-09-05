@@ -2,36 +2,7 @@
 import { computed, useTemplateRef } from 'vue';
 import { parseDate } from '@internationalized/date';
 
-const sex = defineModel<'male' | 'female'>('sex', { required: true });
-const birthdate = defineModel<string>('birthdate', { required: true });
-const height = defineModel<number | string | undefined>('height', {
-  required: true,
-});
-const weight = defineModel<number | string | undefined>('weight', {
-  required: true,
-});
-const activity = defineModel<
-  'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
->('activity', { required: true });
-
-const sexItems = [
-  { label: 'Male', value: 'male' },
-  { label: 'Female', value: 'female' },
-];
-
-const dateModel = computed({
-  get: () => {
-    if (!birthdate.value) return undefined;
-    try {
-      return parseDate(birthdate.value);
-    } catch {
-      return undefined;
-    }
-  },
-  set: (val) => {
-    birthdate.value = val ? val.toString() : '';
-  },
-});
+const inputDate = useTemplateRef('inputDate');
 
 const activityItems = [
   {
@@ -60,7 +31,37 @@ const activityItems = [
   },
 ];
 
-const inputDate = useTemplateRef('inputDate');
+const sex = defineModel<'male' | 'female'>('sex', { required: true });
+const birthdate = defineModel<string>('birthdate', { required: true });
+const height = defineModel<number | string | undefined>('height', {
+  required: true,
+});
+const weight = defineModel<number | string | undefined>('weight', {
+  required: true,
+});
+
+const activity = defineModel<
+  'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active'
+>('activity', { required: true });
+
+const sexItems = [
+  { label: 'Male', value: 'male' },
+  { label: 'Female', value: 'female' },
+];
+
+const dateModel = computed({
+  get: () => {
+    if (!birthdate.value) return undefined;
+    try {
+      return parseDate(birthdate.value);
+    } catch {
+      return undefined;
+    }
+  },
+  set: (val) => {
+    birthdate.value = val ? val.toString() : '';
+  },
+});
 </script>
 
 <template>
@@ -69,11 +70,11 @@ const inputDate = useTemplateRef('inputDate');
   >
     <div class="space-y-4">
       <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
+        class="font-display text-slate-900 text-3xl font-bold tracking-tight"
       >
         Metabolic Profile
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-slate-700 text-lg leading-relaxed">
         We use these metrics to accurately calculate your Base Metabolic Rate
         (BMR). Please note that your baseline activity should only reflect your
         daily life and work routine, strictly excluding dedicated exercise or
@@ -90,7 +91,10 @@ const inputDate = useTemplateRef('inputDate');
             :items="sexItems"
             placeholder="Select your biological sex"
             class="mt-2"
-            :ui="{ content: 'z-[100]' }"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+              content: 'z-[100]',
+            }"
           />
         </UFormField>
 
@@ -100,11 +104,16 @@ const inputDate = useTemplateRef('inputDate');
             v-model="dateModel"
             size="lg"
             class="w-full"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+            }"
           >
             <template #trailing>
               <UPopover
                 :reference="inputDate?.inputsRef[3]?.$el"
-                :ui="{ content: 'z-[100]' }"
+                :ui="{
+                  content: 'z-[100]',
+                }"
               >
                 <UButton
                   color="neutral"
@@ -132,6 +141,9 @@ const inputDate = useTemplateRef('inputDate');
             size="lg"
             placeholder="e.g., 180"
             class="w-full"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+            }"
           />
         </UFormField>
 
@@ -142,6 +154,9 @@ const inputDate = useTemplateRef('inputDate');
             size="lg"
             placeholder="e.g., 75"
             class="w-full"
+            :ui="{
+              base: 'ring-1 ring-stone-400',
+            }"
           />
         </UFormField>
       </div>
@@ -152,7 +167,13 @@ const inputDate = useTemplateRef('inputDate');
           v-model="activity"
           :items="activityItems"
           variant="card"
+          color="primary"
           class="mt-2"
+          :ui="{
+            label: 'text-slate-900  font-semibold',
+            description: 'text-slate-700  text-sm',
+            item: 'mt-2 ring-1 ring-stone-400',
+          }"
         />
       </UFormField>
     </div>

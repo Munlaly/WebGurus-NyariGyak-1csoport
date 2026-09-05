@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-const model = defineModel<number[]>({ required: true });
+import { computed, watch } from 'vue';
 
 const props = defineProps<{
   options: {
@@ -8,15 +7,36 @@ const props = defineProps<{
     name: string;
     description: string | null;
   }[];
+  baseDietIds: number[];
 }>();
 
-// map the data for UCheckboxGroup
+const emit = defineEmits(['update:isValid']);
+
+const model = defineModel<number[]>({ required: true });
+
+const hasConflict = computed(() => {
+  const selectedBaseDiets = model.value.filter((id) =>
+    props.baseDietIds.includes(id),
+  );
+  return selectedBaseDiets.length > 1;
+});
+
+//
 const dietaryItems = computed(() => {
-  return props.options.map((diet) => ({
-    value: String(diet.id),
-    label: diet.name,
-    description: diet.description || undefined,
-  }));
+  return props.options.map((diet) => {
+    const isBaseDiet = props.baseDietIds.includes(diet.id);
+    const isSelected = model.value.includes(diet.id);
+    const isConflictingCard = hasConflict.value && isBaseDiet && isSelected;
+
+    return {
+      value: String(diet.id),
+      label: diet.name,
+      description: diet.description || undefined,
+      class: isConflictingCard
+        ? '!ring-0 !border-2 !border-red-500 bg-red-50'
+        : '',
+    };
+  });
 });
 
 // Converts UI's string array to number array
@@ -26,6 +46,14 @@ const stringModel = computed({
     model.value = val.map(Number);
   },
 });
+
+watch(
+  hasConflict,
+  (conflict) => {
+    emit('update:isValid', !conflict);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -33,12 +61,10 @@ const stringModel = computed({
     class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
   >
     <div class="space-y-4">
-      <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
-      >
+      <h2 class="font-display text-3xl font-bold tracking-tight text-slate-900">
         Dietary Preferences
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700">
         Do you follow any specific diets? Select all that apply so we can filter
         your meal plan accordingly.
       </p>
@@ -52,6 +78,13 @@ const stringModel = computed({
             :items="dietaryItems"
             size="lg"
             class="mt-2"
+            variant="card"
+            color="primary"
+            :ui="{
+              label: 'text-slate-900  font-semibold',
+              description: 'text-slate-700  text-sm',
+              item: 'mt-2 ring-1 ring-stone-400',
+            }"
           />
         </div>
       </UFormField>
