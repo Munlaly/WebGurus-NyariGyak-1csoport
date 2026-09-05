@@ -98,7 +98,7 @@ watch(searchTerm, (query) => {
           :loading="loading"
           multiple
           size="lg"
-          class="w-full bg-lime-100"
+          class="w-full bg-lime-100 hover:bg-lime-400"
           :ui="{
             content: 'z-[100]',
           }"
@@ -107,9 +107,9 @@ watch(searchTerm, (query) => {
             color="neutral"
             variant="outline"
             icon="i-lucide-search"
-            class="w-full  shadow-sm ring-1 ring-stone-400 transition-colors ring-inset hover:bg-gray-50"
+            class="w-full shadow-sm ring-1 ring-stone-400 transition-colors ring-inset"
           >
-            <span>{{
+            <span class="w-fit rounded-md px-2 py-1 hover:bg-gray-50">{{
               searchTerm || 'Search e.g., mushrooms, cilantro...'
             }}</span>
           </UButton>
