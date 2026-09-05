@@ -107,7 +107,7 @@ watch(searchTerm, (query) => {
             color="neutral"
             variant="outline"
             icon="i-lucide-search"
-            class="w-full bg-white shadow-sm ring-1 ring-stone-400 transition-colors ring-inset hover:bg-gray-50"
+            class="w-full  shadow-sm ring-1 ring-stone-400 transition-colors ring-inset hover:bg-gray-50"
           >
             <span>{{
               searchTerm || 'Search e.g., mushrooms, cilantro...'

@@ -27,12 +27,10 @@ const model = defineModel<'lose_weight' | 'maintain' | 'gain_muscle'>({
     class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
   >
     <div class="space-y-4">
-      <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
-      >
+      <h2 class="font-display text-3xl font-bold tracking-tight text-slate-900">
         Define Your Objective
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700">
         What is the primary fitness goal you want to achieve? Your weekly
         caloric target will be strictly calibrated based on this selection.
       </p>
@@ -49,7 +47,7 @@ const model = defineModel<'lose_weight' | 'maintain' | 'gain_muscle'>({
           :ui="{
             label: 'text-slate-900  font-semibold',
             description: 'text-slate-700  text-sm',
-            item: 'mt-2 border-stone-400',
+            item: 'mt-2 ring-1 ring-stone-400',
           }"
         />
       </UFormField>

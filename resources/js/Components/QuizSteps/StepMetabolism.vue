@@ -70,11 +70,11 @@ const dateModel = computed({
   >
     <div class="space-y-4">
       <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
+        class="font-display text-slate-900 text-3xl font-bold tracking-tight"
       >
         Metabolic Profile
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-slate-700 text-lg leading-relaxed">
         We use these metrics to accurately calculate your Base Metabolic Rate
         (BMR). Please note that your baseline activity should only reflect your
         daily life and work routine, strictly excluding dedicated exercise or
@@ -172,7 +172,7 @@ const dateModel = computed({
           :ui="{
             label: 'text-slate-900  font-semibold',
             description: 'text-slate-700  text-sm',
-            item: 'mt-2 border-stone-400',
+            item: 'mt-2 ring-1 ring-stone-400',
           }"
         />
       </UFormField>

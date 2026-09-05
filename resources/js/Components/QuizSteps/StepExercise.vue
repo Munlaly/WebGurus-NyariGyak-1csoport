@@ -31,12 +31,10 @@ const model = defineModel<{
     class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
   >
     <div class="space-y-4">
-      <h2
-        class="font-display text-on-surface text-3xl font-bold tracking-tight"
-      >
+      <h2 class="font-display text-3xl font-bold tracking-tight text-slate-900">
         Weekly Training Schedule
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700">
         Adjust the days you actively train. We use this to calculate your daily
         caloric fluctuations and optimize recovery meals.
       </p>
