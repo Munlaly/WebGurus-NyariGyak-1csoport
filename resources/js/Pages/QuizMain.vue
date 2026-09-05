@@ -4,14 +4,14 @@ import { useForm, usePage, Link } from '@inertiajs/vue3';
 import type { PageProps } from '@inertiajs/core';
 import {
   stepGoalSchema,
-  stepDietSchema,
   stepDislikedIngredientsSchema,
   stepMetabolismSchema,
   stepHouseholdSchema,
   stepPrepTimeSchema,
   stepExerciseSchema,
+  createStepDietSchema,
   type QuizFormData,
-  quizFormSchema,
+  createQuizFormSchema,
 } from '../Schemas/quizSchema';
 
 import StepIntro from '../Components/QuizSteps/StepIntro.vue';
@@ -62,33 +62,40 @@ const form = useForm({
 });
 
 const STORAGE_KEY = 'meal_plan_quiz_progress';
-const stepConfig = [
+const currentStep = ref(0);
+const isDietStepValid = ref(true);
+
+const currentDietSchema = computed(() =>
+  createStepDietSchema(page.props.baseDietIds),
+);
+const fullFormSchema = computed(() =>
+  createQuizFormSchema(page.props.baseDietIds),
+);
+
+const stepConfig = computed(() => [
   { type: 'intro', schema: null },
   { type: 'question', schema: stepGoalSchema },
   { type: 'question', schema: stepMetabolismSchema },
   { type: 'question', schema: stepExerciseSchema },
-  { type: 'question', schema: stepDietSchema },
+  { type: 'question', schema: currentDietSchema.value },
   { type: 'question', schema: stepDislikedIngredientsSchema },
   { type: 'question', schema: stepPrepTimeSchema },
   { type: 'question', schema: stepHouseholdSchema },
-  { type: 'summary', schema: quizFormSchema },
-];
-
-const currentStep = ref(0);
-const isDietStepValid = ref(true);
+  { type: 'summary', schema: fullFormSchema.value },
+]);
 
 const username = computed(() => page.props.auth?.user?.username || 'Guest');
 const dietaryOptions = computed(() => page.props.dietaryOptions || []);
 const totalQuestions = computed(
-  () => stepConfig.filter((s) => s.type === 'question').length,
+  () => stepConfig.value.filter((s) => s.type === 'question').length,
 );
 const progressPercentage = computed(() => {
-  const step = stepConfig[currentStep.value];
+  const step = stepConfig.value[currentStep.value];
 
   if (step.type === 'intro') return 0;
   if (step.type === 'summary') return 100;
 
-  const completedQuestions = stepConfig
+  const completedQuestions = stepConfig.value
     .slice(0, currentStep.value + 1)
     .filter((s) => s.type === 'question').length;
 
@@ -96,24 +103,21 @@ const progressPercentage = computed(() => {
 });
 
 const nextButtonLabel = computed(() => {
-  if (stepConfig[currentStep.value].type === 'summary') return 'Submit';
-  if (stepConfig[currentStep.value + 1]?.type === 'summary') return 'View Plan';
+  if (stepConfig.value[currentStep.value].type === 'summary') return 'Submit';
+  if (stepConfig.value[currentStep.value + 1]?.type === 'summary')
+    return 'View Plan';
   return 'Next';
 });
 
 const nextButtonIcon = computed(() => {
-  return stepConfig[currentStep.value].type === 'summary'
+  return stepConfig.value[currentStep.value].type === 'summary'
     ? 'i-heroicons-check'
     : 'i-heroicons-arrow-right';
 });
 
 const isSubmitDisabled = computed(() => {
-  if (currentStep.value === 4 && !isDietStepValid.value) {
-    return true;
-  }
-
-  if (stepConfig[currentStep.value].type === 'summary') {
-    return !quizFormSchema.safeParse(form).success;
+  if (stepConfig.value[currentStep.value].type === 'summary') {
+    return !fullFormSchema.value.safeParse(form).success;
   }
   return false;
 });
@@ -125,13 +129,13 @@ function prevStep() {
 }
 
 function handleNext() {
-  if (stepConfig[currentStep.value]?.type === 'summary') {
+  if (stepConfig.value[currentStep.value]?.type === 'summary') {
     form.post(route('quiz.store'), {
       onSuccess: () => {
         sessionStorage.removeItem(STORAGE_KEY);
       },
     });
-  } else if (currentStep.value < stepConfig.length - 1) {
+  } else if (currentStep.value < stepConfig.value.length - 1) {
     currentStep.value++;
   }
 }

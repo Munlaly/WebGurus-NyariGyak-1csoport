@@ -71,14 +71,7 @@ watch(
     </div>
 
     <div class="w-full max-w-md text-left">
-      <UFormField
-        name="meal_plan_preferences"
-        :error="
-          hasConflict
-            ? 'You cannot select conflicting baseline diets (e.g., Vegetarian and Omnivore). Please select only one.'
-            : undefined
-        "
-      >
+      <UFormField name="meal_plan_preferences">
         <div class="mt-2 space-y-4">
           <UCheckboxGroup
             v-model="stringModel"
