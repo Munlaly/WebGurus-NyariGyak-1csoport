@@ -38,9 +38,7 @@ function formatActivity(activity: string) {
 <template>
   <div class="flex w-full flex-col items-center space-y-10">
     <div class="max-w-2xl space-y-4 text-center">
-      <h2
-        class="font-display d text-4xl font-bold tracking-tight text-slate-900"
-      >
+      <h2 class="font-display text-4xl font-bold tracking-tight text-slate-900">
         Review Your Profile
       </h2>
       <p class="text-lg leading-relaxed text-slate-700">
@@ -95,7 +93,7 @@ function formatActivity(activity: string) {
           </div>
         </template>
         <div class="space-y-4 text-sm">
-          <div class="d flex justify-between border-b border-slate-200 pb-2">
+          <div class="flex justify-between border-b border-slate-200 pb-2">
             <span class="text-slate-600">Sex</span>
             <span class="font-semibold text-slate-900 capitalize">{{
               form.sex
