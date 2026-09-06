@@ -41,13 +41,6 @@ const activeDietsStringModel = computed({
   },
 });
 
-const hasConflict = computed(() => {
-  const selectedBaseDiets = form.activeDiets.filter((id) =>
-    props.baseDietIds.includes(id),
-  );
-  return selectedBaseDiets.length > 1;
-});
-
 function removeIngredient(idToRemove: number) {
   form.dislikedIngredients = form.dislikedIngredients.filter(
     (item) => item.id !== idToRemove,
@@ -155,29 +148,11 @@ onBeforeUnmount(() => {
             to. They will never appear in your meal plans.
           </p>
         </div>
-        <div class="md:col-span-2">
-          <UFormField :error="form.errors.dislikedIngredients">
-            <USelectMenu
-              v-model="form.dislikedIngredients"
-              v-model:search-term="searchTerm"
-              :items="items"
-              :loading="loading"
-              multiple
-              placeholder="e.g., mushrooms, cilantro..."
-              size="lg"
-              class="w-full max-w-md"
-              :ui="{ content: 'z-[100]' }"
-            />
 
-            <p v-if="searchError" class="mt-2 text-sm text-red-500">
-              {{ searchError }}
-            </p>
-          </UFormField>
-
-          <!-- Selected Items Badges -->
+        <div class="flex flex-col gap-4 md:col-span-2">
           <div
             v-if="form.dislikedIngredients.length > 0"
-            class="mt-4 flex flex-wrap gap-2"
+            class="flex flex-wrap gap-2"
           >
             <span
               v-for="item in form.dislikedIngredients"
@@ -195,6 +170,45 @@ onBeforeUnmount(() => {
               </button>
             </span>
           </div>
+
+          <UFormField
+            name="dislikedIngredients"
+            :error="form.errors.dislikedIngredients"
+          >
+            <USelectMenu
+              v-model="form.dislikedIngredients"
+              v-model:search-term="searchTerm"
+              :items="items"
+              :loading="loading"
+              multiple
+              size="lg"
+              class="w-full max-w-md bg-lime-100 hover:bg-lime-400"
+              :ui="{ content: 'z-[100]' }"
+            >
+              <UButton
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-search"
+                class="w-full shadow-sm ring-1 ring-stone-400 transition-colors ring-inset"
+              >
+                <span
+                  class="w-fit rounded-md px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  {{ searchTerm || 'Search e.g., mushrooms, cilantro...' }}
+                </span>
+              </UButton>
+
+              <template #empty>
+                <div class="p-3 text-center text-sm text-slate-500">
+                  No ingredients found.
+                </div>
+              </template>
+            </USelectMenu>
+
+            <p v-if="searchError" class="mt-2 text-sm text-red-500">
+              {{ searchError }}
+            </p>
+          </UFormField>
         </div>
       </div>
 
@@ -203,7 +217,6 @@ onBeforeUnmount(() => {
           type="submit"
           color="primary"
           :loading="form.processing"
-          :disabled="hasConflict"
           class="px-6 py-2 text-sm md:px-8 md:py-3 md:text-base lg:text-lg"
         >
           Save Rules
