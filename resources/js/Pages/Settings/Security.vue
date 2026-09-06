@@ -62,6 +62,10 @@ function sendResetLink() {
                 type="text"
                 class="w-full max-w-md"
                 autocomplete="username"
+                :ui="{
+                  base: 'ring-1 ring-stone-400',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
 
@@ -75,6 +79,10 @@ function sendResetLink() {
                 type="email"
                 class="w-full max-w-md"
                 autocomplete="email"
+                :ui="{
+                  base: 'ring-1 ring-stone-400',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
 

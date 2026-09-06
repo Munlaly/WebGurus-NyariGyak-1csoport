@@ -49,7 +49,7 @@ const submitLogistics = () => {
       @submit.prevent="submitLogistics"
     >
       <!-- Household Size Section -->
-      <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
+      <div class="grid grid-cols-1 items-center gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
           <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
             Household Size
@@ -69,6 +69,10 @@ const submitLogistics = () => {
               size="lg"
               placeholder="e.g., 2"
               class="w-full max-w-xs"
+              :ui="{
+                base: 'ring-1 ring-stone-400',
+                content: 'z-[100]',
+              }"
             />
           </UFormField>
         </div>
@@ -94,6 +98,11 @@ const submitLogistics = () => {
               v-model="form.prep_time_preference"
               :items="prepTimeOptions"
               variant="card"
+              :ui="{
+                label: 'text-slate-900  font-semibold',
+                description: 'text-slate-700  text-sm',
+                item: 'mt-2 ring-1 ring-stone-400',
+              }"
             />
           </UFormField>
         </div>

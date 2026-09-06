@@ -75,6 +75,11 @@ const submitTargets = () => {
               v-model="form.fitness_goal"
               :items="goalItems"
               variant="table"
+              :ui="{
+                label: 'text-slate-900  font-semibold',
+                description: 'text-slate-700  text-sm',
+                item: 'mt-2 ring-1 ring-stone-400',
+              }"
             />
           </UFormField>
         </div>
@@ -104,7 +109,10 @@ const submitTargets = () => {
                   :items="activityOptions"
                   size="lg"
                   class="w-full"
-                  :ui="{ content: 'z-[100]' }"
+                  :ui="{
+                    base: 'ring-1 ring-stone-400',
+                    content: 'z-[100]',
+                  }"
                 />
               </UFormField>
             </div>

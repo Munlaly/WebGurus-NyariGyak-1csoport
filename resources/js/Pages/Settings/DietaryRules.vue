@@ -132,6 +132,11 @@ onBeforeUnmount(() => {
               :items="dietaryItems"
               size="lg"
               variant="card"
+              :ui="{
+                label: 'text-slate-900  font-semibold',
+                description: 'text-slate-700  text-sm',
+                item: 'mt-2 ring-1 ring-stone-400',
+              }"
             />
           </UFormField>
         </div>

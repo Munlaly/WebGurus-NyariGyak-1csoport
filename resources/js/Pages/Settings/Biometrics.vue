@@ -100,7 +100,10 @@ const submitBiometrics = () => {
                 v-model="form.sex"
                 :items="sexItems"
                 class="w-full"
-                :ui="{ content: 'z-[100]' }"
+                :ui="{
+                  base: 'ring-1 ring-stone-400',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
 
@@ -113,7 +116,10 @@ const submitBiometrics = () => {
                 <template #trailing>
                   <UPopover
                     :reference="inputDate?.inputsRef[3]?.$el"
-                    :ui="{ content: 'z-[100]' }"
+                    :ui="{
+                      base: 'ring-1 ring-stone-400',
+                      content: 'z-[100]',
+                    }"
                   >
                     <UButton
                       color="neutral"
@@ -159,6 +165,10 @@ const submitBiometrics = () => {
                 max="300"
                 placeholder="e.g., 180"
                 class="w-full"
+                :ui="{
+                  base: 'ring-1 ring-stone-400',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
 
@@ -175,6 +185,10 @@ const submitBiometrics = () => {
                 step="0.1"
                 placeholder="e.g., 75.5"
                 class="w-full"
+                :ui="{
+                  base: 'ring-1 ring-stone-400',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
           </div>
@@ -201,6 +215,11 @@ const submitBiometrics = () => {
               v-model="form.baseline_activity"
               :items="activityItems"
               variant="card"
+              :ui="{
+                label: 'text-slate-900  font-semibold',
+                description: 'text-slate-700  text-sm',
+                item: 'mt-2 ring-1 ring-stone-400',
+              }"
             />
           </UFormField>
         </div>
