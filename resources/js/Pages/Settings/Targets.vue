@@ -5,6 +5,11 @@ import type { TargetsProps } from '../../Types/settingInterfaces';
 
 const props = defineProps<TargetsProps>();
 
+const form = useForm({
+  fitness_goal: props.profile.fitness_goal,
+  schedule: { ...props.schedule },
+});
+
 const activeTab = 'targets';
 
 const goalItems = [
@@ -41,14 +46,9 @@ const activityOptions = [
   { label: 'Heavy (Intense workout)', value: 'heavy' },
 ];
 
-const form = useForm({
-  fitness_goal: props.profile.fitness_goal,
-  schedule: { ...props.schedule },
-});
-
-const submitTargets = () => {
+function submitTargets() {
   form.put(route('settings.targets'), { preserveScroll: true });
-};
+}
 </script>
 
 <template>

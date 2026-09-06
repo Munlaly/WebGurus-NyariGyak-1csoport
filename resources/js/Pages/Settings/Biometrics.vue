@@ -7,8 +7,6 @@ import type { BiometricsProps } from '../../Types/settingInterfaces';
 
 const props = defineProps<BiometricsProps>();
 
-const activeTab = 'biometrics';
-
 const form = useForm({
   sex: props.profile.sex,
   birthdate: props.profile.birthdate,
@@ -16,6 +14,10 @@ const form = useForm({
   weight_kg: props.profile.weight_kg,
   baseline_activity: props.profile.baseline_activity,
 });
+
+const inputDate = useTemplateRef('inputDate');
+
+const activeTab = 'biometrics';
 
 const sexItems = [
   { label: 'Male', value: 'male' },
@@ -49,8 +51,6 @@ const activityItems = [
   },
 ];
 
-const inputDate = useTemplateRef('inputDate');
-
 const dateModel = computed({
   get: () => {
     if (!form.birthdate) return undefined;
@@ -66,9 +66,9 @@ const dateModel = computed({
   },
 });
 
-const submitBiometrics = () => {
+function submitBiometrics() {
   form.put(route('settings.biometrics'), { preserveScroll: true });
-};
+}
 </script>
 
 <template>

@@ -5,6 +5,11 @@ import type { LogisticsProps } from '../../Types/settingInterfaces';
 
 const props = defineProps<LogisticsProps>();
 
+const form = useForm({
+  household_size: props.settings.household_size,
+  prep_time_preference: props.settings.prep_time_preference,
+});
+
 const activeTab = 'logistics';
 
 const prepTimeOptions = [
@@ -31,14 +36,9 @@ const prepTimeOptions = [
   },
 ];
 
-const form = useForm({
-  household_size: props.settings.household_size,
-  prep_time_preference: props.settings.prep_time_preference,
-});
-
-const submitLogistics = () => {
+function submitLogistics() {
   form.put(route('settings.logistics'), { preserveScroll: true });
-};
+}
 </script>
 
 <template>
