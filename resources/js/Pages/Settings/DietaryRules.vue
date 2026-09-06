@@ -3,6 +3,7 @@ import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 import type { RulesProps } from '../../Types/settingInterfaces.js';
+import { createDietaryRulesSchema } from '../../Schemas/settingSchema.js';
 
 const props = defineProps<RulesProps>();
 
@@ -19,6 +20,10 @@ const searchTerm = ref('');
 const items = ref<{ id: number; label: string }[]>([]);
 const loading = ref(false);
 const searchError = ref('');
+
+const currentDietSchema = computed(() =>
+  createDietaryRulesSchema(props.baseDietIds),
+);
 
 // Mapped dietary options for Nuxt UI CheckBoxGroup
 const dietaryItems = computed(() => {
@@ -113,6 +118,7 @@ onBeforeUnmount(() => {
   <SettingsLayout :active-tab="activeTab">
     <UForm
       :state="form"
+      :schema="currentDietSchema"
       class="flex flex-1 flex-col divide-y divide-gray-200 px-4 md:px-0 dark:divide-gray-800"
       @submit.prevent="onSubmit"
     >
@@ -127,13 +133,7 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <div class="md:col-span-2">
-          <UFormField
-            :error="
-              hasConflict
-                ? 'You cannot select conflicting baseline diets (e.g., Vegetarian and Omnivore). Please select only one.'
-                : undefined
-            "
-          >
+          <UFormField name="activeDiets">
             <UCheckboxGroup
               v-model="activeDietsStringModel"
               :items="dietaryItems"
