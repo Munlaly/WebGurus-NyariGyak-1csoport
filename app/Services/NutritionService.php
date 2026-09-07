@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\UserProfile;
 use Illuminate\Support\Carbon;
+use App\Models\DailyPlan;
 
 class NutritionService
 {
@@ -67,5 +68,39 @@ class NutritionService
         $targets = $this->calculateNutritionalTargets($profile);
         $profile->weekly_calorie_target = $targets['calories'] * 7;
         $profile->save();
+
+        $weight = (float) ($profile->weight_kg ?? 70);
+
+
+        // Apply changes tu future plans as well as to today's plan
+        $futurePlans = DailyPlan::where('user_id', $profile->user_id)
+            ->whereDate('date', '>=', Carbon::now()->toDateString())
+            ->get();
+
+        foreach ($futurePlans as $plan) {
+            $dailyCals = $targets['calories'];
+           
+            $intensity = $plan->day_type->value ?? $plan->day_type;
+
+            if ($intensity === 'moderate') {
+                $dailyCals += (int) round($weight * 4.5); 
+            } elseif ($intensity === 'heavy') {
+                $dailyCals += (int) round($weight * 7.5); 
+            }
+
+
+
+            // Convert macro percentages to exact grams based on the adjusted daily calories
+            $proteinGrams = (int) round(($dailyCals * ($targets['macros']['protein'] / 100)) / 4);
+            $carbsGrams   = (int) round(($dailyCals * ($targets['macros']['carbs'] / 100)) / 4);
+            $fatGrams     = (int) round(($dailyCals * ($targets['macros']['fat'] / 100)) / 9);
+
+            $plan->update([
+                'target_calories'  => $dailyCals,
+                'target_protein_g' => $proteinGrams,
+                'target_carbs_g'   => $carbsGrams,
+                'target_fat_g'     => $fatGrams,
+            ]);
+        }
     }
 }
