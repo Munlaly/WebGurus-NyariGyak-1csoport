@@ -148,9 +148,19 @@ function goNextDay() {
   if (dayOffset.value < 1) dayOffset.value++;
 }
 
-function toggleFavoriteStatus(id: number) {
-  const current = localFavoriteStatus.value[id] ?? false;
+async function toggleFavoriteStatus(id: number) {
+  const meal = currentMeals.value.find((m) => m.id == id);
+  if (!meal) return;
+
+  const current = meal.isFavorite ?? false;
   localFavoriteStatus.value[id] = !current;
+
+  try {
+    await axios.post(`/recipe/${id}/favorite`);
+  } catch (error) {
+    console.error('Failed to save favorite: ', error);
+    localFavoriteStatus.value[id] = current;
+  }
 }
 
 async function handleCookMeal(

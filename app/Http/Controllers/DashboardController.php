@@ -10,15 +10,14 @@ use Inertia\Response;
 use Illuminate\Support\Carbon;
 use App\Services\AlertService;
 
-use function Symfony\Component\String\b;
-
 class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
         $user = $request->user();
+        $favoriteRecipeIds = $user->favoriteRecipes()->pluck('recipes.id')->toArray();
 
-        $formatMeal = function ($mealPlan) {
+        $formatMeal = function ($mealPlan) use ($favoriteRecipeIds) {
             $recipe = $mealPlan->recipe;
             if(!$recipe) {
                 return null;
@@ -33,7 +32,7 @@ class DashboardController extends Controller
                 'imageUrl' => $this->getRecipeImageUrl($recipe->image),
                 'imageAlt' => $recipe->name,
                 'isPrepared' => $mealPlan->status === 'EATEN',
-                'isFavorite' => (bool) $mealPlan->is_favorite,
+                'isFavorite' => in_array($recipe->id, $favoriteRecipeIds),
             ];
         };
 

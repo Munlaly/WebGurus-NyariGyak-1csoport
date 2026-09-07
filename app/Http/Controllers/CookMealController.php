@@ -123,7 +123,21 @@ class CookMealController extends Controller
 
             $dailyPlan->mealPlans()
                 ->where('recipe_id', $recipe->id)
-                ->update(['status' => 'EATEN']);            
+                ->update(['status' => 'EATEN']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Meal is cooked! Inventory automatically updated!',
+                'details' => $usedIngredients,
+            ]);
         });
+    }
+
+    public function toggleFavorite(Request $request, int $recipeId) {
+        $request->user()->favoriteRecipes()->toggle($recipeId);
+        return response()->json([
+            'success' => true,
+            'message' => 'Favorite toggled succesfully.',
+        ]);
     }
 }
