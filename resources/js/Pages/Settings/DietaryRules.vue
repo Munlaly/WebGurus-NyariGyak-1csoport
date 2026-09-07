@@ -22,16 +22,37 @@ const loading = ref(false);
 const searchError = ref('');
 
 const currentDietSchema = computed(() =>
-  createDietaryRulesSchema(props.baseDietIds),
+  createDietaryRulesSchema(props.baseDietIds || []),
 );
+
+const hasConflict = computed(() => {
+  if (!props.baseDietIds || !Array.isArray(props.baseDietIds)) {
+    return false;
+  }
+
+  const selectedBaseDiets = form.activeDiets.filter((id) =>
+    props.baseDietIds.includes(id),
+  );
+  return selectedBaseDiets.length > 1;
+});
 
 // Mapped dietary options for Nuxt UI CheckBoxGroup
 const dietaryItems = computed(() => {
-  return props.availableDietOptions.map((diet) => ({
-    value: String(diet.id),
-    label: diet.name,
-    description: diet.description || undefined,
-  }));
+  return props.availableDietOptions.map((diet) => {
+    const baseIds = props.baseDietIds || [];
+    const isBaseDiet = baseIds.includes(diet.id);
+    const isSelected = form.activeDiets.includes(diet.id);
+    const isConflictingCard = hasConflict.value && isBaseDiet && isSelected;
+
+    return {
+      value: String(diet.id),
+      label: diet.name,
+      description: diet.description || undefined,
+      class: isConflictingCard
+        ? '!ring-0 !border-2 !border-red-500 bg-red-50 dark:bg-error-container dark:border-error dark:text-on-error-container'
+        : '',
+    };
+  });
 });
 
 const activeDietsStringModel = computed({
@@ -126,7 +147,7 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <div class="md:col-span-2">
-          <UFormField name="activeDiets">
+          <UFormField name="activeDiets" :error="form.errors.activeDiets">
             <UCheckboxGroup
               v-model="activeDietsStringModel"
               :items="dietaryItems"
