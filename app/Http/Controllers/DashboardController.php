@@ -36,7 +36,13 @@ class DashboardController extends Controller
             ];
         };
 
+        $today = Carbon::now();
+        $todayString = $today->toDateString();
+        $yesterdayString = $today->copy()->subDay()->toDateString();
+        $tomorrowString = $today->copy()->addDay()->toDateString();
+
         $dailyPlans = DailyPlan::where('user_id', $user->id)
+            ->whereBetween('date', [$yesterdayString, $tomorrowString])
             ->with(['mealPlans.recipe.ingredients'])
             ->get();
  
@@ -46,9 +52,12 @@ class DashboardController extends Controller
             '1' => [],
         ];
 
-        $todayString = Carbon::now()->toDateString();
-        $yesterdayString = Carbon::now()->subDay()->toDateString();
-        $tomorrowString = Carbon::now()->addDay()->toDateString();
+        $hasActivePlan = DailyPlan::where('user_id', $user->id)
+            ->whereBetween('date', [
+                $today->copy()->startOfWeek()->toDateString(),
+                $today->copy()->endOfWeek()->toDateString()
+        ])
+        ->exists();
 
         foreach($dailyPlans as $dailyPlan) {
             $planDate = Carbon::parse($dailyPlan->date)->toDateString();
@@ -72,6 +81,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'mealsByOffset' => $mealsByOffset,
+            'hasActivePlan' => $hasActivePlan,
         ]);
     }
 

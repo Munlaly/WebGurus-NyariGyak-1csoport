@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
-
-interface Meal {
-  id: number;
-  title: string;
-  calories: number;
-  prepTime: number;
-  imageUrl: string;
-  imageAlt: string;
-  isPrepared: boolean;
-  isFavorite?: boolean;
-}
+import { Meal } from '../Types/dashboardInterfaces.js';
 
 const props = defineProps<{
   mealsByOffset: Record<string, Meal[]>;
+  hasActivePlan: boolean;
 }>();
 
 const dayOffset = ref<number>(0);
@@ -23,12 +15,6 @@ const dayOffset = ref<number>(0);
 // Local state tracking for toggle actions across days
 const localPreparedStatus = ref<Record<number, boolean>>({});
 const localFavoriteStatus = ref<Record<number, boolean>>({});
-
-const getFormattedDate = (offset: number) => {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
 
 const activeDateLabel = computed(() => {
   if (dayOffset.value === -1) return `Yesterday (${getFormattedDate(-1)})`;
@@ -47,15 +33,6 @@ const nextDateLabel = computed(() => {
   if (dayOffset.value === -1) return 'Today';
   return '';
 });
-
-const goPrevDay = () => {
-  if (dayOffset.value > -1) dayOffset.value--;
-};
-
-const goNextDay = () => {
-  if (dayOffset.value < 1) dayOffset.value++;
-};
-
 const leftChevronClasses = computed(() =>
   dayOffset.value === -1
     ? 'text-outline-variant cursor-not-allowed opacity-30'
@@ -78,15 +55,33 @@ const currentMeals = computed(() => {
   }));
 });
 
-const toggleMealStatus = (id: number) => {
+function getFormattedDate(offset: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function goPrevDay() {
+  if (dayOffset.value > -1) dayOffset.value--;
+}
+
+function goNextDay() {
+  if (dayOffset.value < 1) dayOffset.value++;
+}
+
+function toggleMealStatus(id: number) {
   const current = localPreparedStatus.value[id] ?? false;
   localPreparedStatus.value[id] = !current;
-};
+}
 
-const toggleFavoriteStatus = (id: number) => {
+function toggleFavoriteStatus(id: number) {
   const current = localFavoriteStatus.value[id] ?? false;
   localFavoriteStatus.value[id] = !current;
-};
+}
+
+function goToPlanner() {
+  router.visit(route('meal-plan.index'));
+}
 </script>
 
 <template>
@@ -94,6 +89,7 @@ const toggleFavoriteStatus = (id: number) => {
     <div class="animate-fade-in flex flex-1 flex-col gap-8">
       <!-- Date Picker -->
       <div
+        v-if="props.hasActivePlan"
         class="bg-surface-container-lowest mx-auto flex w-full max-w-md items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
       >
         <button :class="leftChevronClasses" @click="goPrevDay">
@@ -120,7 +116,10 @@ const toggleFavoriteStatus = (id: number) => {
       </div>
 
       <!-- Meal Grid -->
-      <div class="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div
+        v-if="props.hasActivePlan"
+        class="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      >
         <MealCard
           v-for="meal in currentMeals"
           :id="meal.id"
@@ -134,6 +133,17 @@ const toggleFavoriteStatus = (id: number) => {
           :is-favorite="meal.isFavorite"
           @toggle-cooked="toggleMealStatus(meal.id)"
           @toggle-favorite="toggleFavoriteStatus(meal.id)"
+        />
+      </div>
+
+      <!-- Empty State for No Plan -->
+      <div v-else class="flex max-h-fit flex-1 items-start justify-center">
+        <UEmpty
+          icon="i-heroicons-calendar"
+          title="No weekly plan yet"
+          description="It looks like you haven't generated a meal plan for this week. Let's get you set up."
+          :actions="[{ label: 'Go to Weekly Planner', onClick: goToPlanner }]"
+          class="border-error w-full border-2 border-dashed"
         />
       </div>
 
