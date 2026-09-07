@@ -27,30 +27,20 @@ interface CustomPageProps {
   flash?: {
     success?: string;
   };
-}
 
-withDefaults(
-  defineProps<{
-    primaryGoal?: string;
-    mealsCooked?: {
+  topbarData?: {
+    macros: {
+      calories: MacroTarget;
+      protein: MacroTarget;
+      carbs: MacroTarget;
+      fat: MacroTarget;
+    } | null;
+    mealsCooked: {
       current: number;
       total: number;
     };
-    calories?: MacroTarget;
-    protein?: MacroTarget;
-    carbs?: MacroTarget;
-    fat?: MacroTarget;
-  }>(),
-  {
-    primaryGoal: 'General Health',
-    mealsCooked: () => ({ current: 0, total: 3 }),
-    calories: () => ({ current: 0, target: 2000 }),
-    protein: () => ({ current: 0, target: 140 }),
-    carbs: () => ({ current: 0, target: 220 }),
-    fat: () => ({ current: 0, target: 65 }),
-  },
-);
-
+  };
+}
 const page = usePage();
 const { dismissedIds } = useDismissedAlerts();
 
@@ -108,6 +98,28 @@ const availableAlertsCount = computed(() => {
 
   return activeExpired.length + critical.length + urgent.length;
 });
+
+const topbarData = computed(
+  () =>
+    typedPageProps.value.topbarData || {
+      mealsCooked: { current: 0, total: 0 },
+      macros: null,
+    },
+);
+
+const mealsCooked = computed(() => topbarData.value.mealsCooked);
+const calories = computed(
+  () => topbarData.value.macros?.calories || { current: 0, target: 0 },
+);
+const protein = computed(
+  () => topbarData.value.macros?.protein || { current: 0, target: 0 },
+);
+const carbs = computed(
+  () => topbarData.value.macros?.carbs || { current: 0, target: 0 },
+);
+const fat = computed(
+  () => topbarData.value.macros?.fat || { current: 0, target: 0 },
+);
 
 function toggleSidebar() {
   isCollapsed.value = !isCollapsed.value;
