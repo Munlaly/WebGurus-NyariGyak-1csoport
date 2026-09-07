@@ -12,34 +12,6 @@ const props = defineProps<{
 }>();
 
 const dayOffset = ref<number>(0);
-const searchQuery = ref('');
-const searchResults = ref<SearchResult[]>([]);
-const isSearching = ref(false);
-let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-
-const showMealTypeModal = ref(false);
-const selectedSearchResult = ref<SearchResult | null>(null);
-
-watch(searchQuery, (newVal) => {
-  if (searchTimeout) clearTimeout(searchTimeout);
-
-  if (newVal.length < 3) {
-    searchResults.value = [];
-    return;
-  }
-
-  isSearching.value = true;
-  searchTimeout = setTimeout(async () => {
-    try {
-      const { data } = await axios.get(`/dashboard/search-recipes?q=${newVal}`);
-      searchResults.value = data;
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
-      isSearching.value = false;
-    }
-  }, 300);
-});
 
 const handleRecipeSelection = (recipe: SearchResult) => {
   if (!recipe.meal_types || recipe.meal_types.length === 1) {
@@ -101,36 +73,6 @@ watch(searchQuery, (newVal) => {
     }
   }, 300);
 });
-
-const handleRecipeSelection = (recipe: SearchResult) => {
-  if (!recipe.meal_types || recipe.meal_types.length === 1) {
-    const type = recipe.meal_types?.[0] || 'dinner';
-    executeSwap(recipe.id, type);
-  } else {
-    selectedSearchResult.value = recipe;
-    showMealTypeModal.value = true;
-  }
-};
-
-const executeSwap = (recipeId: number, mealType: string) => {
-  router.post(
-    '/dashboard/swap-meal',
-    {
-      recipe_id: recipeId,
-      meal_type: mealType,
-      date_offset: dayOffset.value,
-    },
-    {
-      preserveScroll: true,
-      onSuccess: () => {
-        searchQuery.value = '';
-        searchResults.value = [];
-        showMealTypeModal.value = false;
-        selectedSearchResult.value = null;
-      },
-    },
-  );
-};
 
 // Local state tracking for toggle actions across days
 const localPreparedStatus = ref<Record<number, boolean>>({});
@@ -391,39 +333,6 @@ function goToPlanner() {
           :actions="[{ label: 'Go to Weekly Planner', onClick: goToPlanner }]"
           class="border-error w-full border-2 border-dashed"
         />
-      <div
-        v-if="showMealTypeModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-      >
-        <div
-          class="bg-surface-container-lowest w-full max-w-sm rounded-2xl p-6 text-center shadow-xl"
-        >
-          <h3 class="text-headline-md text-on-surface mb-2 font-bold">
-            Select Meal Type
-          </h3>
-          <p class="text-body-md text-on-surface-variant mb-6">
-            Where would you like to slot
-            <strong>{{ selectedSearchResult?.name }}</strong
-            >?
-          </p>
-
-          <div class="flex flex-col gap-3">
-            <button
-              v-for="type in selectedSearchResult?.meal_types"
-              :key="type"
-              class="border-outline-variant text-on-surface hover:bg-primary hover:text-on-primary hover:border-primary w-full rounded-lg border py-3 font-semibold capitalize transition-colors active:scale-95"
-              @click="executeSwap(selectedSearchResult!.id, type)"
-            >
-              Set as {{ type }}
-            </button>
-          </div>
-          <button
-            class="text-on-surface-variant hover:text-on-surface mt-6 w-full text-sm underline transition-colors"
-            @click="showMealTypeModal = false"
-          >
-            Cancel
-          </button>
-        </div>
       </div>
 
       <!-- Confirmation / Warning Modal -->
@@ -482,8 +391,8 @@ function goToPlanner() {
                 confirmationData.mealPlanId &&
                 confirmationData.recipeId &&
                 handleCookMeal(
-                  confirmationData.mealPlanId,
-                  confirmationData.recipeId,
+                  confirmationData.mealPlanId!,
+                  confirmationData.recipeId!,
                   true,
                 )
               "
