@@ -101,7 +101,7 @@ function submitBiometrics() {
                 :items="sexItems"
                 class="w-full"
                 :ui="{
-                  base: 'ring-1 ring-stone-400',
+                  base: 'ring-1 ring-outline-variant',
                   content: 'z-[100]',
                 }"
               />
@@ -117,7 +117,7 @@ function submitBiometrics() {
                   <UPopover
                     :reference="inputDate?.inputsRef[3]?.$el"
                     :ui="{
-                      base: 'ring-1 ring-stone-400',
+                      base: 'ring-1 ring-outline-variant',
                       content: 'z-[100]',
                     }"
                   >
@@ -166,7 +166,7 @@ function submitBiometrics() {
                 placeholder="e.g., 180"
                 class="w-full"
                 :ui="{
-                  base: 'ring-1 ring-stone-400',
+                  base: 'ring-1 ring-outline-variant',
                   content: 'z-[100]',
                 }"
               />
@@ -186,7 +186,7 @@ function submitBiometrics() {
                 placeholder="e.g., 75.5"
                 class="w-full"
                 :ui="{
-                  base: 'ring-1 ring-stone-400',
+                  base: 'ring-1 ring-outline-variant',
                   content: 'z-[100]',
                 }"
               />
@@ -216,9 +216,9 @@ function submitBiometrics() {
               :items="activityItems"
               variant="card"
               :ui="{
-                label: 'text-slate-900  font-semibold',
-                description: 'text-slate-700  text-sm',
-                item: 'mt-2 ring-1 ring-stone-400',
+                label: 'text-on-surface  font-semibold',
+                description: 'text-on-surface-variant  text-sm',
+                item: 'mt-2 ring-1 ring-outline-variant',
               }"
             />
           </UFormField>

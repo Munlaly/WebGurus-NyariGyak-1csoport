@@ -63,7 +63,7 @@ function sendResetLink() {
                 class="w-full max-w-md"
                 autocomplete="username"
                 :ui="{
-                  base: 'ring-1 ring-stone-400',
+                  base: 'ring-1 ring-outline-variant',
                   content: 'z-[100]',
                 }"
               />
@@ -80,7 +80,7 @@ function sendResetLink() {
                 class="w-full max-w-md"
                 autocomplete="email"
                 :ui="{
-                  base: 'ring-1 ring-stone-400',
+                  base: 'ring-1 ring-outline-variant',
                   content: 'z-[100]',
                 }"
               />

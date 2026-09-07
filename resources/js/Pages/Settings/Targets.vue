@@ -76,9 +76,9 @@ function submitTargets() {
               :items="goalItems"
               variant="table"
               :ui="{
-                label: 'text-slate-900  font-semibold',
-                description: 'text-slate-700  text-sm',
-                item: 'mt-2 ring-1 ring-stone-400',
+                label: 'text-on-surface  font-semibold',
+                description: 'text-on-surface-variant text-sm',
+                item: 'mt-2 ring-1 ring-outline-variant',
               }"
             />
           </UFormField>
@@ -88,7 +88,7 @@ function submitTargets() {
       <!-- Weekly Training Schedule Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="text-on-surface px-1 text-lg font-bold">
             Training Schedule
           </h2>
           <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
@@ -110,7 +110,7 @@ function submitTargets() {
                   size="lg"
                   class="w-full"
                   :ui="{
-                    base: 'ring-1 ring-stone-400',
+                    base: 'ring-1 ring-outline-variant',
                     content: 'z-[100]',
                   }"
                 />

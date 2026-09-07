@@ -133,9 +133,9 @@ onBeforeUnmount(() => {
               size="lg"
               variant="card"
               :ui="{
-                label: 'text-slate-900  font-semibold',
-                description: 'text-slate-700  text-sm',
-                item: 'mt-2 ring-1 ring-stone-400',
+                label: 'text-on-surface  font-semibold',
+                description: 'text-text-on-surface-variant  text-sm',
+                item: 'mt-2 ring-1 ring-outline-variant',
               }"
             />
           </UFormField>
@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
                 color="neutral"
                 variant="outline"
                 icon="i-lucide-search"
-                class="w-full shadow-sm ring-1 ring-stone-400 transition-colors ring-inset"
+                class="ring-outline-variant w-full shadow-sm ring-1 transition-colors ring-inset"
               >
                 <span
                   class="w-fit rounded-md px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800"

@@ -70,7 +70,7 @@ function submitLogistics() {
               placeholder="e.g., 2"
               class="w-full max-w-xs"
               :ui="{
-                base: 'ring-1 ring-stone-400',
+                base: 'ring-1 ring-outline-variant',
                 content: 'z-[100]',
               }"
             />
@@ -99,9 +99,9 @@ function submitLogistics() {
               :items="prepTimeOptions"
               variant="card"
               :ui="{
-                label: 'text-slate-900  font-semibold',
-                description: 'text-slate-700  text-sm',
-                item: 'mt-2 ring-1 ring-stone-400',
+                label: 'text-on-surface font-semibold',
+                description: 'text-onsurface-variant text-sm',
+                item: 'mt-2 ring-1 ring-outline-variant',
               }"
             />
           </UFormField>
