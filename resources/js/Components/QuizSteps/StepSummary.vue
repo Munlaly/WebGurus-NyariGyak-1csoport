@@ -27,23 +27,23 @@ const selectedDiets = computed(() => {
   });
 });
 
-const formatActivity = (activity: string) => {
+function formatActivity(activity: string) {
   return activity
     .split('_')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
-};
+}
 </script>
 
 <template>
   <div class="flex w-full flex-col items-center space-y-10">
     <div class="max-w-2xl space-y-4 text-center">
       <h2
-        class="font-display text-on-surface text-4xl font-bold tracking-tight"
+        class="font-display text-4xl font-bold tracking-tight text-slate-900 dark:text-white"
       >
         Review Your Profile
       </h2>
-      <p class="text-on-surface-variant text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-gray-300">
         Double-check your metrics before we generate your customized meal plan.
         You can go back to adjust anything that looks off.
       </p>
@@ -52,30 +52,36 @@ const formatActivity = (activity: string) => {
     <div
       class="grid w-full max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
     >
-      <!-- Card 1: Core Objective -->
+      <!-- Core Objective -->
       <UCard class="flex h-full flex-col">
         <template #header>
           <div
-            class="text-on-surface flex items-center gap-2 text-lg font-bold"
+            class="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
           >
             <UIcon name="i-heroicons-flag" class="text-primary h-5 w-5" />
             Core Objective
           </div>
         </template>
         <div class="space-y-4 text-sm">
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-on-surface-variant">Fitness Goal</span>
+          <div
+            class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
+          >
+            <span class="text-slate-600 dark:text-gray-300">Fitness Goal</span>
             <span class="text-primary font-semibold">{{ formattedGoal }}</span>
           </div>
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-on-surface-variant">Max Prep Time</span>
-            <span class="font-semibold"
+          <div
+            class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
+          >
+            <span class="text-slate-600 dark:text-gray-300">Max Prep Time</span>
+            <span class="font-semibold text-slate-900 dark:text-white"
               >{{ form.prep_time_preference }} mins</span
             >
           </div>
           <div class="flex justify-between">
-            <span class="text-on-surface-variant">Household Size</span>
-            <span class="font-semibold"
+            <span class="text-slate-600 dark:text-gray-300"
+              >Household Size</span
+            >
+            <span class="font-semibold text-slate-900 dark:text-white"
               >{{ form.household_size }} person(s)</span
             >
           </div>
@@ -86,30 +92,43 @@ const formatActivity = (activity: string) => {
       <UCard class="flex h-full flex-col">
         <template #header>
           <div
-            class="text-on-surface flex items-center gap-2 text-lg font-bold"
+            class="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
           >
             <UIcon name="i-heroicons-user" class="text-primary h-5 w-5" />
             Biometrics
           </div>
         </template>
         <div class="space-y-4 text-sm">
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-on-surface-variant">Sex</span>
-            <span class="font-semibold capitalize">{{ form.sex }}</span>
+          <div class="flex justify-between border-b border-slate-200 pb-2">
+            <span class="text-slate-600 dark:text-gray-300">Sex</span>
+            <span
+              class="font-semibold text-slate-900 capitalize dark:text-white"
+              >{{ form.sex }}</span
+            >
           </div>
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-on-surface-variant">Height / Weight</span>
-            <span class="font-semibold"
+          <div
+            class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
+          >
+            <span class="text-slate-600 dark:text-gray-300"
+              >Height / Weight</span
+            >
+            <span class="font-semibold text-slate-900 dark:text-white"
               >{{ form.height_cm }} cm / {{ form.weight_kg }} kg</span
             >
           </div>
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-on-surface-variant">Birthdate</span>
-            <span class="font-semibold">{{ form.birthdate }}</span>
+          <div
+            class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
+          >
+            <span class="text-slate-600 dark:text-gray-300">Birthdate</span>
+            <span class="font-semibold text-slate-900 dark:text-white">{{
+              form.birthdate
+            }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-on-surface-variant">Baseline Activity</span>
-            <span class="font-semibold">{{
+            <span class="text-slate-600 dark:text-gray-300"
+              >Baseline Activity</span
+            >
+            <span class="font-semibold text-slate-900 dark:text-white">{{
               formatActivity(form.baseline_activity)
             }}</span>
           </div>
@@ -120,7 +139,7 @@ const formatActivity = (activity: string) => {
       <UCard class="flex h-full flex-col">
         <template #header>
           <div
-            class="text-on-surface flex items-center gap-2 text-lg font-bold"
+            class="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
           >
             <UIcon name="i-heroicons-no-symbol" class="text-primary h-5 w-5" />
             Nutrition Constraints
@@ -128,38 +147,42 @@ const formatActivity = (activity: string) => {
         </template>
         <div class="space-y-4 text-sm">
           <div>
-            <span class="text-on-surface-variant mb-2 block"
+            <span class="mb-2 block text-slate-600 dark:text-gray-300"
               >Dietary Preferences</span
             >
-            <div class="flex flex-wrap gap-1">
+            <div class="flex flex-wrap gap-2">
               <UBadge
                 v-for="diet in selectedDiets"
                 :key="diet"
-                color="gray"
+                color="neutral"
                 variant="subtle"
+                size="md"
               >
                 {{ diet }}
               </UBadge>
             </div>
           </div>
           <div class="pt-2">
-            <span class="text-on-surface-variant mb-2 block"
+            <span class="mb-2 block text-slate-600 dark:text-gray-300"
               >Excluded Ingredients</span
             >
             <div
               v-if="dislikedIngredients.length > 0"
-              class="flex flex-wrap gap-1"
+              class="flex flex-wrap gap-2"
             >
               <UBadge
                 v-for="item in dislikedIngredients"
                 :key="item.id"
-                color="red"
+                color="error"
                 variant="subtle"
+                size="md"
               >
                 {{ item.label }}
               </UBadge>
             </div>
-            <span v-else class="text-on-surface font-semibold">None</span>
+            <span v-else class="font-semibold text-slate-900 dark:text-white"
+              >None</span
+            >
           </div>
         </div>
       </UCard>

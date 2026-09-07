@@ -453,7 +453,7 @@ onUnmounted(() => {
       >
         <!-- Today's Plans -->
         <Link
-          href="/dashboard"
+          href="/"
           class="flex flex-col items-center gap-1.5 text-gray-500 transition-all hover:text-green-600 active:scale-95 active:text-green-600"
           @click="isMobileMenuOpen = false"
         >
