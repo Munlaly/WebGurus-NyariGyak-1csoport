@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
               variant="card"
               :ui="{
                 label: 'text-on-surface  font-semibold',
-                description: 'text-text-on-surface-variant  text-sm',
+                description: 'text-on-surface-variant  text-sm',
                 item: 'mt-2 ring-1 ring-outline-variant',
               }"
             />
