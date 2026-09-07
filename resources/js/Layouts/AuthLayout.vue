@@ -13,9 +13,9 @@ defineProps<{
   >
     <!-- Left Side: Form Area -->
     <main
-      class="bg-surface-container-low z-10 flex w-full shrink-0 grow flex-col justify-center shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:w-1/2"
+      class="bg-surface-container-low z-10 flex w-full shrink-0 grow flex-col items-center justify-center shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:w-1/2"
     >
-      <div class="mx-auto w-full max-w-md px-6 lg:px-8">
+      <div class="max-w- mx-auto w-full max-w-6xl px-6 lg:px-8">
         <header class="mb-8">
           <slot name="logo">
             <h2
