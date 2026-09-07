@@ -20,7 +20,9 @@ class RecipeController extends Controller
             abort(404); 
         }
         // get all related ingredients
-        $recipe->load('ingredients');
+        $recipe->load(['ingredients' => function ($query) {
+            $query->withPivot('raw_amount', 'raw_unit');
+        }]);
 
         $instructionsArray = array_values(array_filter(array_map(
             fn($step) => preg_replace('/^\d+\.\s*/', '', trim($step)), 
@@ -31,8 +33,8 @@ class RecipeController extends Controller
             /** @var \App\Models\Ingredient $ingredient */
             return [
                 'name' => $ingredient->name,
-                'amount' => (float) $ingredient->pivot->amount,
-                'unit' => $ingredient->pivot->unit 
+                'amount' => (float) $ingredient->pivot->raw_amount,
+                'unit' => $ingredient->pivot->raw_unit 
             ];
         });
 

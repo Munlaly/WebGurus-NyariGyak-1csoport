@@ -75,7 +75,7 @@ class IngredientService
             'pcs' => 1.0,
         ];
 
-        $multiplier = $multipliers[$rawUnit] ?? 1.0;
+        $multiplier = $multipliers[$standardUnit] ?? 1.0;
 
         return round($amount * $multiplier, 2);
     }
