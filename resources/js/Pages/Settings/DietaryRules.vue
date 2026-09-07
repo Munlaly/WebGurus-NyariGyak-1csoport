@@ -3,23 +3,56 @@ import { ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import SettingsLayout from '../../Layouts/SettingsLayout.vue';
 import type { RulesProps } from '../../Types/settingInterfaces.js';
+import { createDietaryRulesSchema } from '../../Schemas/settingSchema.js';
 
 const props = defineProps<RulesProps>();
-
-const activeTab = 'rules';
 
 const form = useForm({
   activeDiets: props.activeDiets,
   dislikedIngredients: props.dislikedIngredients,
 });
 
+const activeTab = 'rules';
+let debounceTimeout: ReturnType<typeof setTimeout>;
+let abortController: AbortController | null = null;
+
+const searchTerm = ref('');
+const items = ref<{ id: number; label: string }[]>([]);
+const loading = ref(false);
+const searchError = ref('');
+
+const currentDietSchema = computed(() =>
+  createDietaryRulesSchema(props.baseDietIds || []),
+);
+
+const hasConflict = computed(() => {
+  if (!props.baseDietIds || !Array.isArray(props.baseDietIds)) {
+    return false;
+  }
+
+  const selectedBaseDiets = form.activeDiets.filter((id) =>
+    props.baseDietIds.includes(id),
+  );
+  return selectedBaseDiets.length > 1;
+});
+
 // Mapped dietary options for Nuxt UI CheckBoxGroup
 const dietaryItems = computed(() => {
-  return props.availableDietOptions.map((diet) => ({
-    value: String(diet.id),
-    label: diet.name,
-    description: diet.description || undefined,
-  }));
+  return props.availableDietOptions.map((diet) => {
+    const baseIds = props.baseDietIds || [];
+    const isBaseDiet = baseIds.includes(diet.id);
+    const isSelected = form.activeDiets.includes(diet.id);
+    const isConflictingCard = hasConflict.value && isBaseDiet && isSelected;
+
+    return {
+      value: String(diet.id),
+      label: diet.name,
+      description: diet.description || undefined,
+      class: isConflictingCard
+        ? '!ring-0 !border-2 !border-red-500 bg-red-50 dark:bg-error-container dark:border-error dark:text-on-error-container'
+        : '',
+    };
+  });
 });
 
 const activeDietsStringModel = computed({
@@ -29,19 +62,20 @@ const activeDietsStringModel = computed({
   },
 });
 
-// Async Ingredient Search Logic
-const searchTerm = ref('');
-const items = ref<{ id: number; label: string }[]>([]);
-const loading = ref(false);
-const searchError = ref('');
+function removeIngredient(idToRemove: number) {
+  form.dislikedIngredients = form.dislikedIngredients.filter(
+    (item) => item.id !== idToRemove,
+  );
+}
 
-let debounceTimeout: ReturnType<typeof setTimeout>;
-let abortController: AbortController | null = null;
-
-onBeforeUnmount(() => {
-  if (abortController) abortController.abort();
-  clearTimeout(debounceTimeout);
-});
+function onSubmit() {
+  form
+    .transform((data) => ({
+      activeDiets: data.activeDiets,
+      dislikedIngredients: data.dislikedIngredients.map((item) => item.id),
+    }))
+    .put(route('settings.rules'), { preserveScroll: true });
+}
 
 watch(searchTerm, (query) => {
   clearTimeout(debounceTimeout);
@@ -88,27 +122,17 @@ watch(searchTerm, (query) => {
   }, 300);
 });
 
-function removeIngredient(idToRemove: number) {
-  form.dislikedIngredients = form.dislikedIngredients.filter(
-    (item) => item.id !== idToRemove,
-  );
-}
-
-// --- Submission ---
-const onSubmit = () => {
-  form
-    .transform((data) => ({
-      activeDiets: data.activeDiets,
-      dislikedIngredients: data.dislikedIngredients.map((item) => item.id),
-    }))
-    .put(route('settings.rules'), { preserveScroll: true });
-};
+onBeforeUnmount(() => {
+  if (abortController) abortController.abort();
+  clearTimeout(debounceTimeout);
+});
 </script>
 
 <template>
   <SettingsLayout :active-tab="activeTab">
     <UForm
       :state="form"
+      :schema="currentDietSchema"
       class="flex flex-1 flex-col divide-y divide-gray-200 px-4 md:px-0 dark:divide-gray-800"
       @submit.prevent="onSubmit"
     >
@@ -123,11 +147,17 @@ const onSubmit = () => {
           </p>
         </div>
         <div class="md:col-span-2">
-          <UFormField :error="form.errors.activeDiets">
+          <UFormField name="activeDiets" :error="form.errors.activeDiets">
             <UCheckboxGroup
               v-model="activeDietsStringModel"
               :items="dietaryItems"
               size="lg"
+              variant="card"
+              :ui="{
+                label: 'text-on-surface  font-semibold',
+                description: 'text-on-surface-variant  text-sm',
+                item: 'mt-2 ring-1 ring-outline-variant',
+              }"
             />
           </UFormField>
         </div>
@@ -144,29 +174,11 @@ const onSubmit = () => {
             to. They will never appear in your meal plans.
           </p>
         </div>
-        <div class="md:col-span-2">
-          <UFormField :error="form.errors.dislikedIngredients">
-            <USelectMenu
-              v-model="form.dislikedIngredients"
-              v-model:search-term="searchTerm"
-              :items="items"
-              :loading="loading"
-              multiple
-              placeholder="e.g., mushrooms, cilantro..."
-              size="lg"
-              class="w-full max-w-md"
-              :ui="{ content: 'z-[100]' }"
-            />
 
-            <p v-if="searchError" class="mt-2 text-sm text-red-500">
-              {{ searchError }}
-            </p>
-          </UFormField>
-
-          <!-- Selected Items Badges -->
+        <div class="flex flex-col gap-4 md:col-span-2">
           <div
             v-if="form.dislikedIngredients.length > 0"
-            class="mt-4 flex flex-wrap gap-2"
+            class="flex flex-wrap gap-2"
           >
             <span
               v-for="item in form.dislikedIngredients"
@@ -184,6 +196,45 @@ const onSubmit = () => {
               </button>
             </span>
           </div>
+
+          <UFormField
+            name="dislikedIngredients"
+            :error="form.errors.dislikedIngredients"
+          >
+            <USelectMenu
+              v-model="form.dislikedIngredients"
+              v-model:search-term="searchTerm"
+              :items="items"
+              :loading="loading"
+              multiple
+              size="lg"
+              class="w-full max-w-md bg-lime-100 hover:bg-lime-400"
+              :ui="{ content: 'z-[100]' }"
+            >
+              <UButton
+                color="neutral"
+                variant="outline"
+                icon="i-lucide-search"
+                class="ring-outline-variant w-full shadow-sm ring-1 transition-colors ring-inset"
+              >
+                <span
+                  class="w-fit rounded-md px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  {{ searchTerm || 'Search e.g., mushrooms, cilantro...' }}
+                </span>
+              </UButton>
+
+              <template #empty>
+                <div class="p-3 text-center text-sm text-slate-500">
+                  No ingredients found.
+                </div>
+              </template>
+            </USelectMenu>
+
+            <p v-if="searchError" class="mt-2 text-sm text-red-500">
+              {{ searchError }}
+            </p>
+          </UFormField>
         </div>
       </div>
 

@@ -7,8 +7,6 @@ import type { BiometricsProps } from '../../Types/settingInterfaces';
 
 const props = defineProps<BiometricsProps>();
 
-const activeTab = 'biometrics';
-
 const form = useForm({
   sex: props.profile.sex,
   birthdate: props.profile.birthdate,
@@ -16,6 +14,10 @@ const form = useForm({
   weight_kg: props.profile.weight_kg,
   baseline_activity: props.profile.baseline_activity,
 });
+
+const inputDate = useTemplateRef('inputDate');
+
+const activeTab = 'biometrics';
 
 const sexItems = [
   { label: 'Male', value: 'male' },
@@ -49,8 +51,6 @@ const activityItems = [
   },
 ];
 
-const inputDate = useTemplateRef('inputDate');
-
 const dateModel = computed({
   get: () => {
     if (!form.birthdate) return undefined;
@@ -66,9 +66,9 @@ const dateModel = computed({
   },
 });
 
-const submitBiometrics = () => {
+function submitBiometrics() {
   form.put(route('settings.biometrics'), { preserveScroll: true });
-};
+}
 </script>
 
 <template>
@@ -100,7 +100,10 @@ const submitBiometrics = () => {
                 v-model="form.sex"
                 :items="sexItems"
                 class="w-full"
-                :ui="{ content: 'z-[100]' }"
+                :ui="{
+                  base: 'ring-1 ring-outline-variant',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
 
@@ -113,7 +116,10 @@ const submitBiometrics = () => {
                 <template #trailing>
                   <UPopover
                     :reference="inputDate?.inputsRef[3]?.$el"
-                    :ui="{ content: 'z-[100]' }"
+                    :ui="{
+                      base: 'ring-1 ring-outline-variant',
+                      content: 'z-[100]',
+                    }"
                   >
                     <UButton
                       color="neutral"
@@ -159,6 +165,10 @@ const submitBiometrics = () => {
                 max="300"
                 placeholder="e.g., 180"
                 class="w-full"
+                :ui="{
+                  base: 'ring-1 ring-outline-variant',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
 
@@ -175,6 +185,10 @@ const submitBiometrics = () => {
                 step="0.1"
                 placeholder="e.g., 75.5"
                 class="w-full"
+                :ui="{
+                  base: 'ring-1 ring-outline-variant',
+                  content: 'z-[100]',
+                }"
               />
             </UFormField>
           </div>
@@ -201,6 +215,11 @@ const submitBiometrics = () => {
               v-model="form.baseline_activity"
               :items="activityItems"
               variant="card"
+              :ui="{
+                label: 'text-on-surface  font-semibold',
+                description: 'text-on-surface-variant  text-sm',
+                item: 'mt-2 ring-1 ring-outline-variant',
+              }"
             />
           </UFormField>
         </div>

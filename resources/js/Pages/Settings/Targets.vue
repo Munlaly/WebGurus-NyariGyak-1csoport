@@ -5,6 +5,11 @@ import type { TargetsProps } from '../../Types/settingInterfaces';
 
 const props = defineProps<TargetsProps>();
 
+const form = useForm({
+  fitness_goal: props.profile.fitness_goal,
+  schedule: { ...props.schedule },
+});
+
 const activeTab = 'targets';
 
 const goalItems = [
@@ -41,14 +46,9 @@ const activityOptions = [
   { label: 'Heavy (Intense workout)', value: 'heavy' },
 ];
 
-const form = useForm({
-  fitness_goal: props.profile.fitness_goal,
-  schedule: { ...props.schedule },
-});
-
-const submitTargets = () => {
+function submitTargets() {
   form.put(route('settings.targets'), { preserveScroll: true });
-};
+}
 </script>
 
 <template>
@@ -75,6 +75,11 @@ const submitTargets = () => {
               v-model="form.fitness_goal"
               :items="goalItems"
               variant="table"
+              :ui="{
+                label: 'text-on-surface  font-semibold',
+                description: 'text-on-surface-variant text-sm',
+                item: 'mt-2 ring-1 ring-outline-variant',
+              }"
             />
           </UFormField>
         </div>
@@ -83,7 +88,7 @@ const submitTargets = () => {
       <!-- Weekly Training Schedule Section -->
       <div class="grid grid-cols-1 gap-8 py-8 md:grid-cols-3">
         <div class="md:col-span-1">
-          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
+          <h2 class="text-on-surface px-1 text-lg font-bold">
             Training Schedule
           </h2>
           <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
@@ -104,7 +109,10 @@ const submitTargets = () => {
                   :items="activityOptions"
                   size="lg"
                   class="w-full"
-                  :ui="{ content: 'z-[100]' }"
+                  :ui="{
+                    base: 'ring-1 ring-outline-variant',
+                    content: 'z-[100]',
+                  }"
                 />
               </UFormField>
             </div>
