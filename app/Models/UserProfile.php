@@ -7,6 +7,7 @@ use App\Enums\UserSex;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/** @property int|null $weekly_calories */
 class UserProfile extends Model
 {
     protected $table = 'user_profiles';

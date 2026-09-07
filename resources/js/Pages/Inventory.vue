@@ -172,7 +172,7 @@ function scrollToItem(id: number) {
             :key="cat"
             :class="[
               selectedCategory === cat
-                ? 'bg-primary text-on-primary hover:bg-surface-tint font-bold shadow-md'
+                ? 'bg-primary text-on-primary hover:bg-primary/90 font-bold shadow-md dark:hover:bg-[#b080ea]'
                 : 'bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:bg-surface-container-low border font-medium shadow-sm',
               'font-label-md text-label-md rounded-full px-5 py-2 transition-colors',
             ]"
