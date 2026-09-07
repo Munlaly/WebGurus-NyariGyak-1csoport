@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
+<g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+    
+    <!-- Background Circle: Soft Mint -->
+    <circle cx="45" cy="45" r="45" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #D1FAE5; fill-rule: nonzero; opacity: 1;" transform="  matrix(1 0 0 1 0 0) "/>
+    
+    <!-- Main Structural Body: Deep Forest Green for high contrast -->
+    <path d="M 19.198 23.09 l 20.248 32.082 c 0.442 0.7 1.167 1.154 1.99 1.245 c 0.817 0.094 1.631 -0.191 2.216 -0.776 l 1.062 -1.061 c 0.234 -0.235 0.557 -0.368 0.89 -0.368 c 0.013 0 0.027 0 0.039 0 c 0.348 0.012 0.678 0.168 0.907 0.43 l 15.05 17.203 c 0.963 1.052 2.289 1.653 3.727 1.686 c 1.435 0.05 2.789 -0.51 3.806 -1.527 s 1.561 -2.37 1.528 -3.808 s -0.635 -2.763 -1.695 -3.733 L 51.209 48.923 L 22.631 20.345 c -0.835 -0.836 -2.292 -0.835 -3.127 0 C 18.769 21.081 18.642 22.209 19.198 23.09 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #022C22; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+    
+    <!-- Top Accents: Bright Emerald -->
+    <path d="M 57.58 43.13 c 2.435 -0.055 4.773 -1.119 6.413 -2.92 l 9.505 -14.093 l -0.97 -0.97 L 60.228 37.448 c -0.681 0.684 -1.873 0.682 -2.555 0 c -0.342 -0.341 -0.529 -0.795 -0.529 -1.277 s 0.188 -0.936 0.529 -1.277 l 11.666 -12.936 l -0.978 -0.978 L 55.403 32.666 c -0.682 0.685 -1.829 0.684 -2.533 -0.021 c -0.342 -0.341 -0.529 -0.794 -0.529 -1.277 c -0.001 -0.483 0.188 -0.937 0.529 -1.279 l 12.301 -12.3 l -1.006 -1.006 l -14.478 9.241 c -1.732 1.587 -2.797 3.925 -2.851 6.36 l -0.134 5.945 l -0.51 0.466 l 4.977 4.978 l 0.466 -0.51 L 57.58 43.13 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #10B981; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+    
+    <!-- Bottom Accents: Light Emerald -->
+    <path d="M 18.03 71.935 c 1.017 1.018 2.373 1.573 3.807 1.528 c 1.438 -0.032 2.764 -0.635 3.734 -1.696 L 37.658 58.55 c -0.498 -0.417 -0.922 -0.904 -1.267 -1.451 l -3.738 -5.922 L 18.199 64.394 c -1.061 0.971 -1.664 2.296 -1.696 3.734 C 16.471 69.566 17.013 70.918 18.03 71.935 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #34D399; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round"/>
+</g>
+</svg>
