@@ -137,13 +137,13 @@ function goToPlanner() {
       </div>
 
       <!-- Empty State for No Plan -->
-      <div v-else class="flex flex-1 items-start justify-center">
+      <div v-else class="flex max-h-fit flex-1 items-start justify-center">
         <UEmpty
           icon="i-heroicons-calendar"
           title="No weekly plan yet"
           description="It looks like you haven't generated a meal plan for this week. Let's get you set up."
           :actions="[{ label: 'Go to Weekly Planner', onClick: goToPlanner }]"
-          class="w-full"
+          class="border-error w-full border-2 border-dashed"
         />
       </div>
 
