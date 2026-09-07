@@ -62,7 +62,7 @@ class HandleInertiaRequests extends Middleware
             }
 
             $todayPlan = $user->dailyPlans()
-                ->where('date', now()->toDateString())
+                ->whereDate('date', now()->toDateString())
                 ->with('mealPlans.recipe') 
                 ->first();
 
