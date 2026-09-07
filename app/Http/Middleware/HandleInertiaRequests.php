@@ -47,6 +47,11 @@ class HandleInertiaRequests extends Middleware
         $unitSystem = 'metric';
         $alertsCache = null;
 
+        $topbarData = [
+            'macros' => null,
+            'mealsCooked' => ['current' => 0, 'total' => 0],
+        ];
+
         if ($user) {
             $settings = UserSetting::where('user_id', $user->id)->first();
             if ($settings && $settings->system_preferences) {
@@ -55,6 +60,56 @@ class HandleInertiaRequests extends Middleware
                 $inAppAlerts = $prefs['inAppAlerts'] ?? true;
                 $unitSystem = $prefs['unitSystem'] ?? 'metric';
             }
+
+            $todayPlan = $user->dailyPlans()
+                ->where('date', now()->toDateString())
+                ->with('mealPlans.recipe') 
+                ->first();
+
+            $currentCals = 0;
+            $currentProtein = 0;
+            $currentCarbs = 0;
+            $currentFat = 0;
+
+            $targetCals = 0;
+            $targetProtein = 0;
+            $targetCarbs = 0;
+            $targetFat = 0;
+
+            $mealsCooked = 0;
+            $mealsTotal = 0;
+
+            if ($todayPlan) {
+                $targetCals = $todayPlan->target_calories ?? 0;
+                $targetProtein = $todayPlan->target_protein_g ?? 0;
+                $targetCarbs = $todayPlan->target_carbs_g ?? 0;
+                $targetFat = $todayPlan->target_fat_g ?? 0;
+
+                $mealsTotal = $todayPlan->mealPlans->count();
+                $eatenMeals = $todayPlan->mealPlans->where('status', 'EATEN');
+                $mealsCooked = $eatenMeals->count();
+
+                foreach ($eatenMeals as $mealPlan) {
+                    if ($recipe = $mealPlan->recipe) {
+                        $currentCals += $recipe->calories ?? 0;
+                        $currentProtein += $recipe->protein ?? 0;
+                        $currentCarbs += $recipe->carbs ?? 0;
+                        $currentFat += $recipe->fat ?? 0;
+                    }
+                }
+            }
+
+            $topbarData['macros'] = [
+                'calories' => ['current' => $currentCals, 'target' => $targetCals],
+                'protein' => ['current' => $currentProtein, 'target' => $targetProtein],
+                'carbs' => ['current' => $currentCarbs, 'target' => $targetCarbs],
+                'fat' => ['current' => $currentFat, 'target' => $targetFat],
+            ];
+
+            $topbarData['mealsCooked'] = [
+                'current' => $mealsCooked,
+                'total' => $mealsTotal,
+            ];
         }
 
         $getAlerts = function () use ($user) {
@@ -70,6 +125,7 @@ class HandleInertiaRequests extends Middleware
         };
 
         return array_merge(parent::share($request), [
+            'topbarData' =>$topbarData,
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
