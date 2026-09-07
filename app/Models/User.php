@@ -80,7 +80,7 @@ class User extends Authenticatable
         return $this->hasMany(UserExerciseSchedule::class);
     }
 
-    public function favoriteRecipes()
+    public function favoriteRecipes(): BelongsToMany
     {
         return $this->belongsToMany(Recipe::class, 'favorite_recipes')->withTimestamps();
     }

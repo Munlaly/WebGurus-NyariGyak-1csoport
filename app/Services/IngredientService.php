@@ -2,8 +2,31 @@
 
 namespace App\Services;
 
+use function Symfony\Component\String\b;
+
 class IngredientService
 {
+    private function singularize(string $name): string
+    {
+        $words = explode(' ', $name);
+        $lastWord = array_pop($words);
+
+        $uncountable = ['hummus', 'asparagus', 'molasses', 'citrus', 'couscous', 'watercress'];
+
+        if (!in_array($lastWord, $uncountable)) {
+            if (preg_match('/[^aeiou]ies$/', $lastWord)) {
+                $lastWord = substr($lastWord, 0, -3) . 'y';       // berries -> berry
+            } elseif (preg_match('/(tomat|potat|avocad)oes$/', $lastWord)) {
+                $lastWord = substr($lastWord, 0, -2);              // avocadoes -> avocado
+            } elseif (preg_match('/[^s]s$/', $lastWord) && strlen($lastWord) > 3) {
+                $lastWord = substr($lastWord, 0, -1);              // avocados -> avocado
+            }
+        }
+
+        $words[] = $lastWord;
+        return implode(' ', $words);
+    }
+
     public function sanitizeName(string $rawName): string 
     {
         $name = strtolower($rawName);
@@ -13,15 +36,25 @@ class IngredientService
 
         $name = preg_replace('/(?:\*\*|\(|\s-\s).*/', '', $name);
 
+        $name = str_replace('/', ' ', $name);
+
+        $name = preg_replace("/^[a-z .]+'s\s+/", '', $name);
+        $name = preg_replace('/(?:\*\*|\(|\s-\s).*/', '', $name);
+        $name = preg_replace('/^[-*•]+\s*/', '', $name);
+
         $noiseWords = [
-            'fresh', 'chopped', 'diced', 'sliced', 'optional', 'garnish', 
+            'fresh(?:ly)?', 'chopped', 'diced', 'sliced', 'optional', 'garnish',
             'large', 'medium', 'small', 'the following', 'dry', 'raw',
-            'pieces', 'strips', 'cubed', 'cubes', 'roughly', 'finely'
+            'pieces', 'strips', 'cubed', 'cubes', 'roughly', 'finely',
+            'boneless', 'skinless', 'brewed', 'unrefined', 'unsalted', 'salted',
+            'organic', 'low.fat', 'reduced.fat', 'extra', 'the',
         ];
+        
         $pattern = '/\b(' . implode('|', $noiseWords) . ')\b/i';
         $name = preg_replace($pattern, '', $name);
 
-        return trim(preg_replace('/\s+/', ' ', $name));
+        $name = trim(preg_replace('/\s+/', ' ', $name));
+        return $this->singularize($name);
     }
 
     public function standardizeUnit(string $rawUnit): string

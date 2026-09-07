@@ -85,6 +85,10 @@ class RecipeSeeder extends Seeder {
                     $rawName = $ingData['nameClean'] ?? $ingData['name'] ?? '';
                     $cleanName = $ingredientService->sanitizeName($rawName);
                     
+                    if (str_word_count($cleanName) > 6) {
+                        continue;
+                    }
+
                     $rawUnit = $ingData['unit'] ?? '';
                     $rawAmount = (float) ($ingData['amount'] ?? 0);
 

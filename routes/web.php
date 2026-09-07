@@ -29,7 +29,7 @@ Route::middleware('auth')->group(function(){
         Route::prefix('recipe')->name('recipe.')->group(function () {
             Route::get('/{recipe}', [RecipeController::class, 'show'])->name('show');
             Route::post('/{recipe}/cook', [CookMealController::class, 'cook'])->name('cook');
-            Route::post('/{recipeId}/favorite', [CookMealController::class, 'toggleFavorite'])->name('favorite');
+            Route::post('/{recipe}/favorite', [CookMealController::class, 'toggleFavorite'])->name('favorite');
         });
 
         Route::prefix('settings')->name('settings.')->group(function () {
