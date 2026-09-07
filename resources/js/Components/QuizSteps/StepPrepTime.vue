@@ -33,11 +33,11 @@ const model = defineModel<number | undefined>({ required: true });
   >
     <div class="space-y-4">
       <h2
-        class="font-display text-slate-900 text-3xl font-bold tracking-tight"
+        class="font-display text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
       >
         Preparation Time
       </h2>
-      <p class="text-slate-700 text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-gray-300">
         How much time are you willing to spend preparing a single meal? We will
         filter your weekly recipes to match your schedule.
       </p>
@@ -51,7 +51,7 @@ const model = defineModel<number | undefined>({ required: true });
           variant="card"
           size="lg"
           :ui="{
-            item: ' mt-2 ring-1 ring-stone-400',
+            item: ' mt-2 ring-1 ring-stone-400 dark:ring-outline-variant dark:bg-surface-container-low',
           }"
         />
       </UFormField>

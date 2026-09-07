@@ -33,7 +33,7 @@ const dietaryItems = computed(() => {
       label: diet.name,
       description: diet.description || undefined,
       class: isConflictingCard
-        ? '!ring-0 !border-2 !border-red-500 bg-red-50'
+        ? '!ring-0 !border-2 !border-red-500 bg-red-50 dark:bg-error-container dark:border-error dark:text-on-error-container'
         : '',
     };
   });
@@ -61,10 +61,12 @@ watch(
     class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
   >
     <div class="space-y-4">
-      <h2 class="font-display text-3xl font-bold tracking-tight text-slate-900">
+      <h2
+        class="font-display text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
+      >
         Dietary Preferences
       </h2>
-      <p class="text-lg leading-relaxed text-slate-700">
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-gray-300">
         Do you follow any specific diets? Select all that apply so we can filter
         your meal plan accordingly.
       </p>
@@ -81,9 +83,9 @@ watch(
             variant="card"
             color="primary"
             :ui="{
-              label: 'text-slate-900  font-semibold',
-              description: 'text-slate-700  text-sm',
-              item: 'mt-2 ring-1 ring-stone-400',
+              label: 'text-slate-900 dark:text-white font-semibold',
+              description: 'text-slate-700 dark:text-gray-400 text-sm',
+              item: 'mt-2 ring-1 ring-stone-400 dark:ring-outline-variant dark:bg-surface-container-low',
             }"
           />
         </div>

@@ -62,10 +62,12 @@ watch(searchTerm, (query) => {
     class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
   >
     <div class="space-y-4">
-      <h2 class="font-display text-3xl font-bold tracking-tight text-slate-900">
+      <h2
+        class="font-display text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
+      >
         Ingredients to Exclude
       </h2>
-      <p class="text-lg leading-relaxed text-slate-700">
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-gray-300">
         Search for specific ingredients you strongly dislike or are allergic to.
         We will ensure these never appear in your weekly plan.
       </p>

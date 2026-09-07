@@ -38,10 +38,12 @@ function formatActivity(activity: string) {
 <template>
   <div class="flex w-full flex-col items-center space-y-10">
     <div class="max-w-2xl space-y-4 text-center">
-      <h2 class="font-display text-4xl font-bold tracking-tight text-slate-900">
+      <h2
+        class="font-display text-4xl font-bold tracking-tight text-slate-900 dark:text-white"
+      >
         Review Your Profile
       </h2>
-      <p class="text-lg leading-relaxed text-slate-700">
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-gray-300">
         Double-check your metrics before we generate your customized meal plan.
         You can go back to adjust anything that looks off.
       </p>
@@ -64,20 +66,22 @@ function formatActivity(activity: string) {
           <div
             class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
           >
-            <span class="text-slate-600">Fitness Goal</span>
+            <span class="text-slate-600 dark:text-gray-300">Fitness Goal</span>
             <span class="text-primary font-semibold">{{ formattedGoal }}</span>
           </div>
           <div
             class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
           >
-            <span class="text-slate-600">Max Prep Time</span>
-            <span class="font-semibold text-slate-900"
+            <span class="text-slate-600 dark:text-gray-300">Max Prep Time</span>
+            <span class="font-semibold text-slate-900 dark:text-white"
               >{{ form.prep_time_preference }} mins</span
             >
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-600">Household Size</span>
-            <span class="font-semibold text-slate-900"
+            <span class="text-slate-600 dark:text-gray-300"
+              >Household Size</span
+            >
+            <span class="font-semibold text-slate-900 dark:text-white"
               >{{ form.household_size }} person(s)</span
             >
           </div>
@@ -87,37 +91,44 @@ function formatActivity(activity: string) {
       <!-- Card 2: Biometrics -->
       <UCard class="flex h-full flex-col">
         <template #header>
-          <div class="flex items-center gap-2 text-lg font-bold text-slate-900">
+          <div
+            class="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
+          >
             <UIcon name="i-heroicons-user" class="text-primary h-5 w-5" />
             Biometrics
           </div>
         </template>
         <div class="space-y-4 text-sm">
           <div class="flex justify-between border-b border-slate-200 pb-2">
-            <span class="text-slate-600">Sex</span>
-            <span class="font-semibold text-slate-900 capitalize">{{
-              form.sex
-            }}</span>
+            <span class="text-slate-600 dark:text-gray-300">Sex</span>
+            <span
+              class="font-semibold text-slate-900 capitalize dark:text-white"
+              >{{ form.sex }}</span
+            >
           </div>
           <div
             class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
           >
-            <span class="text-slate-600">Height / Weight</span>
-            <span class="font-semibold text-slate-900"
+            <span class="text-slate-600 dark:text-gray-300"
+              >Height / Weight</span
+            >
+            <span class="font-semibold text-slate-900 dark:text-white"
               >{{ form.height_cm }} cm / {{ form.weight_kg }} kg</span
             >
           </div>
           <div
             class="flex justify-between border-b border-slate-200 pb-2 dark:border-gray-700"
           >
-            <span class="text-slate-600">Birthdate</span>
-            <span class="font-semibold text-slate-900">{{
+            <span class="text-slate-600 dark:text-gray-300">Birthdate</span>
+            <span class="font-semibold text-slate-900 dark:text-white">{{
               form.birthdate
             }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-600">Baseline Activity</span>
-            <span class="font-semibold text-slate-900">{{
+            <span class="text-slate-600 dark:text-gray-300"
+              >Baseline Activity</span
+            >
+            <span class="font-semibold text-slate-900 dark:text-white">{{
               formatActivity(form.baseline_activity)
             }}</span>
           </div>
@@ -127,14 +138,18 @@ function formatActivity(activity: string) {
       <!-- Card 3: Nutrition Constraints -->
       <UCard class="flex h-full flex-col">
         <template #header>
-          <div class="flex items-center gap-2 text-lg font-bold text-slate-900">
+          <div
+            class="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white"
+          >
             <UIcon name="i-heroicons-no-symbol" class="text-primary h-5 w-5" />
             Nutrition Constraints
           </div>
         </template>
         <div class="space-y-4 text-sm">
           <div>
-            <span class="mb-2 block text-slate-600">Dietary Preferences</span>
+            <span class="mb-2 block text-slate-600 dark:text-gray-300"
+              >Dietary Preferences</span
+            >
             <div class="flex flex-wrap gap-2">
               <UBadge
                 v-for="diet in selectedDiets"
@@ -148,7 +163,9 @@ function formatActivity(activity: string) {
             </div>
           </div>
           <div class="pt-2">
-            <span class="mb-2 block text-slate-600">Excluded Ingredients</span>
+            <span class="mb-2 block text-slate-600 dark:text-gray-300"
+              >Excluded Ingredients</span
+            >
             <div
               v-if="dislikedIngredients.length > 0"
               class="flex flex-wrap gap-2"
@@ -163,7 +180,9 @@ function formatActivity(activity: string) {
                 {{ item.label }}
               </UBadge>
             </div>
-            <span v-else class="font-semibold text-slate-900">None</span>
+            <span v-else class="font-semibold text-slate-900 dark:text-white"
+              >None</span
+            >
           </div>
         </div>
       </UCard>

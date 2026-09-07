@@ -70,11 +70,11 @@ const dateModel = computed({
   >
     <div class="space-y-4">
       <h2
-        class="font-display text-slate-900 text-3xl font-bold tracking-tight"
+        class="font-display text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
       >
         Metabolic Profile
       </h2>
-      <p class="text-slate-700 text-lg leading-relaxed">
+      <p class="text-lg leading-relaxed text-slate-700 dark:text-gray-300">
         We use these metrics to accurately calculate your Base Metabolic Rate
         (BMR). Please note that your baseline activity should only reflect your
         daily life and work routine, strictly excluding dedicated exercise or
@@ -92,7 +92,7 @@ const dateModel = computed({
             placeholder="Select your biological sex"
             class="mt-2"
             :ui="{
-              base: 'ring-1 ring-stone-400',
+              base: 'ring-1 ring-stone-400 dark:ring-outline-variant dark:bg-surface-variant dark:text-white',
               content: 'z-[100]',
             }"
           />
@@ -105,7 +105,7 @@ const dateModel = computed({
             size="lg"
             class="w-full"
             :ui="{
-              base: 'ring-1 ring-stone-400',
+              base: 'ring-1 ring-stone-400 dark:ring-outline-variant dark:bg-surface-variant dark:text-white',
             }"
           >
             <template #trailing>
@@ -142,7 +142,7 @@ const dateModel = computed({
             placeholder="e.g., 180"
             class="w-full"
             :ui="{
-              base: 'ring-1 ring-stone-400',
+              base: 'ring-1 ring-stone-400 dark:ring-outline-variant dark:bg-surface-variant dark:text-white',
             }"
           />
         </UFormField>
@@ -155,7 +155,7 @@ const dateModel = computed({
             placeholder="e.g., 75"
             class="w-full"
             :ui="{
-              base: 'ring-1 ring-stone-400',
+              base: 'ring-1 ring-stone-400 dark:ring-outline-variant dark:bg-surface-variant dark:text-white',
             }"
           />
         </UFormField>
@@ -170,9 +170,9 @@ const dateModel = computed({
           color="primary"
           class="mt-2"
           :ui="{
-            label: 'text-slate-900  font-semibold',
-            description: 'text-slate-700  text-sm',
-            item: 'mt-2 ring-1 ring-stone-400',
+            label: 'text-slate-900 dark:text-white font-semibold',
+            description: 'text-slate-700  dark:text-gray-300 text-sm',
+            item: 'mt-2 ring-1 ring-stone-400 dark:ring-outline-variant dark:bg-surface-container-low',
           }"
         />
       </UFormField>
