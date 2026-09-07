@@ -9,6 +9,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Carbon;
 use App\Services\AlertService;
+use App\Models\Recipe;
+use App\Enums\EntityStatus;
 
 class DashboardController extends Controller
 {
@@ -26,6 +28,7 @@ class DashboardController extends Controller
             return [
                 'id' => $recipe->id,
                 'meal_plan_id' => $mealPlan->id,
+                'meal_type' => $mealPlan->meal_type,
                 'title' => $recipe->name,
                 'calories' => $recipe->calories ?? 0,
                 'prepTime' => $recipe->prep_time_minutes ?? 0,
@@ -83,6 +86,56 @@ class DashboardController extends Controller
             'mealsByOffset' => $mealsByOffset,
             'hasActivePlan' => $hasActivePlan,
         ]);
+    }
+
+    public function searchRecipes(Request $request) {
+        $query = $request->input('q');
+        if(!$query) {
+            return response()->json([]);
+        }
+
+        $recipes = Recipe::where('name', 'like', "%{$query}%")
+            ->select('id', 'name', 'meal_types', 'calories')
+            ->limit(10)
+            ->get();
+
+        return response()->json($recipes);
+    }
+
+    public function swapMeal(Request $request) {
+        $request->validate([
+            'recipe_id' => 'required|exists:recipes,id',
+            'meal_type' => 'required|string',
+            'date_offset' => 'required|integer',
+        ]);
+
+        $user = $request->user();
+        $targetDate = Carbon::now()->addDays($request->date_offset)->toDateString();
+
+        $dailyPlan = DailyPlan::where('user_id', $user->id)
+            ->whereDate('date', $targetDate)
+            ->first();
+
+        if(!$dailyPlan) {
+            return back()->withErrors(['message' => 'No meal plan found for this day.']);
+        }
+
+        $mealPlan = $dailyPlan->mealPlans()->where('meal_type', $request->meal_type)->first();
+
+        if ($mealPlan) {
+            $mealPlan->update([
+                'recipe_id' => $request->recipe_id,
+                'status' => EntityStatus::Draft->value ?? 'DRAFT'
+            ]);
+        } else {
+            $dailyPlan->mealPlans()->create([
+                'recipe_id' => $request->recipe_id,
+                'meal_type' => $request->meal_type,
+                'status' => EntityStatus::Draft->value ?? 'DRAFT'
+            ]);
+        }
+
+        return redirect()->back();
     }
 
     public function alerts(Request $request, AlertService $alertService): Response {

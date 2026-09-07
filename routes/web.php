@@ -1,9 +1,7 @@
 <?php
 
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CookMealController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\RecipeController;
@@ -77,6 +75,11 @@ Route::middleware('auth')->group(function(){
         Route::put('/{item}', [ShoppingListController::class, 'update'])->name('update');
         Route::delete('/{item}', [ShoppingListController::class, 'destroy'])->name('destroy');
         Route::post('/finish', [ShoppingListController::class, 'finish'])->name('finish');
+    });
+
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/search-recipes', [DashboardController::class, 'searchRecipes'])->name('search-recipes');
+        Route::post('swap-meal', [DashboardController::class, 'swapMeal'])->name('swap-meal');
     });
     
     Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');

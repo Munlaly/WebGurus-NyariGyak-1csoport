@@ -44,7 +44,15 @@ class MealPlanController extends Controller
             return $option->excludedCategories->pluck('id');
         })->unique()->toArray();
 
+        $requiredDietKeys = $dietaryOptions->pluck('slug')->filter()->unique()->values()->toArray();
+
         $validRecipes = Recipe::with('ingredients');
+
+        if(!empty($requiredDietKeys)) {
+            foreach($requiredDietKeys as $dietKey) {
+                $validRecipes->whereJsonContains('diets', $dietKey);
+            }
+        }
 
         if(!empty($dislikedIngredientNames)) {
             $validRecipes->where(function ($query) use ($dislikedIngredientNames) {
@@ -98,22 +106,7 @@ class MealPlanController extends Controller
             ], 400);
         }
 
-        // PHASE 1.5: GOAL-BASED PRUNING
-
-        $goal = $profile ? $profile->fitness_goal->value : 'maintain';
-        $cutoffThreshold = (int) ($poolOfAllowedMeals->count() * 0.70); // Keep the top 70 %
-
-        if ($cutoffThreshold >= 3) {
-            if(in_array($goal, ['gain_muscle', 'gain muscle'])) {
-                // sort by highest protein, keep the top 70%, and re-index the collection
-                $poolOfAllowedMeals = $poolOfAllowedMeals->sortByDesc('protein')->take($cutoffThreshold)->values();
-            } elseif(in_array($goal, ['lose_weight', 'lose weight'])) {
-                // sort by lowest fat, keep the top 70%, and re-index the collection
-                $poolOfAllowedMeals = $poolOfAllowedMeals->sortBy('calories')->sortBy('fat')->take($cutoffThreshold)->values();
-            }
-        }
-
-        // PHASE 2: CALORIE & ZERO-WASTE ENGINE
+        // PHASE 1.5: SPLIT INTO MEAL-TYPE BUCKETS
 
         $breakfasts = $poolOfAllowedMeals->filter(fn($recipe) => is_array($recipe->meal_types) && in_array('breakfast', $recipe->meal_types));
         $lunches = $poolOfAllowedMeals->filter(fn($recipe) => is_array($recipe->meal_types) && in_array('lunch', $recipe->meal_types));
@@ -132,6 +125,32 @@ class MealPlanController extends Controller
                 ]
             ], 400);
         }
+
+        // PHASE 2: GOAL-BASED PRUNING
+        $goal = $profile ? $profile->fitness_goal->value : 'maintain';
+
+        $pruneBucket = function ($bucket) use ($goal) {
+            $cutoffThreshold = (int) ($bucket->count() * 0.70); // Keep the top 70%
+
+            if ($cutoffThreshold < 3) {
+                return $bucket; // not enough surplus to safely prune - keep everything
+            }
+
+            if(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+                // sort by highest protein, keep the top 70%, and re-index the collection
+                return $bucket->sortByDesc('protein')->take($cutoffThreshold)->values();
+            } elseif(in_array($goal, ['lose_weight', 'lose weight'])) {
+                // sort by lowest fat, keep the top 70%, and re-index the collection
+                return $bucket->sortBy('calories')->sortBy('fat')->take($cutoffThreshold)->values();
+            }
+
+            return $bucket;
+        };
+
+        $breakfasts = $pruneBucket($breakfasts);
+        $lunches = $pruneBucket($lunches);
+        $dinners = $pruneBucket($dinners);
+        $snacks = $pruneBucket($snacks);
 
         $minCalories = $targetCalories * 0.85;
         $maxCalories = $targetCalories * 1.15;
@@ -155,7 +174,9 @@ class MealPlanController extends Controller
 
         $snackChancePercentage = 40;
 
-        foreach($days as $day) {
+        foreach($days as $offset => $day) {
+            $dayDate = $now->copy()->addDays($offset)->startOfDay();
+
             $dailyMeals = null;
             $bestAttempt = null;
             $closestDifference = 99999;
@@ -163,7 +184,7 @@ class MealPlanController extends Controller
             $attempts = 0;
             $maxAttempts = 150;  // don't let the server loop forever
 
-            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients, $userInventory, $oneWeekFromNow) {
+            $zeroWasteScorer = function($meal) use ($weeklyActiveIngredients, $userInventory, $oneWeekFromNow, $dayDate) {
                 $score = 0;
                 if(empty($weeklyActiveIngredients) && $userInventory->isEmpty()) {
                     return mt_rand(1, 100); // Randomize the first day
@@ -189,15 +210,15 @@ class MealPlanController extends Controller
 
                         if($inventoryItem->expiration_date) {
                             $expDate = Carbon::parse($inventoryItem->expiration_date)->startOfDay();
-                            $today = Carbon::now()->startOfDay();
-                            $tomorrow = Carbon::now()->addDay()->startOfDay();
+                            $today = $dayDate;
+                            $tomorrow = $dayDate->copy()->addDay();
 
                             if($expDate->isBefore($today)) {
-                                $score -= 50; // expired: penalize recipes using this so it doesn't get picked
+                                $score -= 50; // expired by the time this day is cooked: penalize so it doesn't get picked
                             } elseif($expDate->equalTo($today) || $expDate->equalTo($tomorrow)) {
-                                $score += 100; // critical: use today or tomorrow
+                                $score += 100; // critical: expires the day of or the day after this meal is cooked
                             } elseif($expDate->isBetween($tomorrow, $oneWeekFromNow)) {
-                                $score += 60; // urgent: expiring soon
+                                $score += 60; // urgent: expiring soon relative to this day
                             }
                         }
                     }
@@ -480,7 +501,7 @@ class MealPlanController extends Controller
                     'calories' => $recipe->calories,
                     'image' => $recipe->image,
                     'prep_time_minutes' => $recipe->prep_time_minutes,
-                    'diets' => current($recipe->diets ?? []) ? [$recipe->diets[0]] : [],
+                    'diets' => $recipe->diets ?? [],
                     'isPinned' => true, // Treat saved DB meals as pinned by default 
                     'isRolling' => false,
                     'isPrepared' => (bool) $mealPlan->is_prepared,

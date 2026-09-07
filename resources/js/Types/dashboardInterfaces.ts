@@ -1,6 +1,9 @@
+// resources/js/Types/dashboardInterfaces.ts
+
 export interface Meal {
   id: number;
   meal_plan_id: number;
+  meal_type: string;
   title: string;
   calories: number;
   prepTime: number;
