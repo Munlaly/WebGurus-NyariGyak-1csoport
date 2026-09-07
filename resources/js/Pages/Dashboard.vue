@@ -480,9 +480,10 @@ function goToPlanner() {
               class="bg-primary text-on-primary hover:bg-primary/90 rounded-lg px-4 py-2"
               @click="
                 confirmationData.mealPlanId &&
+                confirmationData.recipeId &&
                 handleCookMeal(
-                  confirmationData.mealPlanId!,
-                  confirmationData.recipeId!,
+                  confirmationData.mealPlanId,
+                  confirmationData.recipeId,
                   true,
                 )
               "

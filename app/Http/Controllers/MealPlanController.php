@@ -504,7 +504,7 @@ class MealPlanController extends Controller
                     'diets' => $recipe->diets ?? [],
                     'isPinned' => true, // Treat saved DB meals as pinned by default 
                     'isRolling' => false,
-                    'isPrepared' => (bool) $mealPlan->is_prepared,
+                    'isPrepared' => $mealPlan->status === 'EATEN',
                 ];
             });
 
