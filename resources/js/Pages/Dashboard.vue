@@ -80,103 +80,96 @@ function toggleFavoriteStatus(id: number) {
 }
 
 function goToPlanner() {
-  router.visit('/planner');
+  router.visit(route('meal-plan.index'));
 }
 </script>
 
 <template>
   <AuthenticatedLayout>
     <div class="animate-fade-in flex flex-1 flex-col gap-8">
-      <!-- Empty State for No Plan -->
+      <!-- Date Picker -->
       <div
-        v-if="!props.hasActivePlan"
-        class="flex flex-1 items-center justify-center"
+        v-if="props.hasActivePlan"
+        class="bg-surface-container-lowest mx-auto flex w-full max-w-md items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
       >
+        <button :class="leftChevronClasses" @click="goPrevDay">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <div class="font-headline-md text-headline-md flex items-center gap-6">
+          <span
+            class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
+          >
+            {{ prevDateLabel }}
+          </span>
+          <span class="text-primary border-primary border-b-2 pb-1 font-bold">
+            {{ activeDateLabel }}
+          </span>
+          <span
+            class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
+          >
+            {{ nextDateLabel }}
+          </span>
+        </div>
+        <button :class="rightChevronClasses" @click="goNextDay">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+
+      <!-- Meal Grid -->
+      <div
+        v-if="props.hasActivePlan"
+        class="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      >
+        <MealCard
+          v-for="meal in currentMeals"
+          :id="meal.id"
+          :key="meal.id"
+          :title="meal.title"
+          :calories="meal.calories"
+          :prep-time="meal.prepTime"
+          :image-url="meal.imageUrl"
+          :image-alt="meal.imageAlt"
+          :is-prepared="meal.isPrepared"
+          :is-favorite="meal.isFavorite"
+          @toggle-cooked="toggleMealStatus(meal.id)"
+          @toggle-favorite="toggleFavoriteStatus(meal.id)"
+        />
+      </div>
+
+      <!-- Empty State for No Plan -->
+      <div v-else class="flex flex-1 items-start justify-center">
         <UEmpty
           icon="i-heroicons-calendar"
           title="No weekly plan yet"
           description="It looks like you haven't generated a meal plan for this week. Let's get you set up."
           :actions="[{ label: 'Go to Weekly Planner', onClick: goToPlanner }]"
+          class="w-full"
         />
       </div>
 
-      <!-- Main Dashboard Content  -->
-      <template v-else>
-        <!-- Date Picker -->
+      <!-- Weekly Analytics Section -->
+      <div
+        class="bg-surface-container-lowest border-surface-container-high mt-auto rounded-xl border p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
+      >
+        <div class="mb-6 flex items-center justify-between">
+          <h3 class="font-headline-lg text-headline-lg text-on-surface">
+            Weekly Analytics
+          </h3>
+          <span class="material-symbols-outlined text-primary">monitoring</span>
+        </div>
         <div
-          class="bg-surface-container-lowest mx-auto flex w-full max-w-md items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
+          class="bg-surface-container-low text-on-surface-variant border-outline-variant font-body-md text-body-md flex h-48 w-full items-center justify-center rounded-lg border border-dashed"
         >
-          <button :class="leftChevronClasses" @click="goPrevDay">
-            <span class="material-symbols-outlined">chevron_left</span>
-          </button>
-          <div
-            class="font-headline-md text-headline-md flex items-center gap-6"
-          >
+          <div class="flex flex-col items-center gap-2">
             <span
-              class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
+              class="material-symbols-outlined text-tertiary-container text-4xl"
             >
-              {{ prevDateLabel }}
+              bar_chart
             </span>
-            <span class="text-primary border-primary border-b-2 pb-1 font-bold">
-              {{ activeDateLabel }}
-            </span>
-            <span
-              class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
-            >
-              {{ nextDateLabel }}
-            </span>
-          </div>
-          <button :class="rightChevronClasses" @click="goNextDay">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
-
-        <!-- Meal Grid -->
-        <div
-          class="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-        >
-          <MealCard
-            v-for="meal in currentMeals"
-            :id="meal.id"
-            :key="meal.id"
-            :title="meal.title"
-            :calories="meal.calories"
-            :prep-time="meal.prepTime"
-            :image-url="meal.imageUrl"
-            :image-alt="meal.imageAlt"
-            :is-prepared="meal.isPrepared"
-            :is-favorite="meal.isFavorite"
-            @toggle-cooked="toggleMealStatus(meal.id)"
-            @toggle-favorite="toggleFavoriteStatus(meal.id)"
-          />
-        </div>
-
-        <!-- Weekly Analytics Section -->
-        <div
-          class="bg-surface-container-lowest border-surface-container-high mt-auto rounded-xl border p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
-        >
-          <div class="mb-6 flex items-center justify-between">
-            <h3 class="font-headline-lg text-headline-lg text-on-surface">
-              Weekly Analytics
-            </h3>
-            <span class="material-symbols-outlined text-primary"
-              >monitoring</span
-            >
-          </div>
-          <div
-            class="bg-surface-container-low text-on-surface-variant border-outline-variant font-body-md text-body-md flex h-48 w-full items-center justify-center rounded-lg border border-dashed"
-          >
-            <div class="flex flex-col items-center gap-2">
-              <span
-                class="material-symbols-outlined text-tertiary-container text-4xl"
-              >
-                bar_chart
-              </span>
-              <span>Analytics visualization will appear here</span>
-            </div>
+            <span>Analytics visualization will appear here</span>
           </div>
         </div>
-      </template>
+      </div>
     </div>
   </AuthenticatedLayout>
 </template>
