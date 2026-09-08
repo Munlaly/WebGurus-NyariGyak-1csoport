@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { reactive } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import { registerSchema } from '../../Schemas/authSchema';
+import AuthLayout from '../../Layouts/AuthLayout.vue';
 
 const form = useForm({
   username: '',
@@ -8,6 +10,15 @@ const form = useForm({
   password: '',
   password_confirmation: '',
 });
+
+const showPassword = reactive({
+  password: false,
+  password_confirmation: false,
+});
+
+function toggleVisibility(field: 'password' | 'password_confirmation') {
+  showPassword[field] = !showPassword[field];
+}
 
 function onSubmit() {
   form.post(route('register'), {
@@ -17,160 +28,149 @@ function onSubmit() {
 </script>
 
 <template>
-  <div
-    class="bg-background text-on-surface font-body-md flex min-h-screen antialiased"
+  <AuthLayout
+    heading="Start your zero-waste journey"
+    subheading="Create an account to set your dietary preferences and let us build a perfectly portioned, waste-free meal plan just for you."
+    image-src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu4hOLWYtk1RXhFs1iaw2V7sa4ABaUDPoL5Pndc0OGEB8zms9z8Y6FL0MLwIFqXGpcsBj_vNmrQaGbSHmImkcbn6ZKzc_hnBo10TNoEKgmm38myvRJIaGGkxz1X4d2KMKhTzO6xKXmeF3jAYeLJFdwzrZA0k9Q4T0KrrUzNtnhLknevLs_4X_W7C1PS4EcopHXY4XpARpe1YlNjEwC7tVu7rmZY9LZ3zO0RBKZNp23fWp4kDa3qVLc"
+    image-alt="Fresh ingredients photography"
   >
-    <main class="flex min-h-screen w-full flex-col md:flex-row">
-      <!-- Left Side (Form Area) -->
-      <section
-        class="bg-surface-container-low z-10 flex w-full grow shrink-0 flex-col justify-center px-6 py-10 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:grow-0 md:w-1/2 md:px-16 lg:w-125"
+    <template #logo>
+      <div
+        class="font-headline-md text-primary mb-2 flex items-center gap-2 text-[24px] font-bold tracking-tight"
       >
-        <div class="mx-auto w-full max-w-md space-y-8">
-          <!-- Header -->
-          <header class="space-y-4 text-left">
-            <div
-              class="font-headline-md text-primary flex items-center gap-2 text-[24px] font-bold tracking-tight"
-            >
-              <span
-                class="material-symbols-outlined"
-                style="font-variation-settings: 'FILL' 1"
-                >eco</span
-              >
-              Smart &amp; ZeroWaste
-            </div>
-            <h1
-              class="text-on-surface font-display text-3xl font-bold tracking-tight"
-            >
-              Start your zero-waste journey
-            </h1>
-            <p class="text-on-surface-variant font-body-lg text-lg">
-              Create an account to set your dietary preferences and let us build
-              a perfectly portioned, waste-free meal plan just for you.
-            </p>
-          </header>
+        <span
+          class="material-symbols-outlined"
+          style="font-variation-settings: 'FILL' 1"
+          >eco</span
+        >
+        Smart &amp; ZeroWaste
+      </div>
+    </template>
 
-          <UForm
-            :schema="registerSchema"
-            :state="form"
-            class="space-y-6"
-            @submit="onSubmit"
+    <UForm
+      :schema="registerSchema"
+      :state="form"
+      class="space-y-6"
+      @submit="onSubmit"
+    >
+      <div class="space-y-4">
+        <!-- Username -->
+        <UFormField
+          label="Full Name"
+          name="username"
+          :error="form.errors.username"
+        >
+          <UInput
+            v-model="form.username"
+            placeholder="Jane Doe"
+            class="w-full"
+            variant="outlined"
+            :highlight="true"
+          />
+        </UFormField>
+
+        <!-- Email -->
+        <UFormField
+          label="Email Address"
+          name="email"
+          :error="form.errors.email"
+        >
+          <UInput
+            v-model="form.email"
+            type="email"
+            placeholder="jane@example.com"
+            class="w-full"
+            variant="outlined"
+            :highlight="true"
+          />
+        </UFormField>
+
+        <!-- Password -->
+        <UFormField
+          label="Password"
+          name="password"
+          :error="form.errors.password"
+        >
+          <UInput
+            v-model="form.password"
+            :type="showPassword.password ? 'text' : 'password'"
+            placeholder="••••••••"
+            class="w-full"
+            variant="outlined"
+            :highlight="true"
           >
-            <div class="space-y-4">
-              <!-- Username -->
-              <UFormField
-                label="Full Name"
-                name="username"
-                :error="form.errors.username"
+            <template #trailing>
+              <button
+                type="button"
+                tabindex="-1"
+                class="text-on-surface-variant hover:text-primary flex items-center transition-colors"
+                @click="toggleVisibility('password')"
               >
-                <UInput
-                  v-model="form.username"
-                  placeholder="Jane Doe"
-                  class="font-body-md text-on-surface w-full"
-                  variant="outlined"
-                  :highlight="true"
-                  :ui="{
-                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
-                  }"
-                />
-              </UFormField>
+                <span class="material-symbols-outlined text-[20px]">
+                  {{ showPassword.password ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </template>
+          </UInput>
+        </UFormField>
 
-              <!-- Email -->
-              <UFormField
-                label="Email Address"
-                name="email"
-                :error="form.errors.email"
+        <!-- Confirm Password -->
+        <UFormField
+          label="Confirm Password"
+          name="password_confirmation"
+          :error="form.errors.password_confirmation"
+        >
+          <UInput
+            v-model="form.password_confirmation"
+            :type="showPassword.password_confirmation ? 'text' : 'password'"
+            placeholder="••••••••"
+            class="w-full"
+            variant="outlined"
+            :highlight="true"
+          >
+            <template #trailing>
+              <button
+                type="button"
+                tabindex="-1"
+                class="text-on-surface-variant hover:text-primary flex items-center transition-colors"
+                @click="toggleVisibility('password_confirmation')"
               >
-                <UInput
-                  v-model="form.email"
-                  type="email"
-                  color="neutral"
-                  placeholder="jane@example.com"
-                  class="font-body-md text-on-surface w-full"
-                  variant="outlined"
-                  :highlight="true"
-                  :ui="{
-                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
-                  }"
-                />
-              </UFormField>
+                <span class="material-symbols-outlined text-[20px]">
+                  {{
+                    showPassword.password_confirmation
+                      ? 'visibility_off'
+                      : 'visibility'
+                  }}
+                </span>
+              </button>
+            </template>
+          </UInput>
+        </UFormField>
+      </div>
 
-              <!-- Password -->
-              <UFormField
-                label="Password"
-                name="password"
-                :error="form.errors.password"
-              >
-                <UInput
-                  v-model="form.password"
-                  type="password"
-                  placeholder="••••••••"
-                  class="font-body-md text-on-surface w-full"
-                  variant="outlined"
-                  :highlight="true"
-                  :ui="{
-                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
-                  }"
-                />
-              </UFormField>
-
-              <!-- Confirm Password -->
-              <UFormField
-                label="Confirm Password"
-                name="password_confirmation"
-                :error="form.errors.password_confirmation"
-              >
-                <UInput
-                  v-model="form.password_confirmation"
-                  type="password"
-                  placeholder="••••••••"
-                  class="font-body-md text-on-surface w-full"
-                  variant="outlined"
-                  :highlight="true"
-                  :ui="{
-                    base: 'bg-surface-container-lowest focus:bg-surface-container-high transition-colors duration-200',
-                  }"
-                />
-              </UFormField>
-            </div>
-
-            <!-- Submit Button -->
-            <UButton
-              type="submit"
-              :loading="form.processing"
-              class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <span class="material-symbols-outlined text-[20px]">lock</span>
-              Create Account & Set Preferences
-            </UButton>
-          </UForm>
-
-          <!-- Login Fallback -->
-          <div class="pt-4 text-center">
-            <p class="text-on-surface-variant font-body-md text-base">
-              Already have an account?
-              <Link
-                class="text-primary hover:text-primary-container ml-1 font-semibold transition-colors hover:underline"
-                :href="route('login')"
-              >
-                Log in
-              </Link>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Right Side (Hero Image) -->
-      <section
-        class="bg-tertiary-container relative hidden grow overflow-hidden md:block"
+      <!-- Submit Button -->
+      <UButton
+        type="submit"
+        block
+        :loading="form.processing"
+        class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
       >
-        <img
-          alt="Fresh ingredients photography"
-          class="absolute inset-0 h-full w-full object-cover"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu4hOLWYtk1RXhFs1iaw2V7sa4ABaUDPoL5Pndc0OGEB8zms9z8Y6FL0MLwIFqXGpcsBj_vNmrQaGbSHmImkcbn6ZKzc_hnBo10TNoEKgmm38myvRJIaGGkxz1X4d2KMKhTzO6xKXmeF3jAYeLJFdwzrZA0k9Q4T0KrrUzNtnhLknevLs_4X_W7C1PS4EcopHXY4XpARpe1YlNjEwC7tVu7rmZY9LZ3zO0RBKZNp23fWp4kDa3qVLc"
-        />
-      </section>
-    </main>
-  </div>
+        <span class="material-symbols-outlined text-[20px]">lock</span>
+        Create Account & Set Preferences
+      </UButton>
+    </UForm>
+
+    <!-- Login Fallback -->
+    <div class="text-on-surface-variant font-body-md mt-8 text-center">
+      Already have an account?
+      <Link
+        class="font-label-md text-label-md text-primary hover:text-primary-container ml-1 transition-colors hover:underline"
+        :href="route('login')"
+      >
+        Log in
+      </Link>
+    </div>
+  </AuthLayout>
 </template>
 
 <style scoped>
