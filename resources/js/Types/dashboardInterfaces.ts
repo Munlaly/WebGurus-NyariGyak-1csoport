@@ -9,6 +9,7 @@ export interface Meal {
   imageAlt: string;
   isPrepared: boolean;
   isFavorite?: boolean;
+  isToday?: boolean;
 }
 
 export interface SearchResult {

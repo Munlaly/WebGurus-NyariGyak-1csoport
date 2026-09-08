@@ -1,24 +1,12 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { Meal } from '../Types/dashboardInterfaces';
 
-const props = withDefaults(
-  defineProps<{
-    id: number;
-    title: string;
-    calories: number;
-    prepTime: number;
-    imageUrl: string;
-    imageAlt: string;
-    isPrepared: boolean;
-    isFavorite?: boolean;
-    isToday?: boolean;
-  }>(),
-  {
-    isFavorite: false,
-    isToday: true,
-  },
-);
+const props = withDefaults(defineProps<Meal>(), {
+  isFavorite: false,
+  isToday: true,
+});
 
 const emit = defineEmits<{
   (e: 'toggle-eaten'): void;

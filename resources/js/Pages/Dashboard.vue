@@ -362,15 +362,8 @@ watch(searchQuery, (newVal) => {
       >
         <MealCard
           v-for="meal in currentMeals"
-          :id="meal.id"
           :key="meal.meal_plan_id"
-          :title="meal.title"
-          :calories="meal.calories"
-          :prep-time="meal.prepTime"
-          :image-url="meal.imageUrl"
-          :image-alt="meal.imageAlt"
-          :is-prepared="meal.isPrepared"
-          :is-favorite="meal.isFavorite"
+          v-bind="meal"
           :is-today="dayOffset <= 0"
           @toggle-eaten="handleCookMeal(meal.meal_plan_id, meal.id, false)"
           @toggle-favorite="toggleFavoriteStatus(meal.id)"
