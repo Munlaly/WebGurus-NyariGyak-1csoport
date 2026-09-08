@@ -2,6 +2,7 @@
 import { useForm } from '@inertiajs/vue3';
 import { resetPasswordSchema } from '../../Schemas/authSchema';
 import AuthLayout from '../../Layouts/AuthLayout.vue';
+import { reactive } from 'vue';
 
 const props = defineProps<{
   email: string;
@@ -14,6 +15,15 @@ const form = useForm({
   password: '',
   password_confirmation: '',
 });
+
+const showPassword = reactive({
+  password: false,
+  password_confirmation: false,
+});
+
+function toggleVisibility(field: 'password' | 'password_confirmation') {
+  showPassword[field] = !showPassword[field];
+}
 
 function onSubmit() {
   form.post(route('password.update'), {
@@ -53,12 +63,25 @@ function onSubmit() {
       >
         <UInput
           v-model="form.password"
-          type="password"
+          :type="showPassword.password ? 'text' : 'password'"
           class="w-full"
           autofocus
           variant="outlined"
           :highlight="true"
-        />
+        >
+          <template #trailing>
+            <button
+              type="button"
+              tabindex="-1"
+              class="text-on-surface-variant hover:text-primary flex items-center transition-colors"
+              @click="toggleVisibility('password')"
+            >
+              <span class="material-symbols-outlined text-[20px]">
+                {{ showPassword.password ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </template>
+        </UInput>
       </UFormField>
 
       <UFormField
@@ -68,11 +91,28 @@ function onSubmit() {
       >
         <UInput
           v-model="form.password_confirmation"
-          type="password"
+          :type="showPassword.password_confirmation ? 'text' : 'password'"
           class="w-full"
           variant="outlined"
           :highlight="true"
-        />
+        >
+          <template #trailing>
+            <button
+              type="button"
+              tabindex="-1"
+              class="text-on-surface-variant hover:text-primary flex items-center transition-colors"
+              @click="toggleVisibility('password_confirmation')"
+            >
+              <span class="material-symbols-outlined text-[20px]">
+                {{
+                  showPassword.password_confirmation
+                    ? 'visibility_off'
+                    : 'visibility'
+                }}
+              </span>
+            </button>
+          </template>
+        </UInput>
       </UFormField>
 
       <UButton

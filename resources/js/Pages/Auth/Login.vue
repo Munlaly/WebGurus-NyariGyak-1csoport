@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { reactive } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import { loginSchema } from '../../Schemas/authSchema';
 import AuthLayout from '../../Layouts/AuthLayout.vue';
@@ -7,6 +8,14 @@ const form = useForm({
   username: '',
   password: '',
 });
+
+const showPassword = reactive({
+  password: false,
+});
+
+function toggleVisibility(field: 'password') {
+  showPassword[field] = !showPassword[field];
+}
 
 function onSubmit() {
   form.post(route('login'), {
@@ -55,11 +64,24 @@ function onSubmit() {
       <UFormField name="password" :error="form.errors.password">
         <UInput
           v-model="form.password"
-          type="password"
+          :type="showPassword.password ? 'text' : 'password'"
           class="w-full"
           variant="outlined"
           :highlight="true"
-        />
+        >
+          <template #trailing>
+            <button
+              type="button"
+              tabindex="-1"
+              class="text-on-surface-variant hover:text-primary flex items-center transition-colors"
+              @click="toggleVisibility('password')"
+            >
+              <span class="material-symbols-outlined text-[20px]">
+                {{ showPassword.password ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </template>
+        </UInput>
       </UFormField>
 
       <UButton
