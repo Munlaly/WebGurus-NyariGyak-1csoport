@@ -24,15 +24,12 @@ interface InventoryFlashPayload {
   itemName?: string;
   amount?: number;
   unit?: string;
-  quantities?: Record<string, InventoryFlashQuantity>;
 }
 
 interface CustomPageProps {
   auth: {
     theme?: string;
     inAppAlerts?: boolean;
-    expiringCount?: number;
-  };
   expiringAlerts?: {
     expired?: InventoryItem[];
     critical?: InventoryItem[];
