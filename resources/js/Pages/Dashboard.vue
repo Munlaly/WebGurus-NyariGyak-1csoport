@@ -11,70 +11,13 @@ const props = defineProps<{
   hasActivePlan: boolean;
 }>();
 
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 const dayOffset = ref<number>(0);
-
-const handleRecipeSelection = (recipe: SearchResult) => {
-  if (!recipe.meal_types || recipe.meal_types.length === 1) {
-    // Only one type, swap immediately
-    const type = recipe.meal_types?.[0] || 'dinner';
-    executeSwap(recipe.id, type);
-  } else {
-    // Multiple types, ask the user
-    selectedSearchResult.value = recipe;
-    showMealTypeModal.value = true;
-  }
-};
-
-const executeSwap = (recipeId: number, mealType: string) => {
-  router.post(
-    '/dashboard/swap-meal',
-    {
-      recipe_id: recipeId,
-      meal_type: mealType,
-      date_offset: dayOffset.value,
-    },
-    {
-      preserveScroll: true,
-      onSuccess: () => {
-        searchQuery.value = '';
-        searchResults.value = [];
-        showMealTypeModal.value = false;
-        selectedSearchResult.value = null;
-      },
-    },
-  );
-};
-
 const searchQuery = ref('');
 const searchResults = ref<SearchResult[]>([]);
 const isSearching = ref(false);
-let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-
 const showMealTypeModal = ref(false);
 const selectedSearchResult = ref<SearchResult | null>(null);
-
-watch(searchQuery, (newVal) => {
-  if (searchTimeout) clearTimeout(searchTimeout);
-
-  if (newVal.length < 3) {
-    searchResults.value = [];
-    return;
-  }
-
-  isSearching.value = true;
-  searchTimeout = setTimeout(async () => {
-    try {
-      const { data } = await axios.get(`/dashboard/search-recipes?q=${newVal}`);
-      searchResults.value = data;
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
-      isSearching.value = false;
-    }
-  }, 300);
-});
-
-// Local state tracking for toggle actions across days
 const localPreparedStatus = ref<Record<number, boolean>>({});
 const localFavoriteStatus = ref<Record<number, boolean>>({});
 
@@ -96,12 +39,6 @@ const confirmationData = ref<{
   missing: [],
   mismatched: [],
 });
-
-const getFormattedDate = (offset: number) => {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
 
 const activeDateLabel = computed(() => {
   if (dayOffset.value === -1) return `Yesterday (${getFormattedDate(-1)})`;
@@ -141,6 +78,43 @@ const currentMeals = computed(() => {
       localFavoriteStatus.value[meal.id] ?? (meal.isFavorite || false),
   }));
 });
+
+function handleRecipeSelection(recipe: SearchResult) {
+  if (!recipe.meal_types || recipe.meal_types.length === 1) {
+    // Only one type, swap immediately
+    const type = recipe.meal_types?.[0] || 'dinner';
+    executeSwap(recipe.id, type);
+  } else {
+    // Multiple types, ask the user
+    selectedSearchResult.value = recipe;
+    showMealTypeModal.value = true;
+  }
+}
+
+function executeSwap(recipeId: number, mealType: string) {
+  router.post(
+    '/dashboard/swap-meal',
+    {
+      recipe_id: recipeId,
+      meal_type: mealType,
+      date_offset: dayOffset.value,
+    },
+    {
+      preserveScroll: true,
+      onSuccess: () => {
+        searchQuery.value = '';
+        searchResults.value = [];
+        showMealTypeModal.value = false;
+        selectedSearchResult.value = null;
+      },
+    },
+  );
+}
+function getFormattedDate(offset: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 function goPrevDay() {
   if (dayOffset.value > -1) dayOffset.value--;
@@ -215,6 +189,27 @@ async function handleCookMeal(
 function goToPlanner() {
   router.visit(route('meal-plan.index'));
 }
+
+watch(searchQuery, (newVal) => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+
+  if (newVal.length < 3) {
+    searchResults.value = [];
+    return;
+  }
+
+  isSearching.value = true;
+  searchTimeout = setTimeout(async () => {
+    try {
+      const { data } = await axios.get(`/dashboard/search-recipes?q=${newVal}`);
+      searchResults.value = data;
+    } catch (error) {
+      console.error('Search failed:', error);
+    } finally {
+      isSearching.value = false;
+    }
+  }, 300);
+});
 </script>
 
 <template>
