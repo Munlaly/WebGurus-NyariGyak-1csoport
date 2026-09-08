@@ -2,45 +2,8 @@
 import { ref, computed, watch, onUnmounted, watchEffect } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useDismissedAlerts } from '../Composables/useDismissedAlerts';
+import { CustomPageProps } from '../Types/topbarInterfaces.js';
 
-interface MacroTarget {
-  current: number;
-  target: number;
-}
-
-interface InventoryItem {
-  id: number;
-  expiration_date: string;
-}
-
-interface CustomPageProps {
-  auth: {
-    theme?: string;
-    inAppAlerts?: boolean;
-    expiringCount?: number;
-  };
-  expiringAlerts?: {
-    expired?: InventoryItem[];
-    critical?: InventoryItem[];
-    urgent?: InventoryItem[];
-  };
-  flash?: {
-    success?: string;
-  };
-
-  topbarData?: {
-    macros: {
-      calories: MacroTarget;
-      protein: MacroTarget;
-      carbs: MacroTarget;
-      fat: MacroTarget;
-    } | null;
-    mealsCooked: {
-      current: number;
-      total: number;
-    };
-  };
-}
 const page = usePage();
 const { dismissedIds } = useDismissedAlerts();
 

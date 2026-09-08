@@ -258,7 +258,9 @@ watch(searchQuery, (newVal) => {
   isSearching.value = true;
   searchTimeout = setTimeout(async () => {
     try {
-      const { data } = await axios.get(`/dashboard/search-recipes?q=${newVal}`);
+      const { data } = await axios.get<SearchResult[]>(
+        `/dashboard/search-recipes?q=${newVal}`,
+      );
       searchResults.value = data;
     } catch (error) {
       console.error('Search failed:', error);
