@@ -61,8 +61,12 @@ class HandleInertiaRequests extends Middleware
                 $unitSystem = $prefs['unitSystem'] ?? 'metric';
             }
 
+            $today = now();
             $todayPlan = $user->dailyPlans()
-                ->whereDate('date', now()->toDateString())
+                ->whereBetween('date', [
+                    $today->copy()->startOfDay(),
+                    $today->copy()->endOfDay()
+                ])
                 ->with('mealPlans.recipe') 
                 ->first();
 
