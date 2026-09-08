@@ -55,7 +55,8 @@ class CookMealController extends Controller
                 $ingredientDetails = [
                         'ingredient' => $recipeIngredient->name ?? 'Unknown Ingredient',
                         'required' => $requiredAmount,
-                        'available' => $totalAvailable
+                        'available' => $totalAvailable,
+                        'unit' => $requiredUnit,
                     ];           
 
                 if($totalAvailable < $requiredAmount) {

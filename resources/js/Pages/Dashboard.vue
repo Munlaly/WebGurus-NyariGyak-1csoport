@@ -26,7 +26,12 @@ const confirmationData = ref<{
   mealPlanId: number | null;
   recipeId: number | null;
   message: string;
-  missing: Array<{ ingredient: string; required: number; available: number }>;
+  missing: Array<{
+    ingredient: string;
+    required: number;
+    available: number;
+    unit: string;
+  }>;
   mismatched: Array<{
     ingredient: string;
     recipe_requires: string;
@@ -353,7 +358,8 @@ watch(searchQuery, (newVal) => {
                 <span class="font-medium capitalize">{{
                   item.ingredient
                 }}</span>
-                — Required: {{ item.required }}, Available: {{ item.available }}
+                — Required: {{ item.required }} {{ item.unit }}, Available:
+                {{ item.available }} {{ item.unit }}
               </li>
             </ul>
           </div>
