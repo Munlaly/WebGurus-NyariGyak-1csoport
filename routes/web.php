@@ -1,8 +1,7 @@
 <?php
 
-use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CookMealController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\RecipeController;
@@ -17,15 +16,19 @@ Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('recipe/{recipe}', [RecipeController::class, 'show'])->name('recipe.show');
-        Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts');
-
         Route::prefix('inventory')->name('inventory.')->group(function () {
             Route::get('/', [UserInventoryController::class, 'index'])->name('index');
             Route::post('/', [UserInventoryController::class, 'store'])->name('store');
             Route::put('/{inventory}', [UserInventoryController::class, 'update'])->name('update');
             Route::put('/{inventory}/decrease', [UserInventoryController::class, 'decrease'])->name('decrease');
             Route::delete('/{inventory}', [UserInventoryController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('recipe')->name('recipe.')->group(function () {
+            Route::get('/{recipe}', [RecipeController::class, 'show'])->name('show');
+            Route::post('/{recipe}/cook', [CookMealController::class, 'cook'])->name('cook');
+            Route::post('/{recipe}/favorite', [CookMealController::class, 'toggleFavorite'])->name('favorite');
+            Route::post('/{recipe}/shopping-list', [CookMealController::class, 'addMissingToShoppingList'])->name('shopping-list');
         });
 
         Route::prefix('settings')->name('settings.')->group(function () {
@@ -75,8 +78,13 @@ Route::middleware('auth')->group(function(){
         Route::post('/finish', [ShoppingListController::class, 'finish'])->name('finish');
     });
 
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/search-recipes', [DashboardController::class, 'searchRecipes'])->name('search-recipes');
+        Route::post('swap-meal', [DashboardController::class, 'swapMeal'])->name('swap-meal');
+    });
     
     Route::get('ingredients/search', [IngredientController::class, 'search'])->name('ingredients.search');
+    Route::get('alerts', [DashboardController::class, 'alerts'])->name('alerts');
 });
 
 require __DIR__.'/auth.php';

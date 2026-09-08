@@ -21,10 +21,11 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'toggle-cooked'): void;
   (e: 'toggle-favorite'): void;
+  (e: 'add-to-cart'): void;
 }>();
 
 const btnText = computed(() =>
-  props.isPrepared ? 'Cooked (Click to undo)' : 'Mark as Cooked',
+  props.isPrepared ? 'Cooked' : 'Mark as Cooked',
 );
 
 const buttonClass = computed(() =>
@@ -122,37 +123,71 @@ const favoriteTooltipText = computed(() =>
           </div>
         </div>
 
-        <!-- Like / Favorite Action with Hover Tooltip -->
-        <div class="relative flex items-center">
-          <button
-            type="button"
-            class="group/like relative flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95"
-            :class="favoriteButtonClass"
-            :aria-label="favoriteTooltipText"
-            @click.stop="emit('toggle-favorite')"
-          >
-            <span
-              v-if="isFavorite"
-              class="material-symbols-outlined text-[20px] transition-transform duration-200 [font-variation-settings:'FILL'_1] group-hover/like:scale-110"
+        <!-- Actions: Cart & Favorite -->
+        <div class="flex items-center gap-2">
+          <!-- Add to Cart Button -->
+          <div class="relative flex items-center">
+            <button
+              type="button"
+              :disabled="isPrepared"
+              :class="[
+                'group/cart border-outline-variant/40 bg-surface-container-low text-on-surface-variant relative flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200',
+                isPrepared
+                  ? 'cursor-not-allowed opacity-30'
+                  : 'hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:scale-105 active:scale-95',
+              ]"
+              aria-label="Add missing to cart"
+              @click.stop="emit('add-to-cart')"
             >
-              favorite
-            </span>
-            <span
-              v-else
-              class="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover/like:scale-110"
-            >
-              favorite
-            </span>
+              <span
+                class="material-symbols-outlined text-[20px] transition-transform duration-200"
+                :class="{ 'group-hover/cart:scale-110': !isPrepared }"
+              >
+                add_shopping_cart
+              </span>
+              <span
+                v-if="!isPrepared"
+                class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-0.5 text-xs whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover/cart:opacity-100 dark:bg-gray-700"
+              >
+                Add missing to cart
+              </span>
+            </button>
+          </div>
 
-            <!-- Tooltip Text on Hover -->
-            <span
-              class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-0.5 text-xs whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover/like:opacity-100 dark:bg-gray-700"
+          <!-- Like / Favorite Action with Hover Tooltip -->
+          <div class="relative flex items-center">
+            <button
+              type="button"
+              class="group/like relative flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95"
+              :class="favoriteButtonClass"
+              :aria-label="favoriteTooltipText"
+              @click.stop="emit('toggle-favorite')"
             >
-              {{ favoriteTooltipText }}
-            </span>
-          </button>
+              <span
+                v-if="isFavorite"
+                class="material-symbols-outlined text-[20px] transition-transform duration-200 [font-variation-settings:'FILL'_1] group-hover/like:scale-110"
+              >
+                favorite
+              </span>
+              <span
+                v-else
+                class="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover/like:scale-110"
+              >
+                favorite
+              </span>
+
+              <!-- Tooltip Text on Hover -->
+              <span
+                class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-0.5 text-xs whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover/like:opacity-100 dark:bg-gray-700"
+              >
+                {{ favoriteTooltipText }}
+              </span>
+            </button>
+          </div>
         </div>
+        <!-- Closes the new Actions flex wrapper -->
       </div>
+      <!-- Closes the mb-4 Row wrapper -->
 
       <!-- Action Button Pinned to Bottom -->
       <div class="mt-auto pt-2">

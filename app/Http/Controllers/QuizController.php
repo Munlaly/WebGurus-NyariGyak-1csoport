@@ -84,7 +84,9 @@ class QuizController extends Controller
             
             // Save Profile Data
             /** @var \App\Models\UserProfile $profile */
-            $profile = $user->profile()->create([
+            $profile = $user->profile()->updateOrCreate(
+            ['user_id' => $user->id], 
+            [
                 'sex' => $validated['sex'],
                 'birthdate' => $validated['birthdate'],
                 'height_cm' => $validated['height_cm'],
@@ -99,9 +101,17 @@ class QuizController extends Controller
             ]);
 
             // Save App Settings
-            $user->settings()->create([
+            $user->settings()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
                 'household_size' => $validated['household_size'],
                 'prep_time_preference' => $validated['prep_time_preference'],
+                'system_preferences' => [
+                    'theme' => 'light',
+                    'inAppAlerts' => 'true',
+                    'emailDigests' => 'false',
+                    'unitSystem' =>  'metric',
+                ],
             ]);
 
             // Map string days to integer values for the DB

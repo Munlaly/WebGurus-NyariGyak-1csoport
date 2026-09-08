@@ -8,6 +8,7 @@ const props = defineProps<{
     theme: 'light' | 'dark';
     inAppAlerts: boolean;
     emailDigests: boolean;
+    unitSystem: 'metric' | 'imperial';
   };
 }>();
 
@@ -15,6 +16,7 @@ const form = useForm({
   theme: props.userSettings?.theme || 'light',
   inAppAlerts: props.userSettings?.inAppAlerts ?? true,
   emailDigests: props.userSettings?.emailDigests ?? false,
+  unitSystem: props.userSettings?.unitSystem || 'metric',
 });
 
 const activeTab = 'system';
@@ -27,6 +29,17 @@ const themeButtonClasses = computed(() => {
   return {
     light: [base, form.theme === 'light' ? active : inactive],
     dark: [base, form.theme === 'dark' ? active : inactive],
+  };
+});
+
+const unitButtonClasses = computed(() => {
+  const base =
+    'flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-bold transition-all';
+  const active = 'text-primary bg-white shadow-sm dark:bg-gray-700';
+  const inactive = 'text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700';
+  return {
+    metric: [base, form.unitSystem === 'metric' ? active : inactive],
+    imperial: [base, form.unitSystem === 'imperial' ? active : inactive],
   };
 });
 
@@ -81,6 +94,40 @@ watch(
               @click="form.theme = 'dark'"
             >
               <UIcon name="i-heroicons-moon" /> Dark Mode
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Measurement Units Section -->
+      <div
+        class="grid grid-cols-1 gap-8 border-t border-gray-200 py-8 md:grid-cols-3 dark:border-gray-800"
+      >
+        <div class="md:col-span-1">
+          <h2 class="px-1 text-lg font-bold text-gray-900 dark:text-white">
+            Measurement Units
+          </h2>
+          <p class="mt-1 px-1 text-sm text-gray-500 dark:text-gray-400">
+            Choose your preferred system for viewing recipes and ingredients.
+          </p>
+        </div>
+        <div class="md:col-span-2">
+          <div
+            class="flex max-w-md gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800"
+          >
+            <button
+              type="button"
+              :class="unitButtonClasses.metric"
+              @click="form.unitSystem = 'metric'"
+            >
+              <UIcon name="i-heroicons-scale" /> Metric (g, ml)
+            </button>
+            <button
+              type="button"
+              :class="unitButtonClasses.imperial"
+              @click="form.unitSystem = 'imperial'"
+            >
+              <UIcon name="i-heroicons-beaker" /> Imperial (oz, cups)
             </button>
           </div>
         </div>

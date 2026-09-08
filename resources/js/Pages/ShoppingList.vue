@@ -8,11 +8,13 @@ import { ShoppingListItem } from '../Types/shoppingListInterfaces.js';
 import AddItemModal from '../Components/Modals/AddItemModal.vue';
 import EditItemModal from '../Components/Modals/EditItemModal.vue';
 import FinishShoppingModal from '../Components/Modals/FinishShoppingModal.vue';
+import { useUnits } from '../Composables/useUnits.js';
 
 const props = defineProps<{
   items: ShoppingListItem[];
 }>();
 
+const { formatQuantity } = useUnits();
 const checkedItems = computed(() => props.items.filter((i) => i.is_checked));
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
@@ -136,7 +138,7 @@ function openEditModal(item: ShoppingListItem) {
                     {{ item.ingredient.name }}
                   </h3>
                   <p class="font-body-sm text-on-surface-variant font-medium">
-                    {{ item.quantity }} {{ item.unit }}
+                    {{ formatQuantity(item.quantity, item.unit) }}
                   </p>
                 </div>
               </div>

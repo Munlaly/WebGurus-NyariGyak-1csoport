@@ -20,7 +20,12 @@ function formatTags(meal: PlannerMeal) {
     tags.push(`${meal.prep_time_minutes}m`);
   }
   if (meal.diets && Array.isArray(meal.diets)) {
-    if (meal.diets.length > 0) tags.push(meal.diets[0]);
+    for (const diet of meal.diets) {
+      const formattedDiet = diet
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (char: string) => char.toUpperCase());
+      tags.push(formattedDiet);
+    }
   }
   return tags;
 }

@@ -80,6 +80,11 @@ class User extends Authenticatable
         return $this->hasMany(UserExerciseSchedule::class);
     }
 
+    public function favoriteRecipes(): BelongsToMany
+    {
+        return $this->belongsToMany(Recipe::class, 'favorite_recipes')->withTimestamps();
+    }
+
     /**
      * Send the password reset notification.
      *

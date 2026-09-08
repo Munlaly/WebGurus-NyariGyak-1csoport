@@ -148,6 +148,7 @@ class SettingsController extends Controller
                 'theme' => $sysPrefs['theme'] ?? 'light',
                 'inAppAlerts' => $sysPrefs['inAppAlerts'] ?? true,
                 'emailDigests' => $sysPrefs['emailDigests'] ?? false,
+                'unitSystem' => $sysPrefs['unitSystem'] ?? 'metric',
             ]
         ]);
     }
@@ -158,6 +159,7 @@ class SettingsController extends Controller
             'theme' => 'required|string|in:light,dark',
             'inAppAlerts' => 'required|boolean',
             'emailDigests' => 'required|boolean',
+            'unitSystem' => 'required|string|in:metric,imperial',
         ]);
 
         $request->user()->settings()->updateOrCreate(

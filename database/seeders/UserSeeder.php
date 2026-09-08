@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\UserSetting;
 use App\Models\Ingredient;
+use App\Models\UserProfile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
@@ -16,16 +17,30 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::firstOrCreate(
+        $user = User::updateOrCreate(
             ['email' => 'test@example.com'],
             [
                 'username' => 'Test User',
                 'password' => Hash::make('password'),
+                'onboarded_at' => now(),
             ]
         );
 
         $user->tokens()->delete(); // Clear old ones if running multiple times
         $user->createToken('vue-test-token')->plainTextToken;
+
+        UserProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'sex' => 'male',
+                'birthdate' => '2006-06-12',
+                'height_cm' => 180,
+                'weight_kg' => 73,
+                'baseline_activity' => 'sedentary',
+                'fitness_goal' => 'lose_weight',
+                'weekly_calorie_target' => 12000,
+            ],
+        );
 
         UserSetting::updateOrCreate(
             ['user_id' => $user->id],
