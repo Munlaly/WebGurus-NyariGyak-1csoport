@@ -6,6 +6,8 @@ import bestProductIcon from '../../images/Auth/Badges/best-product.svg';
 import fitnessIcon from '../../images/Auth/Badges/fitness.svg';
 import ecoIcon from '../../images/Auth/Badges/eco.svg';
 import dietIcon from '../../images/Auth/Badges/diet.svg';
+import { AuthPageProps } from '../Types/authInterfaces';
+
 defineProps<{
   heading: string;
   subheading?: string;
@@ -16,8 +18,10 @@ defineProps<{
 const page = usePage();
 
 watchEffect(() => {
+  const typedProps = page.props as unknown as AuthPageProps;
+
   // Read the global prop injected by HandleInertiaRequests
-  const currentTheme = page.props.theme || 'light';
+  const currentTheme = typedProps.auth?.theme || 'light';
 
   if (currentTheme === 'dark') {
     document.documentElement.classList.add('dark');
