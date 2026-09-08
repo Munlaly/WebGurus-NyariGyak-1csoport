@@ -94,12 +94,12 @@ class HandleInertiaRequests extends Middleware
                 $mealsCooked = $eatenMeals->count();
 
                 foreach ($eatenMeals as $mealPlan) {
-                    if ($recipe = $mealPlan->recipe) {
-                        $currentCals += $recipe->calories ?? 0;
-                        $currentProtein += $recipe->protein ?? 0;
-                        $currentCarbs += $recipe->carbs ?? 0;
-                        $currentFat += $recipe->fat ?? 0;
-                    }
+                    $recipe = $mealPlan->recipe;
+                    $currentCals += $recipe->calories ?? 0;
+                    $currentProtein += $recipe->protein ?? 0;
+                    $currentCarbs += $recipe->carbs ?? 0;
+                    $currentFat += $recipe->fat ?? 0;
+                    
                 }
             }
 
