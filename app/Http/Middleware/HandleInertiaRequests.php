@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $theme = 'light';
         $inAppAlerts = true;
+        $unitSystem = 'metric';
         $alertsCache = null;
 
         if ($user) {
@@ -52,6 +53,7 @@ class HandleInertiaRequests extends Middleware
                 $prefs = $settings->system_preferences;
                 $theme = $prefs['theme'] ?? 'light';
                 $inAppAlerts = $prefs['inAppAlerts'] ?? true;
+                $unitSystem = $prefs['unitSystem'] ?? 'metric';
             }
         }
 
@@ -75,6 +77,7 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
                 'theme' => $theme,
                 'inAppAlerts' => $inAppAlerts,
+                'unitSystem' => $unitSystem,
                 'expiringCount' => function() use ($user, $resolveAlerts) {
                     if (!$user) {
                         return 0;

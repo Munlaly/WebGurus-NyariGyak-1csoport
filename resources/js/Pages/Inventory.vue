@@ -7,12 +7,15 @@ import ActionModal from '../Components/Modals/ActionModal.vue';
 import AddInventoryModal from '../Components/Modals/AddInventoryModal.vue';
 import { Ingredient, InventoryItem } from '../Types/inventoryInterfaces';
 import { getStatusLabel, getItemState } from '../utils/inventory';
+import { useUnits } from '../Composables/useUnits.js';
 
 const props = defineProps<{
   attentionNeeded: InventoryItem[];
   inventory: InventoryItem[];
   currentScore: number;
 }>();
+
+const { formatQuantity } = useUnits();
 
 const shoppingModal = useActionModal<
   Ingredient,
@@ -219,7 +222,8 @@ function scrollToItem(id: number) {
                   getItemState(item).badgeClass,
                 ]"
               >
-                {{ getItemState(item).statusText }}
+                {{ formatQuantity(item.amount_left, item.unit) }} •
+                {{ item.status }}
               </span>
 
               <span
@@ -353,8 +357,15 @@ function scrollToItem(id: number) {
             {{ decreaseModal.selectedItem.ingredient.name }}
           </span>
           <span class="font-body-sm text-on-surface-variant">
-            Current: {{ decreaseModal.selectedItem.amount_left }}
-            {{ decreaseModal.selectedItem.ingredient.base_unit }}
+            Current:
+            {{
+              formatQuantity(
+                decreaseModal.selectedItem.amount_left,
+                decreaseModal.selectedItem.unit ||
+                  decreaseModal.selectedItem.ingredient.base_unit ||
+                  '',
+              )
+            }}
           </span>
         </div>
       </div>

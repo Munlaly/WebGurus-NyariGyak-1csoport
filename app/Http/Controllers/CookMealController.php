@@ -43,8 +43,9 @@ class CookMealController extends Controller
                         $mismatchedUnits[] = [
                             'id' => $recipeIngredient->id,
                             'ingredient' => $recipeIngredient->name,
-                            'recipe_requires' => $requiredAmount . ' ' . $requiredUnit,
-                            'user_has' => $inventoryItems->sum('amount_left') . ' ' . $firstItemUnit,
+                            'recipe_amount' => $requiredAmount,
+                            'recipe_unit' => $requiredUnit,
+                            'user_amount' => $inventoryItems->sum('amount_left'),
                             'user_unit' => $firstItemUnit,
                         ];
                         if(!$isConfirmed) {

@@ -5,6 +5,7 @@ import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
 import axios from 'axios';
 import { Meal, SearchResult } from '../Types/dashboardInterfaces.js';
+import { useUnits } from '../Composables/useUnits.js';
 
 const props = defineProps<{
   mealsByOffset: Record<string, Meal[]>;
@@ -12,6 +13,8 @@ const props = defineProps<{
 }>();
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+const { formatInputAmount } = useUnits();
+
 const dayOffset = ref<number>(0);
 const searchQuery = ref('');
 const searchResults = ref<SearchResult[]>([]);
@@ -38,8 +41,9 @@ const confirmationData = ref<{
   mismatched: Array<{
     id: number;
     ingredient: string;
-    recipe_requires: string;
-    user_has: string;
+    recipe_amount: number;
+    recipe_unit: string;
+    user_amount: number;
     user_unit: string;
   }>;
 }>({
@@ -408,8 +412,12 @@ watch(searchQuery, (newVal) => {
                   <span class="font-medium capitalize">{{
                     item.ingredient
                   }}</span>
-                  — Required: {{ item.required }} {{ item.unit }}, Available:
-                  {{ item.available }} {{ item.unit }}
+                  — Required:
+                  {{ formatInputAmount(item.required, item.unit).amount }}
+                  {{ formatInputAmount(item.required, item.unit).unit }},
+                  Available:
+                  {{ formatInputAmount(item.available, item.unit).amount }}
+                  {{ formatInputAmount(item.available, item.unit).unit }}
                 </li>
               </ul>
             </div>
@@ -424,8 +432,19 @@ watch(searchQuery, (newVal) => {
                   <span class="font-medium capitalize">{{
                     item.ingredient
                   }}</span>
-                  — Recipe requires {{ item.recipe_requires }}, but inventory
-                  has {{ item.user_has }}
+                  — Recipe requires
+                  {{
+                    formatInputAmount(item.recipe_amount, item.recipe_unit)
+                      .amount
+                  }}
+                  {{
+                    formatInputAmount(item.recipe_amount, item.recipe_unit)
+                      .unit
+                  }}, but inventory has
+                  {{
+                    formatInputAmount(item.user_amount, item.user_unit).amount
+                  }}
+                  {{ formatInputAmount(item.user_amount, item.user_unit).unit }}
                 </li>
               </ul>
             </div>
@@ -466,8 +485,19 @@ watch(searchQuery, (newVal) => {
                   {{ item.ingredient }}
                 </p>
                 <p class="text-on-surface-variant mb-3 text-xs">
-                  Started with: {{ item.user_has }} | Recipe needed:
-                  {{ item.recipe_requires }}
+                  Started with:
+                  {{
+                    formatInputAmount(item.user_amount, item.user_unit).amount
+                  }}
+                  {{ formatInputAmount(item.user_amount, item.user_unit).unit }}
+                  | Recipe needed:
+                  {{
+                    formatInputAmount(item.recipe_amount, item.recipe_unit)
+                      .amount
+                  }}
+                  {{
+                    formatInputAmount(item.recipe_amount, item.recipe_unit).unit
+                  }}
                 </p>
 
                 <div class="flex items-center gap-3">
