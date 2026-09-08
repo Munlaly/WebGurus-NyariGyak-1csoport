@@ -140,15 +140,32 @@ async function regenerateUnpinned() {
     for (const dayName in freshPlan) {
       if (weeklyPlan.value[dayName]) {
         const existingMeals = weeklyPlan.value[dayName].meals;
+        const newDayMeals: PlannerMeal[] = [];
+        let hasSnack = false;
 
-        freshPlan[dayName].meals = freshPlan[dayName].meals.map(
-          (newMeal: PlannerMeal) => {
-            const oldMeal = existingMeals.find(
-              (m) => m.meal_type === newMeal.meal_type,
+        const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+        mealTypes.forEach((type) => {
+          const pinnedOld = existingMeals.find(
+            (m) => m.meal_type === type && m.isPinned,
+          );
+
+          if (pinnedOld) {
+            newDayMeals.push(pinnedOld);
+            if (type === 'snack') hasSnack = true;
+          } else {
+            const freshNew = freshPlan[dayName].meals.find(
+              (m: PlannerMeal) => m.meal_type === type,
             );
-            return oldMeal?.isPinned ? oldMeal : newMeal;
-          },
-        );
+
+            if (freshNew) {
+              newDayMeals.push(freshNew);
+              if (type === 'snack') hasSnack = true;
+            }
+          }
+        });
+        freshPlan[dayName].meals = newDayMeals;
+        freshPlan[dayName].has_snack = hasSnack;
       }
     }
 

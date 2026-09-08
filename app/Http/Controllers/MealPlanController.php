@@ -44,7 +44,9 @@ class MealPlanController extends Controller
             return $option->excludedCategories->pluck('id');
         })->unique()->toArray();
 
-        $requiredDietKeys = $dietaryOptions->pluck('slug')->filter()->unique()->values()->toArray();
+        $requiredDietKeys = $dietaryOptions->pluck('slug')->filter(function ($slug) {
+            return !empty($slug) && $slug !== 'omnivore';
+        })->unique()->values()->toArray();
 
         $validRecipes = Recipe::with('ingredients');
 
