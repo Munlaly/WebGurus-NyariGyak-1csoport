@@ -238,15 +238,9 @@ class CookMealController extends Controller
         }
 
         if ($addedCount === 0) {
-            return response()->json([
-                'success' => true,
-                'message' => 'You already have all the ingredients for this recipe!'
-            ]);
+            return back()->with('success', 'You already have all the ingredients for this recipe!');
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => "Added $addedCount missing ingredients to your shopping list!"
-        ]);
+        return back()->with('success', "Added $addedCount missing ingredients to your shopping list!");
     }
 }
