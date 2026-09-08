@@ -284,6 +284,62 @@ function scrollToItem(id: number) {
         </div>
       </section>
     </div>
+    <!-- Shopping List Modal -->
+    <ActionModal
+      :show="shoppingModal.isOpen"
+      title="Add to Shopping List"
+      :processing="shoppingModal.form.processing"
+      submit-text="Add Item"
+      submit-variant="primary"
+      @close="shoppingModal.isOpen = false"
+      @submit="shoppingModal.submit"
+    >
+      <div
+        v-if="shoppingModal.selectedItem"
+        class="bg-surface-container-lowest border-outline-variant/30 mb-2 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+      >
+        <span class="text-4xl">{{
+          shoppingModal.selectedItem.emoji ||
+          getCategoryEmoji((shoppingModal.selectedItem as any).category?.name)
+        }}</span>
+        <span class="font-label-lg text-on-surface font-bold capitalize">
+          {{ shoppingModal.selectedItem.name }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label
+            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+            >Quantity</label
+          >
+          <input
+            v-model="shoppingModal.form.quantity"
+            type="number"
+            min="0.1"
+            step="0.1"
+            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+            required
+          />
+        </div>
+        <div>
+          <label
+            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
+            >Unit</label
+          >
+          <select
+            v-model="shoppingModal.form.unit"
+            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+          >
+            <option value="pcs">Pieces</option>
+            <option value="g">Grams</option>
+            <option value="kg">Kilos</option>
+            <option value="ml">mL</option>
+            <option value="l">Liters</option>
+          </select>
+        </div>
+      </div>
+    </ActionModal>
 
     <!-- Decrease Quantity Modal -->
     <QuantityUpdateModal
@@ -351,5 +407,47 @@ function scrollToItem(id: number) {
     </ActionModal>
 
     <AddItemModal :show="showAddItemModal" @close="showAddItemModal = false" />
+    <!-- Delete Item Confirmation Modal -->
+    <ActionModal
+      :show="isDeleteModalOpen"
+      title="Remove Item"
+      submit-text="Delete"
+      submit-variant="error"
+      @close="isDeleteModalOpen = false"
+      @submit="executeDelete"
+    >
+      <div
+        v-if="itemToDelete"
+        class="bg-surface-container-lowest border-outline-variant/30 mb-4 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+      >
+        <span class="text-4xl">{{
+          itemToDelete.ingredient.emoji ||
+          getCategoryEmoji(itemToDelete.ingredient.category?.name)
+        }}</span>
+        <div>
+          <span
+            class="font-label-lg text-on-surface block font-bold capitalize"
+          >
+            {{ itemToDelete.ingredient.name }}
+          </span>
+          <span class="font-body-sm text-on-surface-variant">
+            Current:
+            {{
+              formatQuantity(
+                itemToDelete.amount_left,
+                itemToDelete.unit || itemToDelete.ingredient.base_unit || '',
+              )
+            }}
+          </span>
+        </div>
+      </div>
+
+      <p class="font-body-md text-on-surface-variant">
+        Are you sure you want to remove this item from your inventory?
+      </p>
+    </ActionModal>
+
+    <AddInventoryModal ref="addInventoryModalRef" />
+    >>>>>>> 0529a3e (fixing imperial measurments)
   </AuthenticatedLayout>
 </template>
