@@ -44,6 +44,9 @@ class DashboardController extends Controller
         $yesterdayString = $today->copy()->subDay()->toDateString();
         $tomorrowString = $today->copy()->addDay()->toDateString();
 
+        $startOfWeek = $today->copy()->startOfWeek()->toDateString();
+        $endOfWeek = $today->copy()->endOfWeek()->toDateString();
+
         $dailyPlans = DailyPlan::where('user_id', $user->id)
             ->whereBetween('date', [
                 $today->copy()->subDay()->startOfDay(),
@@ -51,6 +54,35 @@ class DashboardController extends Controller
             ])
             ->with(['mealPlans.recipe.ingredients'])
             ->get();
+
+        $weeklyPlans = DailyPlan::where('user_id', $user->id)
+            ->whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->with('mealPlans.recipe')
+            ->get();
+
+        $hasActivePlan = $weeklyPlans->isNotEmpty();
+
+        $weeklyTargetCals = $weeklyPlans->sum('target_calories');
+        $weeklyConsumedCals = 0;
+
+        foreach ($weeklyPlans as $plan) {
+            $eatenMeals = $plan->mealPlans->where('status', 'EATEN');
+            foreach ($eatenMeals as $mealPlan) {
+                if ($recipe = $mealPlan->recipe) {
+                    $weeklyConsumedCals += $recipe->calories ?? 0;
+                }
+            }
+        }
+
+        $percentage = $weeklyTargetCals > 0 
+            ? (int) round(($weeklyConsumedCals / $weeklyTargetCals) * 100) 
+            : 0;
+
+        $weeklyAnalytics = [
+        'targetCalories' => $weeklyTargetCals,
+        'consumedCalories' => $weeklyConsumedCals,
+        'percentage' => min($percentage, 100), 
+    ];
  
         $mealsByOffset = [
             '-1' => [],
@@ -88,6 +120,7 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'mealsByOffset' => $mealsByOffset,
             'hasActivePlan' => $hasActivePlan,
+            'weeklyAnalytics' => $weeklyAnalytics,
         ]);
     }
 
