@@ -227,6 +227,16 @@ async function handleCookMeal(
   }
 }
 
+async function handleAddToCart(recipeId: number) {
+  try {
+    const response = await axios.post(`/recipe/${recipeId}/shopping-list`);
+    alert(response.data.message);
+  } catch (error) {
+    console.error('Failed to add to shopping list:', error);
+    alert('An error occurred while analyzing your inventory.');
+  }
+}
+
 function goToPlanner() {
   router.visit(route('meal-plan.index'));
 }
@@ -357,6 +367,7 @@ watch(searchQuery, (newVal) => {
           :is-favorite="meal.isFavorite"
           @toggle-cooked="handleCookMeal(meal.meal_plan_id, meal.id, false)"
           @toggle-favorite="toggleFavoriteStatus(meal.id)"
+          @add-to-cart="handleAddToCart(meal.id)"
         />
       </div>
 

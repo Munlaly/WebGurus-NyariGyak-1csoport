@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function(){
             Route::get('/{recipe}', [RecipeController::class, 'show'])->name('show');
             Route::post('/{recipe}/cook', [CookMealController::class, 'cook'])->name('cook');
             Route::post('/{recipe}/favorite', [CookMealController::class, 'toggleFavorite'])->name('favorite');
+            Route::post('/{recipe}/shopping-list', [CookMealController::class, 'addMissingToShoppingList'])->name('shopping-list');
         });
 
         Route::prefix('settings')->name('settings.')->group(function () {

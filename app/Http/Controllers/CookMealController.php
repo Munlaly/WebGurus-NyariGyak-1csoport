@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Recipe;
 use App\Models\UserInventory;
 use App\Models\DailyPlan;
+use App\Models\ShoppingListItem;
 
 class CookMealController extends Controller
 {
@@ -166,6 +167,76 @@ class CookMealController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Favorite toggled succesfully.',
+        ]);
+    }
+
+    public function addMissingToShoppingList(Request $request, int $recipeId) {
+        $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
+        $user = $request->user();
+
+        $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
+        $scale = $userSettings ? (int) $userSettings->household_size : 1;
+
+        $addedCount = 0;
+
+        foreach($recipe->ingredients as $recipeIngredient) {
+            $baseAmount = $recipeIngredient->pivot->amount ?? 1;
+            $requiredUnit = $recipeIngredient->pivot->unit ?? 'pcs';
+            $requiredAmount = $baseAmount * $scale;
+
+            $inventoryItems = UserInventory::where('user_id', $user->id)
+                ->where('ingredient_id', $recipeIngredient->id)
+                ->get();
+
+            $totalAvailable = 0;
+            $hasMismatch = false;
+
+            if($inventoryItems->isNotEmpty()) {
+                $firstItemUnit = $inventoryItems->first()->unit;
+                if($firstItemUnit !== $requiredUnit) {
+                    $hasMismatch = true;
+                }
+                $totalAvailable = $inventoryItems->sum('amount_left');
+            }
+
+            if($hasMismatch || $totalAvailable < $requiredAmount) {
+                $roundedQuantity = ceil($requiredAmount);
+
+                $shoppingListItem = ShoppingListItem::where('user_id', $user->id)
+                    ->where('ingredient_id', $recipeIngredient->id)
+                    ->where('is_checked', false)
+                    ->first();
+
+                if ($shoppingListItem) {
+                    if ($shoppingListItem->quantity < $roundedQuantity) {
+                        $shoppingListItem->update([
+                            'quantity' => $roundedQuantity,
+                            'unit' => $requiredUnit
+                        ]);
+                    }
+                } else {
+                    ShoppingListItem::create([
+                        'user_id' => $user->id,
+                        'ingredient_id' => $recipeIngredient->id,
+                        'quantity' => $roundedQuantity,
+                        'unit' => $requiredUnit,
+                        'is_checked' => false
+                    ]);
+                }
+                $addedCount++;
+            }
+        }
+
+        if ($addedCount === 0) {
+            return response()->json([
+                'success' => true,
+                'message' => 'You already have all the ingredients for this recipe!'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Added $addedCount missing ingredients to your shopping list!"
         ]);
     }
 }
