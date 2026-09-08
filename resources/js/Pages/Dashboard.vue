@@ -194,6 +194,7 @@ async function handleCookMeal(
 
   try {
     const response = await axios.post(`/recipe/${recipeId}/cook`, {
+      meal_plan_id: mealPlanId,
       confirmed,
       mismatch_overrides: mismatchOverrides,
     });
@@ -213,6 +214,7 @@ async function handleCookMeal(
     if (response.data.success) {
       localPreparedStatus.value[mealPlanId] = true;
       cancelCooking();
+      router.reload({ only: ['topbarData'] });
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
