@@ -4,12 +4,17 @@ import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
 import axios from 'axios';
-import { Meal, SearchResult } from '../Types/dashboardInterfaces.js';
+import {
+  Meal,
+  SearchResult,
+  WeeklyAnalytics,
+} from '../Types/dashboardInterfaces.js';
 import { useUnits } from '../Composables/useUnits.js';
 
 const props = defineProps<{
   mealsByOffset: Record<string, Meal[]>;
   hasActivePlan: boolean;
+  weeklyAnalytics: WeeklyAnalytics;
 }>();
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -578,17 +583,47 @@ watch(searchQuery, (newVal) => {
           </h3>
           <span class="material-symbols-outlined text-primary">monitoring</span>
         </div>
+
+        <!-- Live Progress Widget -->
         <div
-          class="bg-surface-container-low text-on-surface-variant border-outline-variant font-body-md text-body-md flex h-48 w-full items-center justify-center rounded-lg border border-dashed"
+          v-if="props.hasActivePlan && props.weeklyAnalytics.targetCalories > 0"
+          class="flex flex-col gap-4"
         >
-          <div class="flex flex-col items-center gap-2">
-            <span
-              class="material-symbols-outlined text-tertiary-container text-4xl"
+          <div>
+            <div class="mb-2 flex justify-between text-sm">
+              <span class="text-on-surface font-medium">Calories Consumed</span>
+              <span class="text-on-surface-variant font-medium">
+                {{ props.weeklyAnalytics.consumedCalories }} /
+                {{ props.weeklyAnalytics.targetCalories }} kcal
+              </span>
+            </div>
+
+            <!-- Progress Bar Track -->
+            <div
+              class="bg-surface-container-high h-3 w-full overflow-hidden rounded-full"
             >
-              bar_chart
-            </span>
-            <span>Analytics visualization will appear here</span>
+              <!-- Progress Bar Fill -->
+              <div
+                class="bg-primary h-3 rounded-full transition-all duration-500 ease-out"
+                :style="{ width: props.weeklyAnalytics.percentage + '%' }"
+              ></div>
+            </div>
+
+            <p
+              class="text-on-surface-variant mt-2 text-right text-xs font-medium"
+            >
+              {{ props.weeklyAnalytics.percentage }}% of weekly goal
+            </p>
           </div>
+        </div>
+
+        <!-- Fallback state if no plan exists -->
+        <div
+          v-else
+          class="bg-surface-container-low text-on-surface-variant border-outline-variant font-body-md text-body-md flex w-full items-center justify-center gap-2 rounded-lg border border-dashed p-6"
+        >
+          <span class="material-symbols-outlined text-[20px]">info</span>
+          <span>Generate a weekly plan to see your caloric progress.</span>
         </div>
       </div>
     </div>
