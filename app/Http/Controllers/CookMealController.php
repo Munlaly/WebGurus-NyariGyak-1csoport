@@ -18,7 +18,7 @@ class CookMealController extends Controller
         $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
 
-        return DB::transaction(function() use ($recipe, $user, $scale, $isConfirmed) {
+        return DB::transaction(function() use ($recipe, $user, $scale, $isConfirmed, $request) {
             $missingIngredients = [];
             $mismatchedUnits = [];
             $availableIngredients = [];
@@ -40,11 +40,38 @@ class CookMealController extends Controller
                     $firstItemUnit = $inventoryItems->first()->unit;
                     if($firstItemUnit !== $requiredUnit) {
                         $mismatchedUnits[] = [
+                            'id' => $recipeIngredient->id,
                             'ingredient' => $recipeIngredient->name,
                             'recipe_requires' => $requiredAmount . ' ' . $requiredUnit,
                             'user_has' => $inventoryItems->sum('amount_left') . ' ' . $firstItemUnit,
+                            'user_unit' => $firstItemUnit,
                         ];
                         if(!$isConfirmed) {
+                            continue;
+                        } else {
+                            $mismatchedOverrides = $request->input('mismatch_overrides', []);
+                            if(array_key_exists($recipeIngredient->id, $mismatchedOverrides)) {
+                                $remainingAmount = max(0, (float) $mismatchedOverrides[$recipeIngredient->id]);
+                                $firstItem = $inventoryItems->first();
+
+                                if($remainingAmount == 0) {
+                                    foreach($inventoryItems as $item) {
+                                        $item->delete();
+                                    }
+                                    $usedIngredients[] = $recipeIngredient->id . '(Finished mismatched batch)';
+                                } else {
+                                    $firstItem->update(
+                                        [
+                                            'amount_left' => $remainingAmount,
+                                            'status' => 'OPENED',
+                                        ]
+                                    );
+                                    foreach($inventoryItems->skip(1) as $item) {
+                                        $item->delete();
+                                    }
+                                    $usedIngredients[] = $recipeIngredient->id . '(Manually resolved mismatch)';
+                                }
+                            }
                             continue;
                         }
                     }

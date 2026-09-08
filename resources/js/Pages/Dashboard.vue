@@ -22,6 +22,8 @@ const localPreparedStatus = ref<Record<number, boolean>>({});
 const localFavoriteStatus = ref<Record<number, boolean>>({});
 
 const showConfirmationModal = ref(false);
+const showMismatchResolutionStep = ref(false);
+const mismatchInputs = ref<Record<number, number>>({});
 const confirmationData = ref<{
   mealPlanId: number | null;
   recipeId: number | null;
@@ -31,11 +33,14 @@ const confirmationData = ref<{
     required: number;
     available: number;
     unit: string;
+    user_unit: string;
   }>;
   mismatched: Array<{
+    id: number;
     ingredient: string;
     recipe_requires: string;
     user_has: string;
+    user_unit: string;
   }>;
 }>({
   mealPlanId: null,
@@ -144,10 +149,39 @@ async function toggleFavoriteStatus(id: number) {
   }
 }
 
+function proceedToCook() {
+  if (confirmationData.value.mismatched.length > 0) {
+    showMismatchResolutionStep.value = true;
+    confirmationData.value.mismatched.forEach((m) => {
+      mismatchInputs.value[m.id] = 0; // default input to 0
+    });
+  } else {
+    submitFinalCook();
+  }
+}
+
+function submitFinalCook() {
+  if (confirmationData.value.mealPlanId && confirmationData.value.recipeId) {
+    handleCookMeal(
+      confirmationData.value.mealPlanId,
+      confirmationData.value.recipeId,
+      true,
+      mismatchInputs.value,
+    );
+  }
+}
+
+function cancelCooking() {
+  showConfirmationModal.value = false;
+  showMismatchResolutionStep.value = false;
+  mismatchInputs.value = {};
+}
+
 async function handleCookMeal(
   mealPlanId: number,
   recipeId: number,
   confirmed = false,
+  mismatchOverrides: Record<number, number> = {},
 ) {
   const meal = currentMeals.value.find((m) => m.meal_plan_id === mealPlanId);
   if (meal && meal.isPrepared) {
@@ -157,6 +191,7 @@ async function handleCookMeal(
   try {
     const response = await axios.post(`/recipe/${recipeId}/cook`, {
       confirmed,
+      mismatch_overrides: mismatchOverrides,
     });
 
     if (response.data.requires_confirmation) {
@@ -168,11 +203,12 @@ async function handleCookMeal(
         mismatched: response.data.summary.mismatched || [],
       };
       showConfirmationModal.value = true;
+      showMismatchResolutionStep.value = false;
       return;
     }
     if (response.data.success) {
       localPreparedStatus.value[mealPlanId] = true;
-      showConfirmationModal.value = false;
+      cancelCooking();
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -343,63 +379,117 @@ watch(searchQuery, (newVal) => {
         <div
           class="bg-surface-container-lowest w-full max-w-lg rounded-2xl p-6 shadow-xl"
         >
-          <h3 class="text-headline-md text-on-surface mb-2 font-bold">
-            Inventory Warning
-          </h3>
-          <p class="text-body-md text-on-surface-variant mb-4">
-            {{ confirmationData.message }}
-          </p>
+          <!-- STEP 1: The Warnings -->
+          <div v-if="!showMismatchResolutionStep">
+            <h3 class="text-headline-md text-on-surface mb-2 font-bold">
+              Inventory Warning
+            </h3>
+            <p class="text-body-md text-on-surface-variant mb-4">
+              {{ confirmationData.message }}
+            </p>
 
-          <!-- Missing Ingredients -->
-          <div v-if="confirmationData.missing.length > 0" class="mb-4">
-            <h4 class="text-error mb-1 font-semibold">Missing Ingredients:</h4>
-            <ul class="text-on-surface-variant list-disc pl-5 text-sm">
-              <li v-for="(item, idx) in confirmationData.missing" :key="idx">
-                <span class="font-medium capitalize">{{
-                  item.ingredient
-                }}</span>
-                — Required: {{ item.required }} {{ item.unit }}, Available:
-                {{ item.available }} {{ item.unit }}
-              </li>
-            </ul>
+            <div v-if="confirmationData.missing.length > 0" class="mb-4">
+              <h4 class="text-error mb-1 font-semibold">
+                Missing Ingredients:
+              </h4>
+              <ul class="text-on-surface-variant list-disc pl-5 text-sm">
+                <li v-for="(item, idx) in confirmationData.missing" :key="idx">
+                  <span class="font-medium capitalize">{{
+                    item.ingredient
+                  }}</span>
+                  — Required: {{ item.required }} {{ item.unit }}, Available:
+                  {{ item.available }} {{ item.unit }}
+                </li>
+              </ul>
+            </div>
+
+            <div v-if="confirmationData.mismatched.length > 0" class="mb-6">
+              <h4 class="text-tertiary mb-1 font-semibold">Unit Mismatches:</h4>
+              <ul class="text-on-surface-variant list-disc pl-5 text-sm">
+                <li
+                  v-for="(item, idx) in confirmationData.mismatched"
+                  :key="idx"
+                >
+                  <span class="font-medium capitalize">{{
+                    item.ingredient
+                  }}</span>
+                  — Recipe requires {{ item.recipe_requires }}, but inventory
+                  has {{ item.user_has }}
+                </li>
+              </ul>
+            </div>
+
+            <div class="flex justify-end gap-3">
+              <button
+                class="border-outline-variant text-on-surface hover:bg-surface-container-low rounded-lg border px-4 py-2"
+                @click="cancelCooking"
+              >
+                Cancel
+              </button>
+              <button
+                class="bg-primary text-on-primary hover:bg-primary/90 rounded-lg px-4 py-2"
+                @click="proceedToCook"
+              >
+                Cook Anyway
+              </button>
+            </div>
           </div>
 
-          <!-- Mismatched Units -->
-          <div v-if="confirmationData.mismatched.length > 0" class="mb-6">
-            <h4 class="text-tertiary mb-1 font-semibold">Unit Mismatches:</h4>
-            <ul class="text-on-surface-variant list-disc pl-5 text-sm">
-              <li v-for="(item, idx) in confirmationData.mismatched" :key="idx">
-                <span class="font-medium capitalize">{{
-                  item.ingredient
-                }}</span>
-                — Recipe requires {{ item.recipe_requires }}, but inventory has
-                {{ item.user_has }}
-              </li>
-            </ul>
-          </div>
+          <!-- STEP 2: The Mismatch Resolution Inputs -->
+          <div v-else class="animate-fade-in">
+            <h3 class="text-headline-md text-on-surface mb-2 font-bold">
+              Resolve Mismatches
+            </h3>
+            <p class="text-body-md text-on-surface-variant mb-6">
+              We can't automatically subtract these mismatched units. Please
+              enter how much of each ingredient you have left after cooking.
+            </p>
 
-          <!-- Modal Actions -->
-          <div class="flex justify-end gap-3">
-            <button
-              class="border-outline-variant text-on-surface hover:bg-surface-container-low rounded-lg border px-4 py-2"
-              @click="showConfirmationModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              class="bg-primary text-on-primary hover:bg-primary/90 rounded-lg px-4 py-2"
-              @click="
-                confirmationData.mealPlanId &&
-                confirmationData.recipeId &&
-                handleCookMeal(
-                  confirmationData.mealPlanId!,
-                  confirmationData.recipeId!,
-                  true,
-                )
-              "
-            >
-              Cook Anyway
-            </button>
+            <div class="mb-6 flex max-h-64 flex-col gap-4 overflow-y-auto pr-2">
+              <div
+                v-for="item in confirmationData.mismatched"
+                :key="item.id"
+                class="bg-surface-container-low rounded-xl p-4"
+              >
+                <p class="text-on-surface mb-1 font-medium">
+                  {{ item.ingredient }}
+                </p>
+                <p class="text-on-surface-variant mb-3 text-xs">
+                  Started with: {{ item.user_has }} | Recipe needed:
+                  {{ item.recipe_requires }}
+                </p>
+
+                <div class="flex items-center gap-3">
+                  <input
+                    v-model="mismatchInputs[item.id]"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-lg border px-3 py-2 outline-none focus:ring-1"
+                    placeholder="Amount left..."
+                  />
+                  <span
+                    class="text-on-surface-variant text-sm font-medium whitespace-nowrap"
+                    >{{ item.user_unit }} left</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+              <button
+                class="text-on-surface-variant hover:bg-surface-container-low rounded-lg px-4 py-2"
+                @click="showMismatchResolutionStep = false"
+              >
+                Back
+              </button>
+              <button
+                class="bg-primary text-on-primary hover:bg-primary/90 rounded-lg px-4 py-2"
+                @click="submitFinalCook"
+              >
+                Confirm & Cook
+              </button>
+            </div>
           </div>
         </div>
       </div>
