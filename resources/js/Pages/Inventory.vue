@@ -6,7 +6,11 @@ import { useActionModal } from '../Composables/useActionModal';
 import ActionModal from '../Components/Modals/ActionModal.vue';
 import AddInventoryModal from '../Components/Modals/AddInventoryModal.vue';
 import { Ingredient, InventoryItem } from '../Types/inventoryInterfaces';
-import { getStatusLabel, getItemState } from '../utils/inventory';
+import {
+  getStatusLabel,
+  getItemState,
+  getCategoryEmoji,
+} from '../utils/inventory';
 import { useUnits } from '../Composables/useUnits.js';
 
 const props = defineProps<{
@@ -147,7 +151,10 @@ function scrollToItem(id: number) {
             @click="scrollToItem(item.id)"
           >
             <div class="mt-1 text-3xl leading-none">
-              {{ item.ingredient.emoji || '📦' }}
+              {{
+                item.ingredient.emoji ||
+                getCategoryEmoji(item.ingredient.category?.name)
+              }}
             </div>
             <div>
               <h3
@@ -204,7 +211,10 @@ function scrollToItem(id: number) {
                 getItemState(item).iconClass,
               ]"
             >
-              {{ item.ingredient.emoji || '📦' }}
+              {{
+                item.ingredient.emoji ||
+                getCategoryEmoji(item.ingredient.category?.name)
+              }}
             </div>
             <h3
               class="font-body-sm text-body-sm text-on-surface mb-1 line-clamp-1 font-semibold capitalize"
@@ -292,7 +302,8 @@ function scrollToItem(id: number) {
         class="bg-surface-container-lowest border-outline-variant/30 mb-2 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
       >
         <span class="text-4xl">{{
-          shoppingModal.selectedItem.emoji || '📦'
+          shoppingModal.selectedItem.emoji ||
+          getCategoryEmoji((shoppingModal.selectedItem as any).category?.name)
         }}</span>
         <span class="font-label-lg text-on-surface font-bold capitalize">
           {{ shoppingModal.selectedItem.name }}
@@ -348,7 +359,8 @@ function scrollToItem(id: number) {
         class="bg-surface-container-lowest border-outline-variant/30 mb-2 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
       >
         <span class="text-4xl">{{
-          decreaseModal.selectedItem.ingredient.emoji || '📦'
+          decreaseModal.selectedItem.ingredient.emoji ||
+          getCategoryEmoji(decreaseModal.selectedItem.ingredient.category?.name)
         }}</span>
         <div>
           <span

@@ -9,6 +9,7 @@ import AddItemModal from '../Components/Modals/AddItemModal.vue';
 import EditItemModal from '../Components/Modals/EditItemModal.vue';
 import FinishShoppingModal from '../Components/Modals/FinishShoppingModal.vue';
 import { useUnits } from '../Composables/useUnits.js';
+import { getCategoryEmoji } from '../utils/inventory.js';
 
 const props = defineProps<{
   items: ShoppingListItem[];
@@ -123,9 +124,27 @@ function openEditModal(item: ShoppingListItem) {
               />
 
               <div class="flex items-center gap-3">
-                <span class="text-3xl" :class="{ grayscale: item.is_checked }">
-                  {{ item.ingredient.emoji || '🛒' }}
-                </span>
+                <div
+                  class="relative flex h-10 w-12 items-center justify-center"
+                >
+                  <!-- Shopping Cart Icon -->
+                  <span
+                    class="text-4xl select-none"
+                    :class="{ grayscale: item.is_checked }"
+                  >
+                    🛒
+                  </span>
+
+                  <span
+                    class="bg-surface-container-lowest ring-outline-variant/30 absolute -top-2 left-1.5 flex h-7 w-7 items-center justify-center rounded-full text-base shadow-sm ring-1"
+                    :class="{ grayscale: item.is_checked }"
+                  >
+                    {{
+                      item.ingredient.emoji ||
+                      getCategoryEmoji(item.ingredient.category?.name)
+                    }}
+                  </span>
+                </div>
                 <div>
                   <h3
                     :class="[
