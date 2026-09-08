@@ -105,9 +105,9 @@ class HandleInertiaRequests extends Middleware
 
             $topbarData['macros'] = [
                 'calories' => ['current' => $currentCals, 'target' => $targetCals],
-                'protein' => ['current' => $currentProtein, 'target' => $targetProtein],
-                'carbs' => ['current' => $currentCarbs, 'target' => $targetCarbs],
-                'fat' => ['current' => $currentFat, 'target' => $targetFat],
+                'protein' => ['current' => number_format($currentProtein, 2 ,'.',''), 'target' => number_format($targetProtein,2 ,'.','')],
+                'carbs' => ['current' => number_format($currentCarbs, 2, '.',''), 'target' => number_format($targetCarbs, 2,'.','')],
+                'fat' => ['current' => number_format($currentFat, 2,'.',''), 'target' => number_format($targetFat,2,'.','')],
             ];
 
             $topbarData['mealsCooked'] = [
