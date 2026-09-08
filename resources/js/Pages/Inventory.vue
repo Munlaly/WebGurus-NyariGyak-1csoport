@@ -136,7 +136,6 @@ function scrollToItem(id: number) {
         </div>
       </section>
 
-      <!-- Attention Needed & Category Tabs Sections stay the same... -->
       <section v-if="attentionNeeded.length > 0" class="flex flex-col gap-4">
         <h2
           class="font-headline-md text-headline-md text-error flex items-center gap-2"
@@ -285,8 +284,6 @@ function scrollToItem(id: number) {
       </section>
     </div>
 
-    <!-- REFACTORED MODALS -->
-
     <!-- Decrease Quantity Modal -->
     <QuantityUpdateModal
       v-model:display-amount="decreaseDisplayAmount"
@@ -352,7 +349,47 @@ function scrollToItem(id: number) {
       </p>
     </ActionModal>
 
-    <AddItemModal :show="showAddItemModal" @close="showAddItemModal = false" />
+    <!-- Delete Item Confirmation Modal -->
+    <ActionModal
+      :show="isDeleteModalOpen"
+      title="Remove Item"
+      submit-text="Delete"
+      submit-variant="error"
+      @close="isDeleteModalOpen = false"
+      @submit="executeDelete"
+    >
+      <div
+        v-if="itemToDelete"
+        class="bg-surface-container-lowest border-outline-variant/30 mb-4 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+      >
+        <span class="text-4xl">{{
+          itemToDelete.ingredient.emoji ||
+          getCategoryEmoji(itemToDelete.ingredient.category?.name)
+        }}</span>
+        <div>
+          <span
+            class="font-label-lg text-on-surface block font-bold capitalize"
+          >
+            {{ itemToDelete.ingredient.name }}
+          </span>
+          <span class="font-body-sm text-on-surface-variant">
+            Current:
+            {{
+              formatQuantity(
+                itemToDelete.amount_left,
+                itemToDelete.unit || itemToDelete.ingredient.base_unit || '',
+              )
+            }}
+          </span>
+        </div>
+      </div>
+
+      <p class="font-body-md text-on-surface-variant">
+        Are you sure you want to remove this item from your inventory?
+      </p>
+    </ActionModal>
+
+    >>>>>>> 0529a3e (fixing imperial measurments)
     <AddInventoryModal ref="addInventoryModalRef" />
   </AuthenticatedLayout>
 </template>
