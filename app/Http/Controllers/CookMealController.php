@@ -24,6 +24,7 @@ class CookMealController extends Controller
             $mismatchedUnits = [];
             $availableIngredients = [];
             $itemsToProcess = [];
+            $usedIngredients = [];
 
             foreach($recipe->ingredients as $recipeIngredient) {
                 /** @var \App\Models\Ingredient $recipeIngredient */
@@ -115,7 +116,6 @@ class CookMealController extends Controller
                 ], 200);
             }
 
-            $usedIngredients = [];
             foreach($itemsToProcess as $processData) {
                 $remainingToDeduct = $processData['remainingToDeduct'];
 
