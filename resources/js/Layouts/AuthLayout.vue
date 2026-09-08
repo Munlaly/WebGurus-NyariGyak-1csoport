@@ -86,7 +86,7 @@ watchEffect(() => {
             <img
               :src="fitnessIcon"
               alt="Goal Support"
-              class="ssm:h-7 h-6 w-6 shrink-0 drop-shadow-sm sm:w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12"
+              class="h-6 w-6 shrink-0 drop-shadow-sm sm:h-7 sm:w-7 md:h-8 md:w-8 lg:h-10 lg:w-10 xl:h-12 xl:w-12"
             />
             <span
               class="text-center text-[10px] leading-tight font-semibold tracking-wider uppercase sm:text-xs lg:text-sm"
