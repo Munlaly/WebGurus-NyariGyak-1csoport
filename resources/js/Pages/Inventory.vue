@@ -60,6 +60,8 @@ const selectedCategory = ref('All');
 const addInventoryModalRef = ref<InstanceType<typeof AddInventoryModal> | null>(
   null,
 );
+const isDeleteModalOpen = ref(false);
+const itemToDelete = ref<InventoryItem | null>(null);
 
 const filteredInventory = computed(() => {
   return props.inventory.filter((item) => {
@@ -77,9 +79,20 @@ const filteredInventory = computed(() => {
   });
 });
 
-function deleteItem(id: number) {
-  if (confirm('Are you sure you want to remove this item?')) {
-    router.delete(route('inventory.destroy', id), { preserveScroll: true });
+function promptDelete(item: InventoryItem) {
+  itemToDelete.value = item;
+  isDeleteModalOpen.value = true;
+}
+
+function executeDelete() {
+  if (itemToDelete.value !== null) {
+    router.delete(route('inventory.destroy', itemToDelete.value.id), {
+      preserveScroll: true,
+      onSuccess: () => {
+        isDeleteModalOpen.value = false;
+        itemToDelete.value = null;
+      },
+    });
   }
 }
 
@@ -106,8 +119,7 @@ function scrollToItem(id: number) {
           </h1>
           <p class="font-body-md text-body-md text-on-surface-variant">
             Manage your pantry and reduce waste.
-            {{ inventory.length + attentionNeeded.length }} items currently
-            tracked.
+            {{ inventory.length }} items currently tracked.
           </p>
         </div>
         <div class="flex flex-col items-center gap-4 sm:flex-row">
@@ -133,7 +145,6 @@ function scrollToItem(id: number) {
         </div>
       </section>
 
-      <!-- ZeroWaste Alert Zone (Clickable to jump down) -->
       <section v-if="attentionNeeded.length > 0" class="flex flex-col gap-4">
         <h2
           class="font-headline-md text-headline-md text-error flex items-center gap-2"
@@ -278,7 +289,7 @@ function scrollToItem(id: number) {
               <button
                 class="bg-error-container text-on-error-container hover:bg-error hover:text-on-error ml-1 flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
                 title="Delete item"
-                @click.stop="deleteItem(item.id)"
+                @click.stop="promptDelete(item)"
               >
                 <span class="material-symbols-outlined text-sm">delete</span>
               </button>
@@ -287,6 +298,7 @@ function scrollToItem(id: number) {
         </div>
       </section>
     </div>
+
     <!-- Shopping List Modal -->
     <ActionModal
       :show="shoppingModal.isOpen"
@@ -397,6 +409,47 @@ function scrollToItem(id: number) {
         />
       </div>
     </ActionModal>
+
+    <!-- Delete Item Confirmation Modal -->
+    <ActionModal
+      :show="isDeleteModalOpen"
+      title="Remove Item"
+      submit-text="Delete"
+      submit-variant="error"
+      @close="isDeleteModalOpen = false"
+      @submit="executeDelete"
+    >
+      <div
+        v-if="itemToDelete"
+        class="bg-surface-container-lowest border-outline-variant/30 mb-4 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+      >
+        <span class="text-4xl">{{
+          itemToDelete.ingredient.emoji ||
+          getCategoryEmoji(itemToDelete.ingredient.category?.name)
+        }}</span>
+        <div>
+          <span
+            class="font-label-lg text-on-surface block font-bold capitalize"
+          >
+            {{ itemToDelete.ingredient.name }}
+          </span>
+          <span class="font-body-sm text-on-surface-variant">
+            Current:
+            {{
+              formatQuantity(
+                itemToDelete.amount_left,
+                itemToDelete.unit || itemToDelete.ingredient.base_unit || '',
+              )
+            }}
+          </span>
+        </div>
+      </div>
+
+      <p class="font-body-md text-on-surface-variant">
+        Are you sure you want to remove this item from your inventory?
+      </p>
+    </ActionModal>
+
     <AddInventoryModal ref="addInventoryModalRef" />
   </AuthenticatedLayout>
 </template>

@@ -238,14 +238,14 @@ async function handleCookMeal(
   }
 }
 
-async function handleAddToCart(recipeId: number) {
-  try {
-    const response = await axios.post(`/recipe/${recipeId}/shopping-list`);
-    alert(response.data.message);
-  } catch (error) {
-    console.error('Failed to add to shopping list:', error);
-    alert('An error occurred while analyzing your inventory.');
-  }
+function handleAddToCart(recipeId: number) {
+  router.post(
+    `/recipe/${recipeId}/shopping-list`,
+    {},
+    {
+      preserveScroll: true,
+    },
+  );
 }
 
 function goToPlanner() {

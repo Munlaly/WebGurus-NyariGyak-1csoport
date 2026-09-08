@@ -130,12 +130,17 @@ class UserInventoryController extends Controller
 
         $inventory->load('ingredient');
 
-        $amount  = $inventory->amount_left ?? '';
-        $unit = $inventory->ingredient->base_unit ?? '';
+        $amount = $inventory->amount_left ?? 0;
+        $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
         $itemName = $inventory->ingredient->name ?? 'item';
-        $amountText = trim("{$amount} {$unit}");
 
         $inventory->delete();
-        return back()->with('success', "{$amountText} of {$itemName} has been removed from your inventory successfully.");
+
+        return back()->with('success', [
+            'message' => 'has been removed from your inventory successfully.',
+            'itemName' => $itemName,
+            'amount' => $amount,
+            'unit' => $unit,
+        ]);
     }
 }
