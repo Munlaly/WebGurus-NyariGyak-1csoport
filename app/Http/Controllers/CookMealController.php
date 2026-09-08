@@ -8,18 +8,26 @@ use App\Models\Recipe;
 use App\Models\UserInventory;
 use App\Models\DailyPlan;
 use App\Models\ShoppingListItem;
+use App\Models\MealPlan;
 
 class CookMealController extends Controller
 {
     public function cook(Request $request, int $recipeId) {
+        $request->validate([
+            'meal_plan_id' => 'required|integer|exists:meal_plans,id',
+            'confirmed' => 'boolean',
+            'mismatch_overrides' => 'array'
+        ]);
+
         $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
         $user = $request->user();
 
         $isConfirmed = $request->boolean('confirmed', false);
         $userSettings = DB::table('user_settings')->where('user_id', $user->id)->first();
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
+        $mealPlanId = $request->input('meal_plan_id');
 
-        return DB::transaction(function() use ($recipe, $user, $scale, $isConfirmed, $request) {
+        return DB::transaction(function() use ($recipe, $user, $scale, $isConfirmed, $request, $mealPlanId) {
             $missingIngredients = [];
             $mismatchedUnits = [];
             $availableIngredients = [];
@@ -140,20 +148,21 @@ class CookMealController extends Controller
                 }
             }
 
-            $dailyPlan = DailyPlan::where('user_id', $user->id)
-                ->whereDate('date', now()->toDateString())
-                ->first();
+            $mealPlan = MealPlan::where('id', $mealPlanId)
+            ->where('recipe_id', $recipe->id)
+            ->whereHas('dailyPlan', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->first();
 
-            if(!$dailyPlan) {
+            if(!$mealPlan) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No meal plan found for today, so this meal cannot be marked as cooked.',
+                    'message' => 'Meal plan not found or you do not have permission to update it.',
                 ], 404);
             }
 
-            $dailyPlan->mealPlans()
-                ->where('recipe_id', $recipe->id)
-                ->update(['status' => 'EATEN']);
+            $mealPlan->update(['status' => 'EATEN']);
 
             return response()->json([
                 'success' => true,
