@@ -12,9 +12,11 @@ const props = withDefaults(
     imageAlt: string;
     isPrepared: boolean;
     isFavorite?: boolean;
+    isToday?: boolean;
   }>(),
   {
     isFavorite: false,
+    isToday: true,
   },
 );
 
@@ -26,11 +28,15 @@ const emit = defineEmits<{
 
 const btnText = computed(() => (props.isPrepared ? 'Eaten' : 'Mark as Eaten'));
 
-const buttonClass = computed(() =>
-  props.isPrepared
-    ? 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high border border-outline-variant'
-    : 'bg-primary text-on-primary hover:bg-primary/90 dark:hover:bg-[#b080ea] shadow-sm',
-);
+const buttonClass = computed(() => {
+  if (props.isPrepared) {
+    return 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high border border-outline-variant cursor-not-allowed';
+  }
+  if (!props.isToday) {
+    return 'bg-surface-container-low text-on-surface-variant/40 border border-outline-variant/30 cursor-not-allowed opacity-60';
+  }
+  return 'bg-primary text-on-primary hover:bg-primary/90 dark:hover:bg-[#b080ea] shadow-sm';
+});
 
 const imageStateClass = computed(() =>
   props.isPrepared ? 'opacity-50 grayscale-[40%]' : '',
@@ -190,6 +196,7 @@ const favoriteTooltipText = computed(() =>
       <!-- Action Button Pinned to Bottom -->
       <div class="mt-auto pt-2">
         <button
+          :disabled="isPrepared || !isToday"
           :class="[
             'font-label-md flex w-full items-center justify-center gap-2 rounded-xl py-3 text-base font-semibold transition-all duration-200 active:scale-[0.98]',
             buttonClass,
