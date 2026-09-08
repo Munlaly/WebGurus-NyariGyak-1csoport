@@ -14,11 +14,17 @@ interface InventoryItem {
   expiration_date: string;
 }
 
-interface InventoryFlashPayload {
-  message: string;
-  itemName: string;
+interface InventoryFlashQuantity {
   amount: number;
   unit: string;
+}
+
+interface InventoryFlashPayload {
+  template: string;
+  itemName?: string;
+  amount?: number;
+  unit?: string;
+  quantities?: Record<string, InventoryFlashQuantity>;
 }
 
 interface CustomPageProps {
@@ -91,14 +97,33 @@ const mobileMenuTransformClass = computed(() =>
 );
 const flashMessage = computed(() => {
   const flash = typedPageProps.value.flash?.success;
-  if (!flash) return undefined;
 
+  if (!flash) return undefined;
   if (typeof flash === 'string') {
     return flash;
   }
+  try {
+    let text = flash.template;
 
-  const quantityText = formatQuantity(flash.amount, flash.unit);
-  return `${quantityText} of ${flash.itemName} ${flash.message}`;
+    if (flash.itemName !== undefined) {
+      text = text.replaceAll('{itemName}', String(flash.itemName));
+    }
+    if (flash.amount !== undefined && flash.unit !== undefined) {
+      text = text.replaceAll(
+        '{quantity}',
+        formatQuantity(flash.amount, flash.unit),
+      );
+    }
+    if (flash.quantities) {
+      for (const [key, q] of Object.entries(flash.quantities)) {
+        text = text.replaceAll(`{${key}}`, formatQuantity(q.amount, q.unit));
+      }
+    }
+    return text;
+  } catch (error) {
+    console.error('Flash parsing error:', error);
+    return 'Action completed successfully.';
+  }
 });
 
 const availableAlertsCount = computed(() => {

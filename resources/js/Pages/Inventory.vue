@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import { useActionModal } from '../Composables/useActionModal';
@@ -19,7 +19,8 @@ const props = defineProps<{
   currentScore: number;
 }>();
 
-const { formatQuantity } = useUnits();
+const { formatQuantity, getDisplayUnit, toStorageAmount, unitOptions } =
+  useUnits();
 
 const shoppingModal = useActionModal<
   Ingredient,
@@ -44,6 +45,39 @@ const decreaseModal = useActionModal<
   },
   'put',
 );
+
+const shoppingDisplayQuantity = ref(1);
+
+watch(
+  [shoppingDisplayQuantity, () => shoppingModal.form.unit],
+  ([newQuantity, newUnit]) => {
+    shoppingModal.form.quantity = toStorageAmount(newQuantity, newUnit);
+  },
+);
+
+function openShoppingModal(item: InventoryItem) {
+  shoppingDisplayQuantity.value = 1;
+  shoppingModal.open(item.ingredient, {
+    ingredient_id: item.ingredient.id,
+    quantity: 1,
+  });
+}
+
+const decreaseDisplayAmount = ref(1);
+
+const decreaseItemUnit = computed(() => {
+  const item = decreaseModal.selectedItem;
+  return item ? item.unit || item.ingredient.base_unit || '' : '';
+});
+
+watch([decreaseDisplayAmount, decreaseItemUnit], ([newAmount, newUnit]) => {
+  decreaseModal.form.amount_to_remove = toStorageAmount(newAmount, newUnit);
+});
+
+function openDecreaseModal(item: InventoryItem) {
+  decreaseDisplayAmount.value = 1;
+  decreaseModal.open(item, { amount_to_remove: 1 });
+}
 
 const categories = [
   'All',
@@ -266,7 +300,7 @@ function scrollToItem(id: number) {
               <button
                 class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
                 title="Decrease quantity"
-                @click.stop="decreaseModal.open(item, { amount_to_remove: 1 })"
+                @click.stop="openDecreaseModal(item)"
               >
                 <span class="material-symbols-outlined text-sm">remove</span>
               </button>
@@ -275,12 +309,7 @@ function scrollToItem(id: number) {
               <button
                 class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
                 title="Add to Shopping List"
-                @click.stop="
-                  shoppingModal.open(item.ingredient, {
-                    ingredient_id: item.ingredient.id,
-                    quantity: 1,
-                  })
-                "
+                @click.stop="openShoppingModal(item)"
               >
                 <span class="material-symbols-outlined text-sm">add</span>
               </button>
@@ -329,7 +358,7 @@ function scrollToItem(id: number) {
             >Quantity</label
           >
           <input
-            v-model="shoppingModal.form.quantity"
+            v-model="shoppingDisplayQuantity"
             type="number"
             min="0.1"
             step="0.1"
@@ -346,11 +375,13 @@ function scrollToItem(id: number) {
             v-model="shoppingModal.form.unit"
             class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
           >
-            <option value="pcs">Pieces</option>
-            <option value="g">Grams</option>
-            <option value="kg">Kilos</option>
-            <option value="ml">mL</option>
-            <option value="l">Liters</option>
+            <option
+              v-for="opt in unitOptions"
+              :key="opt.value"
+              :value="opt.value"
+            >
+              {{ opt.label }}
+            </option>
           </select>
         </div>
       </div>
@@ -399,14 +430,21 @@ function scrollToItem(id: number) {
           class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
           >Amount to remove</label
         >
-        <input
-          v-model="decreaseModal.form.amount_to_remove"
-          type="number"
-          min="0.1"
-          step="0.1"
-          class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-          required
-        />
+        <div class="flex items-center gap-3">
+          <input
+            v-model="decreaseDisplayAmount"
+            type="number"
+            min="0.1"
+            step="0.1"
+            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
+            required
+          />
+          <span
+            v-if="decreaseItemUnit"
+            class="text-on-surface-variant text-sm font-medium whitespace-nowrap"
+            >{{ getDisplayUnit(decreaseItemUnit) }}</span
+          >
+        </div>
       </div>
     </ActionModal>
 

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ActionModal from '../../Components/Modals/ActionModal.vue';
 import { useIngredientSearch } from '../../Composables/useIngredientSearch.js';
+import { useUnits } from '../../Composables/useUnits.js';
 
 defineProps<{ show: boolean }>();
 const emit = defineEmits(['close']);
@@ -9,11 +11,23 @@ const emit = defineEmits(['close']);
 const { searchTerm, searchResults, isSearchLoading, isDropdownOpen } =
   useIngredientSearch();
 
+const { unitOptions, toStorageAmount } = useUnits();
+
 const addForm = useForm({
   ingredient_id: null as number | null,
   quantity: 1,
   unit: 'pcs',
 });
+
+const displayQuantity = ref(1);
+
+watch(
+  [displayQuantity, () => addForm.unit],
+  ([newDisplayQuantity, newUnit]) => {
+    addForm.quantity = toStorageAmount(newDisplayQuantity, newUnit);
+  },
+  { immediate: true },
+);
 
 function selectIngredient(ingredient: { id: number; name: string }) {
   addForm.ingredient_id = ingredient.id;
@@ -27,6 +41,7 @@ function submitAdd() {
     onSuccess: () => {
       emit('close');
       addForm.reset();
+      displayQuantity.value = 1;
       searchTerm.value = '';
     },
   });
@@ -96,7 +111,7 @@ function submitAdd() {
           >Quantity</label
         >
         <input
-          v-model="addForm.quantity"
+          v-model="displayQuantity"
           type="number"
           min="0.1"
           step="0.1"
@@ -113,11 +128,13 @@ function submitAdd() {
           v-model="addForm.unit"
           class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
         >
-          <option value="pcs">Pieces (pcs)</option>
-          <option value="g">Grams (g)</option>
-          <option value="kg">Kilos (kg)</option>
-          <option value="ml">Milliliters (ml)</option>
-          <option value="l">Liters (l)</option>
+          <option
+            v-for="opt in unitOptions"
+            :key="opt.value"
+            :value="opt.value"
+          >
+            {{ opt.label }}
+          </option>
         </select>
       </div>
     </div>

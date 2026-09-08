@@ -214,6 +214,7 @@ class CookMealController extends Controller
 
                 $shoppingListItem = ShoppingListItem::where('user_id', $user->id)
                     ->where('ingredient_id', $recipeIngredient->id)
+                    ->where('unit', $requiredUnit)
                     ->where('is_checked', false)
                     ->first();
 
@@ -221,7 +222,6 @@ class CookMealController extends Controller
                     if ($shoppingListItem->quantity < $roundedQuantity) {
                         $shoppingListItem->update([
                             'quantity' => $roundedQuantity,
-                            'unit' => $requiredUnit
                         ]);
                     }
                 } else {

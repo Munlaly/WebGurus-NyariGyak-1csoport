@@ -88,9 +88,13 @@ class UserInventoryController extends Controller
         $amount = $inventory->amount_left ?? 0;
         $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
         $itemName = $inventory->ingredient->name ?? 'item';
-        $amountText = trim("{$amount} {$unit}");
 
-        return back()->with('success', "Updated {$itemName} quantity to {$amountText} successfully.");
+        return back()->with('success', [
+            'template' => 'Updated {itemName} quantity to {quantity} successfully.',
+            'itemName' => $itemName,
+            'amount' => $amount,
+            'unit' => $unit,
+        ]);
     }
 
     public function decrease(Request $request, UserInventory $inventory) {
@@ -106,10 +110,8 @@ class UserInventoryController extends Controller
         $newAmount = max(0, $current - $validated['amount_to_remove']);
 
         $inventory->load('ingredient');
-        $unit = $inventory->ingredient->base_unit ?? '';
+        $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
         $itemName = $inventory->ingredient->name ?? 'item';
-        $removeAmountText = trim("{$validated['amount_to_remove']} {$unit}");
-        $newAmountText = trim("{$newAmount} {$unit}");
 
          if($newAmount <= 0) {
             $inventory->delete();
@@ -120,7 +122,14 @@ class UserInventoryController extends Controller
             'amount_left' => $newAmount,
         ]);
 
-        return back()->with('success', "Removed {$removeAmountText} of {$itemName}. New balance: {$newAmountText}.");
+        return back()->with('success', [
+            'template' => 'Removed {removed} of {itemName}. New balance: {newBalance}.',
+            'itemName' => $itemName,
+            'quantities' => [
+                'removed' => ['amount' => $validated['amount_to_remove'], 'unit' => $unit],
+                'newBalance' => ['amount' => $newAmount, 'unit' => $unit],
+            ],
+        ]);
     }
 
     public function destroy(Request $request, UserInventory $inventory) {
@@ -137,7 +146,7 @@ class UserInventoryController extends Controller
         $inventory->delete();
 
         return back()->with('success', [
-            'message' => 'has been removed from your inventory successfully.',
+            'template' => '{quantity} of {itemName} has been removed from your inventory successfully.',
             'itemName' => $itemName,
             'amount' => $amount,
             'unit' => $unit,

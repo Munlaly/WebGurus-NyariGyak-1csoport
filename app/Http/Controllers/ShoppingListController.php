@@ -30,22 +30,23 @@ class ShoppingListController extends Controller
         $user = $request->user();
 
         $shoppingItem = ShoppingListItem::firstOrNew([
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'ingredient_id' => $validated['ingredient_id'],
+            'unit' => $validated['unit'],
             'is_checked' => false,
         ]);
 
         $shoppingItem->quantity = ($shoppingItem->quantity ?? 0) + (float) $validated['quantity'];
-        $shoppingItem->unit = $validated['unit'];
-
         $shoppingItem->save();
 
-        $amount = $shoppingItem->quantity;
-        $unit = $validated['unit'];
-        $itemName = $shoppingItem->ingredient->name ?? 'item';
-        $amountText = trim("{$amount} {$unit}");
+        $shoppingItem->load('ingredient');
 
-        return back()->with('success', "Added {$amountText} of {$itemName} to your shopping list successfully.");
+        return back()->with('success', [
+            'template' => 'Added {quantity} of {itemName} to your shopping list successfully.',
+            'itemName' => $shoppingItem->ingredient->name ?? 'item',
+            'amount' => $validated['quantity'],
+            'unit' => $validated['unit'],
+        ]);
     }
 
     public function update(Request $request, ShoppingListItem $item) {
