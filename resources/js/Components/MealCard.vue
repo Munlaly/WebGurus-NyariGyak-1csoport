@@ -19,14 +19,12 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: 'toggle-cooked'): void;
+  (e: 'toggle-eaten'): void;
   (e: 'toggle-favorite'): void;
   (e: 'add-to-cart'): void;
 }>();
 
-const btnText = computed(() =>
-  props.isPrepared ? 'Cooked' : 'Mark as Cooked',
-);
+const btnText = computed(() => (props.isPrepared ? 'Eaten' : 'Mark as Eaten'));
 
 const buttonClass = computed(() =>
   props.isPrepared
@@ -69,7 +67,7 @@ const favoriteTooltipText = computed(() =>
         class="bg-surface-container-lowest/90 text-primary font-label-md text-label-md absolute top-3 right-3 z-10 flex items-center gap-1 rounded-full px-3 py-1 shadow-md backdrop-blur-sm"
       >
         <span class="material-symbols-outlined text-[16px]">check_circle</span>
-        Cooked
+        Eaten
       </div>
 
       <!-- Hero Image -->
@@ -196,7 +194,7 @@ const favoriteTooltipText = computed(() =>
             'font-label-md flex w-full items-center justify-center gap-2 rounded-xl py-3 text-base font-semibold transition-all duration-200 active:scale-[0.98]',
             buttonClass,
           ]"
-          @click="emit('toggle-cooked')"
+          @click="emit('toggle-eaten')"
         >
           <span v-if="isPrepared" class="material-symbols-outlined text-[20px]">
             check_circle

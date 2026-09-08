@@ -371,7 +371,7 @@ watch(searchQuery, (newVal) => {
           :image-alt="meal.imageAlt"
           :is-prepared="meal.isPrepared"
           :is-favorite="meal.isFavorite"
-          @toggle-cooked="handleCookMeal(meal.meal_plan_id, meal.id, false)"
+          @toggle-eaten="handleCookMeal(meal.meal_plan_id, meal.id, false)"
           @toggle-favorite="toggleFavoriteStatus(meal.id)"
           @add-to-cart="handleAddToCart(meal.id)"
         />
