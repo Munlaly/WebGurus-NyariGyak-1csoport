@@ -10,7 +10,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'toggle-pin', dayName: string, mealId: number): void;
+  (e: 'toggle-pin', dayName: string, mealId: number, mealType: string): void;
   (e: 'reroll', dayName: string, mealId: number, mealType: string): void;
 }>();
 
@@ -70,7 +70,7 @@ function formatTags(meal: PlannerMeal) {
         :tags="formatTags(meal)"
         :is-pinned="meal.isPinned"
         :is-rolling="meal.isRolling"
-        @toggle-pin="emit('toggle-pin', dayName, meal.id)"
+        @toggle-pin="emit('toggle-pin', dayName, meal.id, meal.meal_type)"
         @reroll="(id, type) => emit('reroll', dayName, id, type)"
       />
     </div>

@@ -54,10 +54,12 @@ function getTabClass(dayName: string) {
   return `${baseClass} ${activeDay.value === dayName ? activeClass : inactiveClass}`;
 }
 
-function togglePin(dayName: string, mealId: number) {
+function togglePin(dayName: string, mealId: number, mealType: string) {
   const day = weeklyPlan.value[dayName];
   if (!day) return;
-  const meal = day.meals.find((m) => m.id === mealId);
+  const meal = day.meals.find(
+    (m) => m.id === mealId && m.meal_type === mealType,
+  );
   if (meal) {
     meal.isPinned = !meal.isPinned;
   }
