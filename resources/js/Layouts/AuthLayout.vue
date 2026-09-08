@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { watchEffect } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+
 import bestProductIcon from '../../images/Auth/Badges/best-product.svg';
 import fitnessIcon from '../../images/Auth/Badges/fitness.svg';
 import ecoIcon from '../../images/Auth/Badges/eco.svg';
@@ -9,6 +12,19 @@ defineProps<{
   imageSrc: string;
   imageAlt: string;
 }>();
+
+const page = usePage();
+
+watchEffect(() => {
+  // Read the global prop injected by HandleInertiaRequests
+  const currentTheme = page.props.theme || 'light';
+
+  if (currentTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
 </script>
 
 <template>
