@@ -66,6 +66,7 @@ function onSubmit() {
             class="w-full"
             variant="outlined"
             :highlight="true"
+            size="xl"
           />
         </UFormField>
 
@@ -82,6 +83,7 @@ function onSubmit() {
             class="w-full"
             variant="outlined"
             :highlight="true"
+            size="xl"
           />
         </UFormField>
 
@@ -98,6 +100,7 @@ function onSubmit() {
             class="w-full"
             variant="outlined"
             :highlight="true"
+            size="xl"
           >
             <template #trailing>
               <button
@@ -127,6 +130,7 @@ function onSubmit() {
             class="w-full"
             variant="outlined"
             :highlight="true"
+            size="xl"
           >
             <template #trailing>
               <button
@@ -152,11 +156,12 @@ function onSubmit() {
       <UButton
         type="submit"
         block
+        size="xl"
+        color="primary"
         :loading="form.processing"
-        class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+        class="w-full justify-center"
       >
-        <span class="material-symbols-outlined text-[20px]">lock</span>
-        Create Account & Set Preferences
+        Create Account
       </UButton>
     </UForm>
 
