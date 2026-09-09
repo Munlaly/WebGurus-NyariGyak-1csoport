@@ -91,6 +91,8 @@ class MealPlanController extends Controller
         $settings = UserSetting::where('user_id', $user->id)->first();
         $profile = UserProfile::where('user_id', $user->id)->first();
 
+        $exerciseSchedules = $user->exerciseSchedules()->pluck('intensity', 'day_of_week')->toArray();
+
         $nutritionService = app(NutritionService::class);
         $nutritionTargets = $profile ? $nutritionService->calculateNutritionalTargets($profile) : ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
         $targetCalories = $nutritionTargets['calories'];
@@ -176,8 +178,23 @@ class MealPlanController extends Controller
 
         $snackChancePercentage = 40;
 
+        $weight = (float) $profile->weight_kg;
+
         foreach($days as $offset => $day) {
             $dayDate = $now->copy()->addDays($offset)->startOfDay();
+
+            $dayNum = $dayDate->dayOfWeekIso; 
+            $dayIntensity = $exerciseSchedules[$dayNum];
+
+            $dailyTargetCalories = $targetCalories;
+            if ($dayIntensity === 'moderate') {
+                $dailyTargetCalories += (int) round($weight * 4.5);
+            } elseif ($dayIntensity === 'heavy') {
+                $dailyTargetCalories += (int) round($weight * 7.5);
+            }
+
+            $minCalories = $dailyTargetCalories * 0.85;
+            $maxCalories = $dailyTargetCalories * 1.15;
 
             $dailyMeals = null;
             $bestAttempt = null;
@@ -417,7 +434,7 @@ class MealPlanController extends Controller
 
         $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
     
-        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
+        DB::transaction(function () use ($user, $profile, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
             // Delete old drafts
             $oldDailyPlans = DailyPlan::where('user_id', $user->id)
                 ->where('status', EntityStatus::Draft->value)
@@ -428,6 +445,8 @@ class MealPlanController extends Controller
                 $dp->delete();
             }
 
+            $weight = (float) $profile->weight_kg;
+
             // Insert new plan
             foreach($plan as $dayName => $dayData) {
                 $dayOffset = $dayMapping[$dayName] ?? 0;
@@ -436,6 +455,17 @@ class MealPlanController extends Controller
                 $dayNum = ($dayMapping[$dayName] ?? 0) +1 ;
                 $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate->value;
 
+                $dailyCals = $nutritionTargets['calories'];
+                if ($dayType === 'moderate') {
+                    $dailyCals += (int) round($weight * 4.5);
+                } elseif ($dayType === 'heavy') {
+                    $dailyCals += (int) round($weight * 7.5);
+                }
+
+                $proteinGrams = (int) round(($dailyCals * ($nutritionTargets['macros']['protein'] / 100)) / 4);
+                $carbsGrams   = (int) round(($dailyCals * ($nutritionTargets['macros']['carbs'] / 100)) / 4);
+                $fatGrams     = (int) round(($dailyCals * ($nutritionTargets['macros']['fat'] / 100)) / 9);
+
                 $dailyPlan = DailyPlan::updateOrCreate(
                 [   
                     'user_id' => $user->id,
@@ -443,10 +473,10 @@ class MealPlanController extends Controller
                 ],
                 [
                     'day_type' => $dayType,
-                    'target_calories' => $nutritionTargets['calories'],
-                    'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
-                    'target_carbs_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['carbs'] / 100)) / 4),
-                    'target_fat_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['fat'] / 100)) / 9),
+                    'target_calories' => $dailyCals,
+                    'target_protein_g' => $proteinGrams,
+                    'target_carbs_g' => $carbsGrams,
+                    'target_fat_g' => $fatGrams,
                     'status' => EntityStatus::Draft->value,
                 ]);
 
