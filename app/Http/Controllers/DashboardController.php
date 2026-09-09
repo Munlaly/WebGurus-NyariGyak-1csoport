@@ -62,26 +62,28 @@ class DashboardController extends Controller
 
         $hasActivePlan = $weeklyPlans->isNotEmpty();
 
-        $weeklyTargetCals = $weeklyPlans->sum('target_calories');
-        $weeklyConsumedCals = 0;
+        $weeklyAnalytics = function () use ($weeklyPlans) {
+            $weeklyTargetCals = $weeklyPlans->sum('target_calories');
+            $weeklyConsumedCals = 0;
 
-        foreach ($weeklyPlans as $plan) {
-            $eatenMeals = $plan->mealPlans->where('status', 'EATEN');
-            foreach ($eatenMeals as $mealPlan) {
-                $recipe = $mealPlan->recipe;
-                $weeklyConsumedCals += $recipe->calories ?? 0;
+            foreach ($weeklyPlans as $plan) {
+                $eatenMeals = $plan->mealPlans->where('status', 'EATEN');
+                foreach ($eatenMeals as $mealPlan) {
+                    $recipe = $mealPlan->recipe;
+                    $weeklyConsumedCals += $recipe->calories ?? 0;
+                }
             }
-        }
 
-        $percentage = $weeklyTargetCals > 0 
-            ? (int) round(($weeklyConsumedCals / $weeklyTargetCals) * 100) 
-            : 0;
+            $percentage = $weeklyTargetCals > 0 
+                ? (int) round(($weeklyConsumedCals / $weeklyTargetCals) * 100) 
+                : 0;
 
-        $weeklyAnalytics = [
-        'targetCalories' => $weeklyTargetCals,
-        'consumedCalories' => $weeklyConsumedCals,
-        'percentage' => min($percentage, 100), 
-    ];
+            return [
+                'targetCalories' => $weeklyTargetCals,
+                'consumedCalories' => $weeklyConsumedCals,
+                'percentage' => min($percentage, 100), 
+            ];
+        };
  
         $mealsByOffset = [
             '-1' => [],

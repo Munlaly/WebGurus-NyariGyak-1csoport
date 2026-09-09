@@ -219,7 +219,7 @@ async function handleCookMeal(
     if (response.data.success) {
       localPreparedStatus.value[mealPlanId] = true;
       cancelCooking();
-      router.reload({ only: ['topbarData'] });
+      router.reload({ only: ['topbarData', 'weeklyAnalytics'] });
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
