@@ -178,7 +178,7 @@ class MealPlanController extends Controller
 
         $snackChancePercentage = 40;
 
-        $weight = (float) $profile->weight_kg ?? 70;
+        $weight = (float) ($profile->weight_kg ?? 70);
 
         foreach($days as $offset => $day) {
             $dayDate = $now->copy()->addDays($offset)->startOfDay();
@@ -430,7 +430,7 @@ class MealPlanController extends Controller
 
         $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
     
-        DB::transaction(function () use ($user, $profile, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
+        DB::transaction(function () use ($user, $profile, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets, $nutritionService) {
             // Delete old drafts
             $oldDailyPlans = DailyPlan::where('user_id', $user->id)
                 ->where('status', EntityStatus::Draft->value)
@@ -441,7 +441,7 @@ class MealPlanController extends Controller
                 $dp->delete();
             }
 
-            $weight = (float) $profile->weight_kg ?? 70;
+            $weight = (float) ($profile->weight_kg ?? 70);
 
             // Insert new plan
             foreach($plan as $dayName => $dayData) {
