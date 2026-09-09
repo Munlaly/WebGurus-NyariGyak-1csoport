@@ -94,13 +94,15 @@ class UserRecipeController extends Controller
     private function syncIngredients(Recipe $recipe, array $ingredients) {
         $ingredientData = [];
         foreach($ingredients as $ingredient) {
-            $amount = $ingredient['amount'];
+            $amount = $ingredient['amount'] ?? 1;
             $unit = $ingredient['unit'] ?? 'pcs';
+            $rawAmount = !empty($ingredient['raw_amount']) ? $ingredient['raw_amount'] : $amount;
+            $rawUnit = !empty($ingredient['raw_unit']) ? $ingredient['raw_unit'] : $unit;
             $ingredientData[$ingredient['id']] = [
                 'amount' => $amount,
                 'unit' => $unit,
-                'raw_amount' => $ingredient['raw_amount'] ?? $amount,
-                'raw_unit' => $ingredient['raw_unit'] ?? $unit,
+                'raw_amount' => $rawAmount,
+                'raw_unit' => $rawUnit,
             ];
         }
         $recipe->ingredients()->sync($ingredientData);
