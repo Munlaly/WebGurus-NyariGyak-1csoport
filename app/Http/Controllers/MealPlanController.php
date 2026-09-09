@@ -154,8 +154,8 @@ class MealPlanController extends Controller
         $dinners = $pruneBucket($dinners);
         $snacks = $pruneBucket($snacks);
 
-        $minCalories = $targetCalories * 0.85;
-        $maxCalories = $targetCalories * 1.15;
+        $minCalories = $targetCalories * 0.93;
+        $maxCalories = $targetCalories * 1.07;
 
         $userInventory = UserInventory::where('user_id', $user->id)
             ->orderBy('expiration_date', 'asc')
@@ -174,9 +174,9 @@ class MealPlanController extends Controller
         $weeklyActiveIngredients = [];
         $weeklyIngredientQuantities = [];
 
-        $snackChancePercentage = 40;
-
-        $weight = (float) ($profile->weight_kg ?? 70);
+        $includeSnack = false;
+        $snack = null;
+        $snackCalories = 0;
 
         foreach($days as $offset => $day) {
             $dayDate = $now->copy()->addDays($offset)->startOfDay();
@@ -187,8 +187,8 @@ class MealPlanController extends Controller
             $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayIntensity);
             $dailyTargetCalories = $dailyNutrition['calories'];
 
-            $minCalories = $dailyTargetCalories * 0.85;
-            $maxCalories = $dailyTargetCalories * 1.15;
+            $minCalories = $dailyTargetCalories * 0.93;
+            $maxCalories = $dailyTargetCalories * 1.07;
 
             $dailyMeals = null;
             $bestAttempt = null;
@@ -238,12 +238,7 @@ class MealPlanController extends Controller
                 }
                 return $score;
             };
-
-
-            $includeSnack = $snacks->isNotEmpty() && (mt_rand(1, 100) <= $snackChancePercentage);
-            $snack = $includeSnack ? $snacks->sortByDesc($zeroWasteScorer)->first() : null;
-            $snackCalories = $snack ? (int) $snack->calories : 0;
-
+            
             $fillerMeal = mt_rand(0, 2);
             while($attempts < $maxAttempts) {
                 $b = null;
@@ -316,6 +311,18 @@ class MealPlanController extends Controller
 
             $finalMeals = $dailyMeals ?? $bestAttempt;
             $finalMeals = array_filter($finalMeals);
+
+            $currentTotal = collect($finalMeals)->sum('calories');
+            $missingCalories = $dailyTargetCalories - $currentTotal;
+
+            if ($snacks->isNotEmpty() && $missingCalories >= 150) {
+                $bestSnack = $snacks->sortBy(fn($s) => abs($s->calories - $missingCalories))->first();
+                
+                if ($bestSnack) {
+                    $finalMeals['snack'] = $bestSnack;
+                    $includeSnack = true;
+                }
+            }
 
             foreach($finalMeals as $meal) {
                 /** @var \App\Models\Ingredient $ingredient */
