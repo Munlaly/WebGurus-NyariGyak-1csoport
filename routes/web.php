@@ -22,6 +22,7 @@ Route::middleware('auth')->group(function(){
             Route::put('/{inventory}', [UserInventoryController::class, 'update'])->name('update');
             Route::put('/{inventory}/decrease', [UserInventoryController::class, 'decrease'])->name('decrease');
             Route::delete('/{inventory}', [UserInventoryController::class, 'destroy'])->name('destroy');
+            Route::put('/{inventory}/increase', [UserInventoryController::class, 'increase'])->name('increase');
         });
 
         Route::prefix('recipe')->name('recipe.')->group(function () {

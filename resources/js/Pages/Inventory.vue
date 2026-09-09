@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
-import { useActionModal } from '../Composables/useActionModal';
 import ActionModal from '../Components/Modals/ActionModal.vue';
 import AddInventoryModal from '../Components/Modals/AddInventoryModal.vue';
-import { Ingredient, InventoryItem } from '../Types/inventoryInterfaces';
+import { InventoryItem } from '../Types/inventoryInterfaces';
+import AddItemModal from '../Components/Modals/AddItemModal.vue';
 import {
   getStatusLabel,
   getItemState,
   getCategoryEmoji,
 } from '../utils/inventory';
 import { useUnits } from '../Composables/useUnits.js';
+import { useQuantityAction } from '../Composables/useQuantityAction.js';
 
 const props = defineProps<{
   attentionNeeded: InventoryItem[];
@@ -19,65 +20,21 @@ const props = defineProps<{
   currentScore: number;
 }>();
 
-const { formatQuantity, getDisplayUnit, toStorageAmount, unitOptions } =
-  useUnits();
+const { formatQuantity } = useUnits();
 
-const shoppingModal = useActionModal<
-  Ingredient,
-  { ingredient_id: number | null; quantity: number; unit: string }
->(
-  () => route('shopping-list.store'),
-  {
-    ingredient_id: null,
-    quantity: 1,
-    unit: 'pcs',
-  },
-  'post',
-);
+const {
+  modal: decreaseModal,
+  displayAmount: decreaseDisplayAmount,
+  itemUnit: decreaseItemUnit,
+  openModal: openDecreaseModal,
+} = useQuantityAction('inventory.decrease', 'amount_to_remove');
 
-const decreaseModal = useActionModal<
-  InventoryItem,
-  { amount_to_remove: number }
->(
-  (item) => route('inventory.decrease', item.id),
-  {
-    amount_to_remove: 1,
-  },
-  'put',
-);
-
-const shoppingDisplayQuantity = ref(1);
-
-watch(
-  [shoppingDisplayQuantity, () => shoppingModal.form.unit],
-  ([newQuantity, newUnit]) => {
-    shoppingModal.form.quantity = toStorageAmount(newQuantity, newUnit);
-  },
-);
-
-function openShoppingModal(item: InventoryItem) {
-  shoppingDisplayQuantity.value = 1;
-  shoppingModal.open(item.ingredient, {
-    ingredient_id: item.ingredient.id,
-    quantity: 1,
-  });
-}
-
-const decreaseDisplayAmount = ref(1);
-
-const decreaseItemUnit = computed(() => {
-  const item = decreaseModal.selectedItem;
-  return item ? item.unit || item.ingredient.base_unit || '' : '';
-});
-
-watch([decreaseDisplayAmount, decreaseItemUnit], ([newAmount, newUnit]) => {
-  decreaseModal.form.amount_to_remove = toStorageAmount(newAmount, newUnit);
-});
-
-function openDecreaseModal(item: InventoryItem) {
-  decreaseDisplayAmount.value = 1;
-  decreaseModal.open(item, { amount_to_remove: 1 });
-}
+const {
+  modal: increaseModal,
+  displayAmount: increaseDisplayAmount,
+  itemUnit: increaseItemUnit,
+  openModal: openIncreaseModal,
+} = useQuantityAction('inventory.increase', 'amount_to_add');
 
 const categories = [
   'All',
@@ -96,6 +53,8 @@ const addInventoryModalRef = ref<InstanceType<typeof AddInventoryModal> | null>(
 );
 const isDeleteModalOpen = ref(false);
 const itemToDelete = ref<InventoryItem | null>(null);
+
+const showAddItemModal = ref(false);
 
 const filteredInventory = computed(() => {
   return props.inventory.filter((item) => {
@@ -171,14 +130,17 @@ function scrollToItem(id: number) {
           </div>
           <button
             class="bg-primary text-on-primary font-body-md text-body-md relative flex shrink-0 items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-sm transition-opacity hover:opacity-90 hover:shadow-md"
-            @click="addInventoryModalRef?.open()"
+            @click="showAddItemModal = true"
           >
-            <span class="material-symbols-outlined text-[20px]">add</span>
-            Add Item
+            <span class="material-symbols-outlined text-[20px]"
+              >shopping_cart</span
+            >
+            Add to Shopping List
           </button>
         </div>
       </section>
 
+      <!-- Attention Needed & Category Tabs Sections stay the same... -->
       <section v-if="attentionNeeded.length > 0" class="flex flex-col gap-4">
         <h2
           class="font-headline-md text-headline-md text-error flex items-center gap-2"
@@ -238,7 +200,7 @@ function scrollToItem(id: number) {
         </div>
       </section>
 
-      <!-- Inventory Grid (With unique IDs for jumping) -->
+      <!-- Inventory Grid -->
       <section>
         <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
           <div
@@ -280,7 +242,6 @@ function scrollToItem(id: number) {
                 {{ formatQuantity(item.amount_left, item.unit) }} •
                 {{ item.status }}
               </span>
-
               <span
                 v-if="getItemState(item).expText"
                 :class="[
@@ -305,11 +266,11 @@ function scrollToItem(id: number) {
                 <span class="material-symbols-outlined text-sm">remove</span>
               </button>
 
-              <!-- Add to Shopping List Button -->
+              <!-- Increase Quantity Button -->
               <button
                 class="bg-surface-container-high text-on-surface hover:bg-surface-variant flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-colors"
-                title="Add to Shopping List"
-                @click.stop="openShoppingModal(item)"
+                title="Add new batch"
+                @click.stop="openIncreaseModal(item)"
               >
                 <span class="material-symbols-outlined text-sm">add</span>
               </button>
@@ -328,125 +289,33 @@ function scrollToItem(id: number) {
       </section>
     </div>
 
-    <!-- Shopping List Modal -->
-    <ActionModal
-      :show="shoppingModal.isOpen"
-      title="Add to Shopping List"
-      :processing="shoppingModal.form.processing"
-      submit-text="Add Item"
-      submit-variant="primary"
-      @close="shoppingModal.isOpen = false"
-      @submit="shoppingModal.submit"
-    >
-      <div
-        v-if="shoppingModal.selectedItem"
-        class="bg-surface-container-lowest border-outline-variant/30 mb-2 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
-      >
-        <span class="text-4xl">{{
-          shoppingModal.selectedItem.emoji ||
-          getCategoryEmoji((shoppingModal.selectedItem as any).category?.name)
-        }}</span>
-        <span class="font-label-lg text-on-surface font-bold capitalize">
-          {{ shoppingModal.selectedItem.name }}
-        </span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label
-            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-            >Quantity</label
-          >
-          <input
-            v-model="shoppingDisplayQuantity"
-            type="number"
-            min="0.1"
-            step="0.1"
-            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-            required
-          />
-        </div>
-        <div>
-          <label
-            class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-            >Unit</label
-          >
-          <select
-            v-model="shoppingModal.form.unit"
-            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-          >
-            <option
-              v-for="opt in unitOptions"
-              :key="opt.value"
-              :value="opt.value"
-            >
-              {{ opt.label }}
-            </option>
-          </select>
-        </div>
-      </div>
-    </ActionModal>
+    <!-- REFACTORED MODALS -->
 
     <!-- Decrease Quantity Modal -->
-    <ActionModal
-      :show="decreaseModal.isOpen"
+    <QuantityUpdateModal
+      v-model:display-amount="decreaseDisplayAmount"
+      :modal-state="decreaseModal"
+      :item-unit="decreaseItemUnit"
       title="Decrease Quantity"
-      :processing="decreaseModal.form.processing"
       submit-text="Remove"
       submit-variant="error"
+      input-label="Amount to remove"
       @close="decreaseModal.isOpen = false"
       @submit="decreaseModal.submit"
-    >
-      <div
-        v-if="decreaseModal.selectedItem"
-        class="bg-surface-container-lowest border-outline-variant/30 mb-2 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
-      >
-        <span class="text-4xl">{{
-          decreaseModal.selectedItem.ingredient.emoji ||
-          getCategoryEmoji(decreaseModal.selectedItem.ingredient.category?.name)
-        }}</span>
-        <div>
-          <span
-            class="font-label-lg text-on-surface block font-bold capitalize"
-          >
-            {{ decreaseModal.selectedItem.ingredient.name }}
-          </span>
-          <span class="font-body-sm text-on-surface-variant">
-            Current:
-            {{
-              formatQuantity(
-                decreaseModal.selectedItem.amount_left,
-                decreaseModal.selectedItem.unit ||
-                  decreaseModal.selectedItem.ingredient.base_unit ||
-                  '',
-              )
-            }}
-          </span>
-        </div>
-      </div>
+    />
 
-      <div>
-        <label
-          class="font-label-sm text-on-surface-variant mb-1.5 block font-medium"
-          >Amount to remove</label
-        >
-        <div class="flex items-center gap-3">
-          <input
-            v-model="decreaseDisplayAmount"
-            type="number"
-            min="0.1"
-            step="0.1"
-            class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
-            required
-          />
-          <span
-            v-if="decreaseItemUnit"
-            class="text-on-surface-variant text-sm font-medium whitespace-nowrap"
-            >{{ getDisplayUnit(decreaseItemUnit) }}</span
-          >
-        </div>
-      </div>
-    </ActionModal>
+    <!-- Increase Quantity Modal -->
+    <QuantityUpdateModal
+      v-model:display-amount="increaseDisplayAmount"
+      :modal-state="increaseModal"
+      :item-unit="increaseItemUnit"
+      title="Increase Quantity"
+      submit-text="Add"
+      submit-variant="primary"
+      input-label="Amount to add"
+      @close="increaseModal.isOpen = false"
+      @submit="increaseModal.submit"
+    />
 
     <!-- Delete Item Confirmation Modal -->
     <ActionModal
@@ -482,12 +351,12 @@ function scrollToItem(id: number) {
           </span>
         </div>
       </div>
-
       <p class="font-body-md text-on-surface-variant">
         Are you sure you want to remove this item from your inventory?
       </p>
     </ActionModal>
 
+    <AddItemModal :show="showAddItemModal" @close="showAddItemModal = false" />
     <AddInventoryModal ref="addInventoryModalRef" />
   </AuthenticatedLayout>
 </template>

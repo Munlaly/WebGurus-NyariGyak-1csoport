@@ -97,6 +97,41 @@ class UserInventoryController extends Controller
         ]);
     }
 
+    public function increase(Request $request, UserInventory $inventory) {
+        if($inventory->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'amount_to_add' => 'required|numeric|min:0.1',
+        ]);
+
+        $current = $inventory->amount_left ?? 0;
+        $newAmount = $current + $validated['amount_to_add'];
+
+        $inventory->load('ingredient');
+        $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
+        $itemName = $inventory->ingredient->name ?? 'item';
+
+         if($newAmount <= 0) {
+            $inventory->delete();
+            return back()->with('success', "You've completely used up {$itemName}.");
+        }
+
+        $inventory->update([
+            'amount_left' => $newAmount,
+        ]);
+
+        return back()->with('success', [
+            'template' => 'Added {added} of {itemName}. New balance: {newBalance}.',
+            'itemName' => $itemName,
+            'quantities' => [
+                'added' => ['amount' => $validated['amount_to_add'], 'unit' => $unit],
+                'newBalance' => ['amount' => $newAmount, 'unit' => $unit],
+            ],
+        ]);
+    }
+
     public function decrease(Request $request, UserInventory $inventory) {
         if($inventory->user_id !== $request->user()->id) {
             abort(403);

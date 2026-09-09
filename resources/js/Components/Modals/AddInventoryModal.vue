@@ -50,9 +50,25 @@ function selectIngredient(ingredient: { id: number; name: string }) {
 }
 
 defineExpose({
-  open: () => {
+  open: (ingredient?: { id: number; name: string }) => {
     displayAmount.value = 1;
-    addModal.open(null);
+
+    if (ingredient) {
+      searchTerm.value = ingredient.name;
+      isDropdownOpen.value = false;
+
+      addModal.open(null, {
+        ingredient_id: ingredient.id,
+        amount_left: 1,
+        unit: 'pcs',
+        status: 'FULL',
+        expiration_date: '',
+        is_frozen: false,
+      });
+    } else {
+      searchTerm.value = '';
+      addModal.open(null);
+    }
   },
 });
 </script>

@@ -21,33 +21,38 @@ export function useUnits() {
     return props.auth?.unitSystem || 'metric';
   });
 
-  const formatQuantity = (amount: any | null, unit: string) => {
-    if (amount === null || amount === undefined) return '';
+  function formatQuantity(amount: number | string | null, unit: string) {
+    if (amount === null || amount === undefined || amount === '') return '';
+    const num = Number(amount);
+    if (isNaN(num)) {
+      return `${amount} ${unit}`;
+    }
+    const safeUnit = (unit || '').trim().toLowerCase();
 
     if (unitSystem.value === 'imperial') {
-      if (unit === 'g') {
-        const ounces = amount * 0.035274;
+      if (safeUnit === 'g') {
+        const ounces = num * 0.035274;
         return ounces >= 16
           ? `${(ounces / 16).toFixed(1)} lbs`
           : `${ounces.toFixed(1)} oz`;
       }
-      if (unit === 'kg') {
-        return `${(amount * 2.20462).toFixed(1)} lbs`;
+      if (safeUnit === 'kg') {
+        return `${(num * 2.20462).toFixed(1)} lbs`;
       }
-      if (unit === 'ml') {
-        const flOz = amount * 0.033814;
+      if (safeUnit === 'ml') {
+        const flOz = num * 0.033814;
         return flOz >= 8
           ? `${(flOz / 8).toFixed(1)} cups`
           : `${flOz.toFixed(1)} fl oz`;
       }
-      if (unit === 'l') {
-        return `${(amount * 2.11338).toFixed(1)} cups`;
+      if (safeUnit === 'l') {
+        return `${(num * 2.11338).toFixed(1)} cups`;
       }
     }
-    return `${amount} ${unit}`;
-  };
+    return `${num} ${safeUnit}`;
+  }
 
-  const formatInputAmount = (amount: any, unit: string) => {
+  function formatInputAmount(amount: number | string, unit: string) {
     const num = Number(amount);
     if (isNaN(num)) return { amount, unit };
 
@@ -65,12 +70,12 @@ export function useUnits() {
       }
     }
     return { amount: num, unit: safeUnit };
-  };
+  }
 
-  const fromStorageAmount = (
+  function fromStorageAmount(
     storedAmount: number,
     storageUnit: string,
-  ): number => {
+  ): number {
     if (unitSystem.value !== 'imperial') return storedAmount;
     switch (storageUnit) {
       case 'g':
@@ -84,12 +89,9 @@ export function useUnits() {
       default:
         return storedAmount;
     }
-  };
+  }
 
-  const toStorageAmount = (
-    displayAmount: number,
-    storageUnit: string,
-  ): number => {
+  function toStorageAmount(displayAmount: number, storageUnit: string): number {
     if (unitSystem.value !== 'imperial') return displayAmount;
     switch (storageUnit) {
       case 'g':
@@ -103,11 +105,9 @@ export function useUnits() {
       default:
         return displayAmount;
     }
-  };
+  }
 
-  // The short unit label to show next to an editable field for a given
-  // storage unit — 'oz' instead of 'g' when the person is in imperial mode.
-  const getDisplayUnit = (storageUnit: string): string => {
+  function getDisplayUnit(storageUnit: string): string {
     if (unitSystem.value === 'imperial') {
       const labels: Record<string, string> = {
         g: 'oz',
@@ -119,7 +119,7 @@ export function useUnits() {
       return labels[storageUnit] ?? storageUnit;
     }
     return storageUnit;
-  };
+  }
 
   const unitOptions = computed<UnitOption[]>(() => {
     if (unitSystem.value === 'imperial') {
