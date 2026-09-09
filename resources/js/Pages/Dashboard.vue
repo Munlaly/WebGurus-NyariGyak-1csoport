@@ -639,7 +639,7 @@ watch(searchQuery, (newVal) => {
               enter-to-class="opacity-100"
             >
               <span
-                v-if="props.weeklyAnalytics.percentage > 100"
+                v-if="props.weeklyAnalytics.percentage >= 100"
                 class="text-error text-right text-xs font-semibold"
               >
                 Caloric target exceeded

@@ -60,8 +60,6 @@ class DashboardController extends Controller
             ->with('mealPlans.recipe')
             ->get();
 
-        $hasActivePlan = $weeklyPlans->isNotEmpty();
-
         $weeklyAnalytics = function () use ($weeklyPlans) {
             $weeklyTargetCals = $weeklyPlans->sum('target_calories');
             $weeklyConsumedCals = 0;
