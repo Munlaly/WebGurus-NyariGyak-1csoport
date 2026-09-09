@@ -47,27 +47,22 @@ function onSubmit() {
           class="w-full"
           variant="outlined"
           :highlight="true"
+          size="xl"
         />
       </UFormField>
 
-      <div class="flex items-center justify-between">
-        <label class="text-on-surface text-sm font-medium">Password</label>
-        <Link
-          v-if="route().has('password.request')"
-          :href="route('password.request')"
-          class="text-primary hover:text-primary-container text-sm transition-colors hover:underline"
-        >
-          Forgot password?
-        </Link>
-      </div>
-
-      <UFormField name="password" :error="form.errors.password">
+      <UFormField
+        label="Password"
+        name="password"
+        :error="form.errors.password"
+      >
         <UInput
           v-model="form.password"
           :type="showPassword.password ? 'text' : 'password'"
           class="w-full"
           variant="outlined"
           :highlight="true"
+          size="xl"
         >
           <template #trailing>
             <button
@@ -83,6 +78,16 @@ function onSubmit() {
           </template>
         </UInput>
       </UFormField>
+
+      <div class="mt-2 flex justify-end">
+        <Link
+          v-if="route().has('password.request')"
+          :href="route('password.request')"
+          class="text-primary hover:text-primary-container text-sm font-medium transition-colors hover:underline"
+        >
+          Forgot password?
+        </Link>
+      </div>
 
       <UButton
         type="submit"
