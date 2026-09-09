@@ -86,15 +86,21 @@ class UserRecipeController extends Controller
             'ingredients.*.id' => 'required|exists:ingredients,id',
             'ingredients.*.amount' => 'required|numeric|min:0.1',
             'ingredients.*.unit'=> 'required|string|max:10',
+            'ingredients.*.raw_amount' => 'nullable|numeric|min:0.1',
+            'ingredients.*.raw_unit' => 'nullable|string|max:10',
         ]);
     }
 
     private function syncIngredients(Recipe $recipe, array $ingredients) {
         $ingredientData = [];
         foreach($ingredients as $ingredient) {
+            $amount = $ingredient['amount'];
+            $unit = $ingredient['unit'] ?? 'pcs';
             $ingredientData[$ingredient['id']] = [
-                'amount' => $ingredient['amount'],
-                'unit' => $ingredient['unit'] ?? 'pcs',
+                'amount' => $amount,
+                'unit' => $unit,
+                'raw_amount' => $ingredient['raw_amount'] ?? $amount,
+                'raw_unit' => $ingredient['raw_unit'] ?? $unit,
             ];
         }
         $recipe->ingredients()->sync($ingredientData);

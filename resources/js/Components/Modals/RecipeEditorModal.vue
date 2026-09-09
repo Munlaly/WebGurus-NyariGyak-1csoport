@@ -16,7 +16,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['close']);
-const { unitOptions } = useUnits();
+const { unitOptions, toStorageAmount, fromStorageAmount, getDisplayUnit } =
+  useUnits();
 
 const activeDropdownIndex = ref<number | null>(null);
 
@@ -71,12 +72,16 @@ watch(
         imagePreview.value = getImageUrl(props.recipe.image);
 
         form.ingredients = props.recipe.ingredients.map(
-          (i: RecipeIngredient) => ({
-            id: i.id,
-            name: i.name,
-            amount: i.pivot?.amount || 1,
-            unit: i.pivot?.unit || 'pcs',
-          }),
+          (i: RecipeIngredient) => {
+            const storedUnit = i.pivot?.unit || 'pcs';
+            const storedAmount = i.pivot?.amount || 1;
+            return {
+              id: i.id,
+              name: i.name,
+              amount: fromStorageAmount(storedAmount, storedUnit),
+              unit: storedUnit,
+            };
+          },
         );
       } else {
         form.reset();
@@ -126,13 +131,24 @@ function submit() {
   const routeName = props.recipe
     ? route('recipes.update', props.recipe.id)
     : route('recipes.store');
-  form.post(routeName, {
-    preserveScroll: true,
-    onSuccess: () => {
-      form.reset();
-      emit('close');
-    },
-  });
+
+  form
+    .transform((data) => ({
+      ...data,
+      ingredients: data.ingredients.map((ing: any) => ({
+        ...ing,
+        amount: toStorageAmount(ing.amount, ing.unit),
+        raw_amount: ing.amount,
+        raw_unit: getDisplayUnit(ing.unit),
+      })),
+    }))
+    .post(routeName, {
+      preserveScroll: true,
+      onSuccess: () => {
+        form.reset();
+        emit('close');
+      },
+    });
 }
 </script>
 
