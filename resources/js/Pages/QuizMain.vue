@@ -244,7 +244,14 @@ onMounted(() => {
         </header>
 
         <!-- Dynamic Step Components -->
-        <div class="min-h-[40dvh] lg:min-h-[50dvh]">
+        <div
+          class="flex min-h-[40dvh] w-full flex-col lg:min-h-[50dvh]"
+          :class="
+            stepConfig[currentStep].type === 'summary'
+              ? ''
+              : 'items-center justify-center'
+          "
+        >
           <StepIntro v-if="currentStep === 0" :username="username" />
           <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
 

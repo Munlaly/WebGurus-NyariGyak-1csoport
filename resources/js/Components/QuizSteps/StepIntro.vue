@@ -6,9 +6,9 @@ defineProps<{
 
 <template>
   <div
-    class="flex w-full max-w-2xl flex-col items-center space-y-10 text-center"
+    class="flex w-full max-w-2xl flex-col items-center justify-center space-y-10"
   >
-    <div class="space-y-6">
+    <div class="space-y-6 text-center" min-w-full>
       <h1
         class="font-display text-4xl font-bold tracking-tight text-slate-900 dark:text-white"
       >
