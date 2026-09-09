@@ -131,7 +131,7 @@ class DashboardController extends Controller
         }
 
         $recipes = Recipe::where('name', 'like', "%{$query}%")
-            ->select('id', 'name', 'meal_types', 'calories')
+            ->select('id', 'name', 'meal_types', 'calories', 'image')
             ->limit(10)
             ->get();
 
