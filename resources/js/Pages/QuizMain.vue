@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, watchEffect } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import type { PageProps } from '@inertiajs/core';
 import {
@@ -31,6 +31,7 @@ interface QuizPageProps extends PageProps {
     user: {
       username: string;
     } | null;
+    theme?: string;
   };
   dietaryOptions: { id: number; name: string; description: string | null }[];
   baseDietIds: number[];
@@ -159,6 +160,16 @@ watch(
   },
   { deep: true },
 );
+
+watchEffect(() => {
+  const currentTheme = page.props.auth?.theme || 'light';
+
+  if (currentTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
 
 // Load saved state
 onMounted(() => {
