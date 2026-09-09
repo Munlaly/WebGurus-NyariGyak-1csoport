@@ -20,13 +20,6 @@ class NutritionService
             $macros = ['protein' => 30, 'carbs' => 50, 'fat' => 20];
         }
 
-        if (!empty($profile->weekly_calorie_target)) {
-            return [
-                'calories' => (int) round($profile->weekly_calorie_target / 7),
-                'macros' => $macros,
-            ];
-        }
-    
         $weight = (float) ($profile->weight_kg ?? 70);
         $targetCalories = 0;
 
@@ -61,9 +54,10 @@ class NutritionService
 
         if ($dayIntensity === ExerciseIntensity::Moderate) {
             $targetCalories += (int) round($weight * 4.5);
-        } elseif ($dayIntensity === 'heavy') {
+        } elseif ($dayIntensity === ExerciseIntensity::Heavy) {
             $targetCalories += (int) round($weight * 7.5);
         }
+
         return [
             'calories' => (int) round($targetCalories),
             'macros' => $macros,
@@ -77,7 +71,7 @@ class NutritionService
         $profile->weekly_calorie_target = $targets['calories'] * 7;
         $profile->save();
 
-        $weight = (float) ($profile->weight_kg ?? 70);
+        $schedules = $profile->user->exerciseSchedules()->pluck('intensity', 'day_of_week')->toArray();
 
 
         // Apply changes tu future plans as well as to today's plan
@@ -86,9 +80,11 @@ class NutritionService
             ->get();
 
         foreach ($futurePlans as $plan) {
+            $dayNum = Carbon::parse($plan->date)->dayOfWeekIso;
+
             $dailyCals = $targets['calories'];
            
-            $intensity = $plan->day_type ?? ExerciseIntensity::Rest;
+            $intensity = $schedules[$dayNum] ?? ExerciseIntensity::Rest;
 
             $dailyNutrition = $this->calculateNutritionalTargets($profile, $intensity);
             $dailyCals = $dailyNutrition['calories'];
@@ -99,6 +95,7 @@ class NutritionService
             $fatGrams     = (int) round(($dailyCals * ($targets['macros']['fat'] / 100)) / 9);
 
             $plan->update([
+                'day_type' => $intensity,
                 'target_calories'  => $dailyCals,
                 'target_protein_g' => $proteinGrams,
                 'target_carbs_g'   => $carbsGrams,
