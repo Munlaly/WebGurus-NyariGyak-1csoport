@@ -178,13 +178,13 @@ class MealPlanController extends Controller
 
         $snackChancePercentage = 40;
 
-        $weight = (float) $profile->weight_kg;
+        $weight = (float) $profile->weight_kg ?? 70;
 
         foreach($days as $offset => $day) {
             $dayDate = $now->copy()->addDays($offset)->startOfDay();
 
             $dayNum = $dayDate->dayOfWeekIso; 
-            $dayIntensity = $exerciseSchedules[$dayNum];
+            $dayIntensity = $exerciseSchedules[$dayNum] ?? 'moderate';
 
             $dailyTargetCalories = $targetCalories;
             if ($dayIntensity === 'moderate') {
@@ -311,7 +311,7 @@ class MealPlanController extends Controller
                 }
 
                 $testTotal = $b->calories + $l->calories + $d->calories + $snackCalories;
-                $difference = abs($testTotal - $targetCalories);
+                $difference = abs($testTotal - $dailyTargetCalories);
 
                 if($difference < $closestDifference) {
                     $closestDifference = $difference;
@@ -445,7 +445,7 @@ class MealPlanController extends Controller
                 $dp->delete();
             }
 
-            $weight = (float) $profile->weight_kg;
+            $weight = (float) $profile->weight_kg ?? 70;
 
             // Insert new plan
             foreach($plan as $dayName => $dayData) {
