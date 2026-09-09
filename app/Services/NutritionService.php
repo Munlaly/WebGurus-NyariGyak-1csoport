@@ -5,10 +5,11 @@ namespace App\Services;
 use App\Models\UserProfile;
 use Illuminate\Support\Carbon;
 use App\Models\DailyPlan;
+use App\Enums\ExerciseIntensity;
 
 class NutritionService
 {
-    public function calculateNutritionalTargets(UserProfile $profile, string $dayIntensity = 'rest') {
+    public function calculateNutritionalTargets(UserProfile $profile, ExerciseIntensity $dayIntensity = ExerciseIntensity::Moderate) {
         $goal = $profile->fitness_goal->value ?? 'maintain';
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30];
 
@@ -58,7 +59,7 @@ class NutritionService
             }
         }
 
-        if ($dayIntensity === 'moderate') {
+        if ($dayIntensity === ExerciseIntensity::Moderate) {
             $targetCalories += (int) round($weight * 4.5);
         } elseif ($dayIntensity === 'heavy') {
             $targetCalories += (int) round($weight * 7.5);
@@ -87,7 +88,7 @@ class NutritionService
         foreach ($futurePlans as $plan) {
             $dailyCals = $targets['calories'];
            
-            $intensity = $plan->day_type->value ?? $plan->day_type;
+            $intensity = $plan->day_type ?? ExerciseIntensity::Rest;
 
             $dailyNutrition = $this->calculateNutritionalTargets($profile, $intensity);
             $dailyCals = $dailyNutrition['calories'];

@@ -184,7 +184,7 @@ class MealPlanController extends Controller
             $dayDate = $now->copy()->addDays($offset)->startOfDay();
 
             $dayNum = $dayDate->dayOfWeekIso; 
-            $dayIntensity = $exerciseSchedules[$dayNum] ?? 'moderate';
+            $dayIntensity = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate;
 
             $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayIntensity);
             $dailyTargetCalories = $dailyNutrition['calories'];
@@ -449,7 +449,7 @@ class MealPlanController extends Controller
                 $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
                 $dayNum = ($dayMapping[$dayName] ?? 0) +1 ;
-                $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate->value;
+                $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate;
 
                 $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayType);
                 $dailyCals = $dailyNutrition['calories'];
