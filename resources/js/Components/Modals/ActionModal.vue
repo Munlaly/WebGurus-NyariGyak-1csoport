@@ -1,13 +1,36 @@
 <script setup lang="ts">
-defineProps<{
-  show: boolean;
-  title: string;
-  processing?: boolean;
-  submitText?: string;
-  submitVariant?: 'primary' | 'error';
-}>();
+import { computed } from 'vue';
+
+const props = withDefaults(
+  defineProps<{
+    show: boolean;
+    title: string;
+    processing?: boolean;
+    submitText?: string;
+    submitVariant?: 'primary' | 'error';
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  }>(),
+  {
+    processing: false,
+    submitVariant: 'primary',
+    maxWidth: 'sm', // Defaults to sm so your existing smaller modals don't break
+  },
+);
 
 const emit = defineEmits(['close', 'submit']);
+
+// Map the prop to Tailwind max-width classes
+const maxWidthClass = computed(() => {
+  return {
+    sm: 'sm:max-w-sm',
+    md: 'sm:max-w-md',
+    lg: 'sm:max-w-lg',
+    xl: 'sm:max-w-xl',
+    '2xl': 'sm:max-w-2xl',
+    '3xl': 'sm:max-w-3xl',
+    '4xl': 'sm:max-w-4xl',
+  }[props.maxWidth];
+});
 </script>
 
 <template>
@@ -25,7 +48,10 @@ const emit = defineEmits(['close', 'submit']);
       @click.self="emit('close')"
     >
       <div
-        class="bg-surface border-outline-variant w-full max-w-sm rounded-2xl border p-6 shadow-2xl dark:bg-gray-900"
+        :class="[
+          'bg-surface border-outline-variant w-full rounded-2xl border p-6 shadow-2xl transition-all dark:bg-gray-900',
+          maxWidthClass,
+        ]"
       >
         <div class="mb-6 flex items-center justify-between">
           <h2

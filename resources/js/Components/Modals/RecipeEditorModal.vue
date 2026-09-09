@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ActionModal from './ActionModal.vue';
 import type {
-  IngredientOption,
   Recipe,
+  IngredientOption,
   RecipeIngredient,
 } from '../../Types/recipesInterfaces';
+import { useUnits } from '../../Composables/useUnits';
 
 const props = defineProps<{
   show: boolean;
@@ -15,6 +16,10 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['close']);
+const { unitOptions } = useUnits();
+
+// Track which ingredient row's search dropdown is currently open
+const activeDropdownIndex = ref<number | null>(null);
 
 const form = useForm({
   _method: 'post',
@@ -40,6 +45,7 @@ watch(
   () => props.show,
   (isOpen) => {
     if (isOpen) {
+      activeDropdownIndex.value = null; // Reset dropdowns
       if (props.recipe) {
         form._method = 'put';
         form.name = props.recipe.name;
@@ -51,10 +57,11 @@ watch(
         form.carbs = props.recipe.carbs;
         form.meal_types = props.recipe.meal_types || [];
         form.is_public = props.recipe.is_public;
+
         form.ingredients = props.recipe.ingredients.map(
           (i: RecipeIngredient) => ({
             id: i.id,
-            name: i.name,
+            name: i.name, // The search bar uses this to display the name!
             amount: i.pivot?.amount || 1,
             unit: i.pivot?.unit || 'pcs',
           }),
@@ -67,12 +74,33 @@ watch(
   },
 );
 
+// Filters the dropdown list as the user types
+function getFilteredIngredients(query: string) {
+  if (!query) return props.ingredientsList;
+  const lowerQuery = query.toLowerCase();
+  return props.ingredientsList.filter((opt) =>
+    opt.name.toLowerCase().includes(lowerQuery),
+  );
+}
+
+// Locks in the selection when an item from the dropdown is clicked
+function selectIngredient(ing: any, option: IngredientOption) {
+  ing.id = option.id;
+  ing.name = option.name; // Update the input text to match exactly
+  activeDropdownIndex.value = null;
+}
+
 function addIngredient() {
   form.ingredients.push({ id: 0, name: '', amount: 1, unit: 'pcs' });
+  // Automatically open the dropdown for the newly added item
+  setTimeout(() => {
+    activeDropdownIndex.value = form.ingredients.length - 1;
+  }, 50);
 }
 
 function removeIngredient(index: number) {
   form.ingredients.splice(index, 1);
+  activeDropdownIndex.value = null;
 }
 
 function handleImageUpload(e: Event) {
@@ -97,6 +125,7 @@ function submit() {
 <template>
   <ActionModal
     :show="show"
+    max-width="3xl"
     :title="recipe ? 'Edit Recipe' : 'Create Custom Recipe'"
     :processing="form.processing"
     :submit-text="recipe ? 'Save Changes' : 'Create Recipe'"
@@ -104,33 +133,39 @@ function submit() {
     @close="emit('close')"
     @submit="submit"
   >
-    <div class="flex flex-col gap-5">
+    <div
+      class="flex max-h-[70vh] scrollbar-thin flex-col gap-6 overflow-y-auto pr-2"
+    >
       <!-- Image Upload -->
       <div>
-        <label class="font-label-sm text-on-surface-variant mb-1 block"
+        <label class="font-label-sm text-on-surface mb-2 block font-semibold"
           >Recipe Image</label
         >
-        <input
-          type="file"
-          accept="image/*"
-          class="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 text-sm transition-all file:mr-4 file:rounded-xl file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold"
-          @change="handleImageUpload"
-        />
+        <div class="flex items-center gap-4">
+          <input
+            type="file"
+            accept="image/*"
+            class="text-on-surface-variant file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-full text-sm transition-all file:mr-4 file:cursor-pointer file:rounded-xl file:border-0 file:px-4 file:py-2.5 file:text-sm file:font-bold"
+            @change="handleImageUpload"
+          />
+        </div>
         <p v-if="form.errors.image" class="text-error mt-1 text-xs">
           {{ form.errors.image }}
         </p>
       </div>
 
       <!-- Basic Info -->
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div class="sm:col-span-2">
-          <label class="font-label-sm text-on-surface-variant mb-1 block"
+          <label
+            class="font-label-sm text-on-surface mb-1.5 block font-semibold"
             >Recipe Name</label
           >
           <input
             v-model="form.name"
             type="text"
-            class="border-outline-variant bg-surface-container-lowest focus:ring-primary w-full rounded-xl"
+            placeholder="e.g., Spicy Garlic Chicken"
+            class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
             required
           />
           <p v-if="form.errors.name" class="text-error mt-1 text-xs">
@@ -138,24 +173,26 @@ function submit() {
           </p>
         </div>
         <div>
-          <label class="font-label-sm text-on-surface-variant mb-1 block"
+          <label
+            class="font-label-sm text-on-surface mb-1.5 block font-semibold"
             >Prep Time (min)</label
           >
           <input
             v-model="form.prep_time_minutes"
             type="number"
-            class="border-outline-variant bg-surface-container-lowest focus:ring-primary w-full rounded-xl"
+            class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
             required
           />
         </div>
         <div>
-          <label class="font-label-sm text-on-surface-variant mb-1 block"
+          <label
+            class="font-label-sm text-on-surface mb-1.5 block font-semibold"
             >Calories</label
           >
           <input
             v-model="form.calories"
             type="number"
-            class="border-outline-variant bg-surface-container-lowest focus:ring-primary w-full rounded-xl"
+            class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
             required
           />
         </div>
@@ -164,35 +201,38 @@ function submit() {
       <!-- Macros -->
       <div class="grid grid-cols-3 gap-4">
         <div>
-          <label class="font-label-sm text-on-surface-variant mb-1 block"
+          <label
+            class="font-label-sm text-on-surface mb-1.5 block font-semibold"
             >Protein (g)</label
           >
           <input
             v-model="form.protein"
             type="number"
-            class="border-outline-variant bg-surface-container-lowest focus:ring-primary w-full rounded-xl"
+            class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
             required
           />
         </div>
         <div>
-          <label class="font-label-sm text-on-surface-variant mb-1 block"
+          <label
+            class="font-label-sm text-on-surface mb-1.5 block font-semibold"
             >Fat (g)</label
           >
           <input
             v-model="form.fat"
             type="number"
-            class="border-outline-variant bg-surface-container-lowest focus:ring-primary w-full rounded-xl"
+            class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
             required
           />
         </div>
         <div>
-          <label class="font-label-sm text-on-surface-variant mb-1 block"
+          <label
+            class="font-label-sm text-on-surface mb-1.5 block font-semibold"
             >Carbs (g)</label
           >
           <input
             v-model="form.carbs"
             type="number"
-            class="border-outline-variant bg-surface-container-lowest focus:ring-primary w-full rounded-xl"
+            class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
             required
           />
         </div>
@@ -200,22 +240,24 @@ function submit() {
 
       <!-- Meal Types -->
       <div>
-        <label class="font-label-sm text-on-surface-variant mb-2 block"
+        <label class="font-label-sm text-on-surface mb-2.5 block font-semibold"
           >Meal Types</label
         >
-        <div class="flex flex-wrap gap-4">
+        <div class="flex flex-wrap gap-5">
           <label
             v-for="type in ['breakfast', 'lunch', 'dinner', 'snack']"
             :key="type"
-            class="flex items-center gap-2"
+            class="flex cursor-pointer items-center gap-2"
           >
             <input
               v-model="form.meal_types"
               type="checkbox"
               :value="type"
-              class="text-primary focus:ring-primary rounded"
+              class="border-outline-variant text-primary focus:ring-primary h-5 w-5 rounded transition-colors"
             />
-            <span class="text-sm font-medium capitalize">{{ type }}</span>
+            <span class="text-on-surface font-medium capitalize">{{
+              type
+            }}</span>
           </label>
         </div>
         <p v-if="form.errors.meal_types" class="text-error mt-1 text-xs">
@@ -224,63 +266,124 @@ function submit() {
       </div>
 
       <!-- Ingredients Builder -->
-      <div class="border-outline-variant mt-2 border-t pt-4">
-        <div class="mb-3 flex items-center justify-between">
-          <label class="font-label-sm text-on-surface-variant block font-bold"
+      <div class="border-outline-variant mt-2 border-t pt-5">
+        <div class="mb-4 flex items-center justify-between">
+          <label class="font-label-sm text-on-surface block font-bold"
             >Ingredients</label
           >
           <button
             type="button"
-            class="text-primary bg-primary/10 rounded-full px-3 py-1 text-xs font-bold hover:underline"
+            class="bg-primary/10 text-primary hover:bg-primary/20 flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
             @click="addIngredient"
           >
-            + Add Ingredient
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            Add Ingredient
           </button>
         </div>
 
-        <div class="flex max-h-48 flex-col gap-2 overflow-y-auto pr-2">
+        <div class="flex flex-col gap-4">
+          <!-- Ingredient Card -->
           <div
             v-for="(ing, index) in form.ingredients"
             :key="index"
-            class="flex items-center gap-2"
+            class="bg-surface-container-low border-outline-variant/50 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center"
           >
-            <select
-              v-model="ing.id"
-              class="border-outline-variant bg-surface-container-lowest flex-1 rounded-lg p-2 text-sm"
-              required
-            >
-              <option disabled :value="0">Select ingredient...</option>
-              <option
-                v-for="option in ingredientsList"
-                :key="option.id"
-                :value="option.id"
+            <!-- SEARCHABLE COMBOBOX -->
+            <div class="relative flex-1 shrink">
+              <input
+                v-model="ing.name"
+                type="text"
+                placeholder="Type to search..."
+                class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
+                required
+                @input="
+                  ing.id = 0;
+                  activeDropdownIndex = index;
+                "
+                @focus="activeDropdownIndex = index"
+                @blur="activeDropdownIndex = null"
+              />
+              <!-- Visual Indicator for selection state -->
+              <span
+                v-if="ing.name && !ing.id"
+                class="material-symbols-outlined text-error absolute top-1/2 right-3 -translate-y-1/2 text-[20px]"
+                title="Please select an item from the list"
+                >error</span
               >
-                {{ option.emoji }} {{ option.name }}
-              </option>
-            </select>
-            <input
-              v-model="ing.amount"
-              type="number"
-              step="0.1"
-              class="border-outline-variant bg-surface-container-lowest w-20 rounded-lg p-2 text-sm"
-              placeholder="Amt"
-              required
-            />
-            <select
-              v-model="ing.unit"
-              class="border-outline-variant bg-surface-container-lowest w-24 rounded-lg p-2 text-sm"
-            >
-              <option value="pcs">pcs</option>
-              <option value="g">g</option>
-              <option value="ml">ml</option>
-            </select>
-            <button
-              type="button"
-              class="text-error hover:bg-error-container material-symbols-outlined rounded-full p-1 text-sm"
-              @click="removeIngredient(index)"
-            >
-              close
-            </button>
+              <span
+                v-else-if="ing.id"
+                class="material-symbols-outlined text-primary absolute top-1/2 right-3 -translate-y-1/2 text-[20px]"
+                >check_circle</span
+              >
+
+              <!-- Custom Dropdown Menu -->
+              <div
+                v-if="activeDropdownIndex === index"
+                class="border-outline-variant bg-surface-container-lowest absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border shadow-xl"
+              >
+                <ul class="py-2">
+                  <!-- Use mousedown.prevent so clicking doesn't trigger the input's blur event prematurely -->
+                  <li
+                    v-for="option in getFilteredIngredients(ing.name)"
+                    :key="option.id"
+                    class="hover:bg-surface-container-low text-on-surface cursor-pointer px-4 py-2 text-sm transition-colors"
+                    @mousedown.prevent="selectIngredient(ing, option)"
+                  >
+                    {{ option.emoji }} {{ option.name }}
+                  </li>
+                  <li
+                    v-if="getFilteredIngredients(ing.name).length === 0"
+                    class="text-on-surface-variant px-4 py-3 text-sm italic"
+                  >
+                    No matching ingredients found.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Amount & Unit Row -->
+            <div class="flex w-full shrink-0 items-center gap-2 sm:w-auto">
+              <input
+                v-model="ing.amount"
+                type="number"
+                step="0.1"
+                min="0.1"
+                class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-24 rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
+                placeholder="Amt"
+                required
+              />
+
+              <select
+                v-model="ing.unit"
+                class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-36 rounded-xl border px-3 py-3 text-sm transition-all outline-none focus:ring-2"
+              >
+                <option
+                  v-for="opt in unitOptions"
+                  :key="opt.value"
+                  :value="opt.value"
+                >
+                  {{ opt.label }}
+                </option>
+              </select>
+
+              <button
+                type="button"
+                class="text-error hover:bg-error-container hover:text-error-600 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors"
+                title="Remove ingredient"
+                @click="removeIngredient(index)"
+              >
+                <span class="material-symbols-outlined text-[24px]"
+                  >delete</span
+                >
+              </button>
+            </div>
+          </div>
+
+          <div
+            v-if="form.ingredients.length === 0"
+            class="border-outline-variant/50 text-on-surface-variant rounded-xl border border-dashed py-8 text-center text-sm font-medium"
+          >
+            No ingredients added yet.
           </div>
           <p v-if="form.errors.ingredients" class="text-error mt-1 text-xs">
             Please add at least one valid ingredient.
@@ -290,16 +393,33 @@ function submit() {
 
       <!-- Instructions -->
       <div>
-        <label class="font-label-sm text-on-surface-variant mb-1 block"
+        <label class="font-label-sm text-on-surface mb-1.5 block font-semibold"
           >Instructions</label
         >
         <textarea
           v-model="form.instructions"
-          rows="4"
-          class="border-outline-variant bg-surface-container-lowest focus:ring-primary w-full rounded-xl"
+          rows="5"
+          placeholder="1. Preheat the oven to 400°F..."
+          class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
           required
         ></textarea>
       </div>
     </div>
   </ActionModal>
 </template>
+
+<style scoped>
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 20px;
+}
+:deep(.dark) .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+</style>

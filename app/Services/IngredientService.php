@@ -37,8 +37,14 @@ class IngredientService
         $name = preg_replace('/(?:\*\*|\(|\s-\s).*/', '', $name);
         $name = str_replace('/', ' ', $name);
         $name = preg_replace("/^[a-z .]+'s\s+/", '', $name);
-        $name = preg_replace('/^[-*•▢☐]+\s*/u', '', $name);
+        $name = preg_replace('/^\[.*?\]\s*/', '', $name);
 
+        $units = 'cup|tablespoon|teaspoon|tbsp|tsp|oz|ounce|lb|pound|gram|g|ml|dash|pinch|clove|slice|piece|can|bunch|whole|package|stick';
+        $name = preg_replace('/^[\d\.\/½¼¾⅓⅔⅛⅜⅝⅞]+\s*(?:(?:' . $units . ')s?\.?\s+)?/i', '', $name);
+
+        $name = preg_replace('/^(?:a|an|add|additional|some)\s+/i', '', $name);
+        $name = preg_replace('/^[-*•▢☐"&)[\]]+\s*/u', '', $name);
+        
         $noiseWords = [
             'fresh(?:ly)?', 'chopped', 'diced', 'sliced', 'optional', 'garnish',
             'large', 'medium', 'small', 'the following', 'dry', 'raw',
