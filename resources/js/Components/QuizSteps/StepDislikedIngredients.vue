@@ -109,9 +109,9 @@ watch(searchTerm, (query) => {
             color="neutral"
             variant="outline"
             icon="i-lucide-search"
-            class="w-full ring-0 transition-colors"
+            class="w-full bg-transparent ring-0 transition-colors"
           >
-            <span class="w-fit rounded-md px-2 py-1">{{
+            <span class="w-fit rounded-md bg-transparent px-2 py-1">{{
               searchTerm || 'Search e.g., mushrooms, cilantro...'
             }}</span>
           </UButton>
