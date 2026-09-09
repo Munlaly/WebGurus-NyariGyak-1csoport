@@ -18,8 +18,10 @@ const props = defineProps<{
 const emit = defineEmits(['close']);
 const { unitOptions } = useUnits();
 
-// Track which ingredient row's search dropdown is currently open
 const activeDropdownIndex = ref<number | null>(null);
+
+// NEW: Store a local preview URL for the image
+const imagePreview = ref<string | null>(null);
 
 const form = useForm({
   _method: 'post',
@@ -41,11 +43,18 @@ const form = useForm({
   }[],
 });
 
+// Helper to format the saved DB path correctly
+function getImageUrl(path: string | null) {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `/storage/${path}`;
+}
+
 watch(
   () => props.show,
   (isOpen) => {
     if (isOpen) {
-      activeDropdownIndex.value = null; // Reset dropdowns
+      activeDropdownIndex.value = null;
       if (props.recipe) {
         form._method = 'put';
         form.name = props.recipe.name;
@@ -58,10 +67,13 @@ watch(
         form.meal_types = props.recipe.meal_types || [];
         form.is_public = props.recipe.is_public;
 
+        // Load the existing image into the preview
+        imagePreview.value = getImageUrl(props.recipe.image);
+
         form.ingredients = props.recipe.ingredients.map(
           (i: RecipeIngredient) => ({
             id: i.id,
-            name: i.name, // The search bar uses this to display the name!
+            name: i.name,
             amount: i.pivot?.amount || 1,
             unit: i.pivot?.unit || 'pcs',
           }),
@@ -69,12 +81,12 @@ watch(
       } else {
         form.reset();
         form._method = 'post';
+        imagePreview.value = null; // Clear preview for new recipes
       }
     }
   },
 );
 
-// Filters the dropdown list as the user types
 function getFilteredIngredients(query: string) {
   if (!query) return props.ingredientsList;
   const lowerQuery = query.toLowerCase();
@@ -83,16 +95,14 @@ function getFilteredIngredients(query: string) {
   );
 }
 
-// Locks in the selection when an item from the dropdown is clicked
 function selectIngredient(ing: any, option: IngredientOption) {
   ing.id = option.id;
-  ing.name = option.name; // Update the input text to match exactly
+  ing.name = option.name;
   activeDropdownIndex.value = null;
 }
 
 function addIngredient() {
   form.ingredients.push({ id: 0, name: '', amount: 1, unit: 'pcs' });
-  // Automatically open the dropdown for the newly added item
   setTimeout(() => {
     activeDropdownIndex.value = form.ingredients.length - 1;
   }, 50);
@@ -105,7 +115,11 @@ function removeIngredient(index: number) {
 
 function handleImageUpload(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0];
-  if (file) form.image = file;
+  if (file) {
+    form.image = file;
+    // NEW: Generate a temporary browser URL to preview the selected file immediately
+    imagePreview.value = URL.createObjectURL(file);
+  }
 }
 
 function submit() {
@@ -136,12 +150,24 @@ function submit() {
     <div
       class="flex max-h-[70vh] scrollbar-thin flex-col gap-6 overflow-y-auto pr-2"
     >
-      <!-- Image Upload -->
+      <!-- Image Upload with Preview -->
       <div>
         <label class="font-label-sm text-on-surface mb-2 block font-semibold"
           >Recipe Image</label
         >
         <div class="flex items-center gap-4">
+          <!-- The visual preview box -->
+          <div
+            v-if="imagePreview"
+            class="border-outline-variant bg-surface-container-low h-16 w-16 shrink-0 overflow-hidden rounded-xl border"
+          >
+            <img
+              :src="imagePreview"
+              class="h-full w-full object-cover"
+              alt="Preview"
+            />
+          </div>
+
           <input
             type="file"
             accept="image/*"
@@ -282,13 +308,11 @@ function submit() {
         </div>
 
         <div class="flex flex-col gap-4">
-          <!-- Ingredient Card -->
           <div
             v-for="(ing, index) in form.ingredients"
             :key="index"
             class="bg-surface-container-low border-outline-variant/50 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center"
           >
-            <!-- SEARCHABLE COMBOBOX -->
             <div class="relative flex-1 shrink">
               <input
                 v-model="ing.name"
@@ -303,7 +327,6 @@ function submit() {
                 @focus="activeDropdownIndex = index"
                 @blur="activeDropdownIndex = null"
               />
-              <!-- Visual Indicator for selection state -->
               <span
                 v-if="ing.name && !ing.id"
                 class="material-symbols-outlined text-error absolute top-1/2 right-3 -translate-y-1/2 text-[20px]"
@@ -316,13 +339,11 @@ function submit() {
                 >check_circle</span
               >
 
-              <!-- Custom Dropdown Menu -->
               <div
                 v-if="activeDropdownIndex === index"
                 class="border-outline-variant bg-surface-container-lowest absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border shadow-xl"
               >
                 <ul class="py-2">
-                  <!-- Use mousedown.prevent so clicking doesn't trigger the input's blur event prematurely -->
                   <li
                     v-for="option in getFilteredIngredients(ing.name)"
                     :key="option.id"
@@ -341,7 +362,6 @@ function submit() {
               </div>
             </div>
 
-            <!-- Amount & Unit Row -->
             <div class="flex w-full shrink-0 items-center gap-2 sm:w-auto">
               <input
                 v-model="ing.amount"
@@ -396,13 +416,27 @@ function submit() {
         <label class="font-label-sm text-on-surface mb-1.5 block font-semibold"
           >Instructions</label
         >
-        <textarea
-          v-model="form.instructions"
-          rows="5"
-          placeholder="1. Preheat the oven to 400°F..."
-          class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
-          required
-        ></textarea>
+
+        <div class="relative">
+          <!-- Multi-line pseudo-placeholder that hides when form.instructions is filled -->
+          <div
+            v-if="!form.instructions"
+            class="text-on-surface-variant/50 pointer-events-none absolute top-3.5 left-4 text-sm leading-relaxed"
+          >
+            1. Preheat the oven to 400°F...<br />
+            2. Dice the onions<br />
+            <span class="text-primary/70 font-medium"
+              >(Press Enter after every step)</span
+            >
+          </div>
+
+          <textarea
+            v-model="form.instructions"
+            rows="5"
+            class="border-outline-variant bg-surface-container-lowest text-on-surface focus:border-primary focus:ring-primary w-full rounded-xl border px-4 py-3 text-sm transition-all outline-none focus:ring-2"
+            required
+          ></textarea>
+        </div>
       </div>
     </div>
   </ActionModal>

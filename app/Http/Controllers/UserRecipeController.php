@@ -47,13 +47,16 @@ class UserRecipeController extends Controller
         $recipe = Recipe::where('user_id', $request->user()->id)->findOrFail($id);
         
         $validated = $this->validateRecipe($request);
+        $updateData = $validated;
 
         if($request->hasFile('image')) {
             if($recipe->image) Storage::disk('public')->delete($recipe->image);
-            $recipe->image = $request->file('image')->store('private_recipes', 'public');
+            $updateData['image'] = $request->file('image')->store('private_recipes', 'public');
+        } else {
+            unset($updateData['image']);
         }
 
-        $recipe->update($validated);
+        $recipe->update($updateData);
         $this->syncIngredients($recipe, $request->input('ingredients', []));
 
         return back()->with('success', 'Recipe updated successfully!');
