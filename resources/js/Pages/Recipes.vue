@@ -43,6 +43,27 @@ function handleImageError(event: Event) {
     target.src = 'https://placehold.co/600x400?text=No+Image';
   }
 }
+
+function getMealPlaceholder(mealTypes?: string[]) {
+  // If no types exist, return a generic food plate
+  if (!mealTypes || mealTypes.length === 0) return '🍲';
+
+  // Grab the first type in the array to act as our primary category
+  const primaryType = mealTypes[0].toLowerCase();
+
+  switch (primaryType) {
+    case 'breakfast':
+      return '🍳';
+    case 'lunch':
+      return '🥗';
+    case 'dinner':
+      return '🍝';
+    case 'snack':
+      return '🥨';
+    default:
+      return '🍽️';
+  }
+}
 </script>
 
 <template>
@@ -109,6 +130,7 @@ function handleImageError(event: Event) {
           >
             <Link :href="route('recipe.show', recipe.id)" class="block">
               <img
+                v-if="recipe"
                 :src="getImageUrl(recipe.image)"
                 :alt="recipe.name"
                 class="h-48 w-full object-cover"
@@ -145,11 +167,18 @@ function handleImageError(event: Event) {
           >
             <Link :href="route('recipe.show', recipe.id)" class="block">
               <img
+                v-if="recipe.image"
                 :src="getImageUrl(recipe.image)"
                 :alt="recipe.name"
                 class="h-48 w-full object-cover"
                 @error="handleImageError"
               />
+              <div
+                v-else
+                class="from-surface-container-low to-surface-container flex h-48 w-full items-center justify-center bg-gradient-to-br text-[80px] select-none"
+              >
+                {{ getMealPlaceholder(recipe.meal_types) }}
+              </div>
             </Link>
             <div class="flex grow flex-col p-4">
               <h3

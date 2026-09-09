@@ -12,6 +12,7 @@ import {
 } from '../utils/inventory';
 import { useUnits } from '../Composables/useUnits.js';
 import { useQuantityAction } from '../Composables/useQuantityAction.js';
+import QuantityUpdateModal from '../Components/Modals/QuantityUpdateModal.vue';
 
 const props = defineProps<{
   attentionNeeded: InventoryItem[];
