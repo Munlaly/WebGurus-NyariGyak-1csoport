@@ -103,8 +103,8 @@ class QuizController extends Controller
                 'prep_time_preference' => $validated['prep_time_preference'],
                 'system_preferences' => [
                     'theme' => 'light',
-                    'inAppAlerts' => 'true',
-                    'emailDigests' => 'false',
+                    'inAppAlerts' => true,
+                    'emailDigests' => false,
                     'unitSystem' =>  'metric',
                 ],
             ]);
