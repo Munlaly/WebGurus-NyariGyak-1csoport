@@ -186,12 +186,8 @@ class MealPlanController extends Controller
             $dayNum = $dayDate->dayOfWeekIso; 
             $dayIntensity = $exerciseSchedules[$dayNum] ?? 'moderate';
 
-            $dailyTargetCalories = $targetCalories;
-            if ($dayIntensity === 'moderate') {
-                $dailyTargetCalories += (int) round($weight * 4.5);
-            } elseif ($dayIntensity === 'heavy') {
-                $dailyTargetCalories += (int) round($weight * 7.5);
-            }
+            $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayIntensity);
+            $dailyTargetCalories = $dailyNutrition['calories'];
 
             $minCalories = $dailyTargetCalories * 0.85;
             $maxCalories = $dailyTargetCalories * 1.15;
@@ -455,12 +451,8 @@ class MealPlanController extends Controller
                 $dayNum = ($dayMapping[$dayName] ?? 0) +1 ;
                 $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate->value;
 
-                $dailyCals = $nutritionTargets['calories'];
-                if ($dayType === 'moderate') {
-                    $dailyCals += (int) round($weight * 4.5);
-                } elseif ($dayType === 'heavy') {
-                    $dailyCals += (int) round($weight * 7.5);
-                }
+                $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayType);
+                $dailyCals = $dailyNutrition['calories'];
 
                 $proteinGrams = (int) round(($dailyCals * ($nutritionTargets['macros']['protein'] / 100)) / 4);
                 $carbsGrams   = (int) round(($dailyCals * ($nutritionTargets['macros']['carbs'] / 100)) / 4);

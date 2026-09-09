@@ -8,7 +8,7 @@ use App\Models\DailyPlan;
 
 class NutritionService
 {
-    public function calculateNutritionalTargets(UserProfile $profile) {
+    public function calculateNutritionalTargets(UserProfile $profile, string $dayIntensity = 'rest') {
         $goal = $profile->fitness_goal->value ?? 'maintain';
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30];
 
@@ -27,35 +27,42 @@ class NutritionService
         }
     
         $weight = (float) ($profile->weight_kg ?? 70);
-        $height = (float) ($profile->height_cm ?? 170);
-        $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
+        $targetCalories = 0;
 
-        $sex = $profile->sex->value ?? 'male';
-        $activity = $profile->baseline_activity->value ?? 'sedentary';
+        if (!empty($profile->weekly_calorie_target)) {
+            $targetCalories = (int) round($profile->weekly_calorie_target / 7);
+        }
+        else {
+            $height = (float) ($profile->height_cm ?? 170);
+            $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
+            $sex = $profile->sex->value ?? 'male';
+            $activity = $profile->baseline_activity->value ?? 'sedentary';
 
-        // calculate Basal Metabolic Rate (Mifflin-St Jeor)
-        $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
-        $bmr += ($sex === 'female') ? -161 : 5;
+            $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
+            $bmr += ($sex === 'female') ? -161 : 5;
 
-        // apply activity multiplier
-        $multipliers = [
-            'sedentary' => 1.2,
-            'lightly_active' => 1.375,
-            'moderately_active' => 1.55,
-            'very_active' => 1.725,
-        ];
+            $multipliers = [
+                'sedentary' => 1.2,
+                'lightly_active' => 1.375,
+                'moderately_active' => 1.55,
+                'very_active' => 1.725,
+            ];
 
-        $tdee = $bmr * $multipliers[$activity];
-        
-        $targetCalories = $tdee;
-        $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
+            $tdee = $bmr * $multipliers[$activity];
+            $targetCalories = $tdee;
 
-        if(in_array($goal, ['lose_weight', 'lose weight'])) {
-            $targetCalories = $tdee - 500;
-        } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
-            $targetCalories = $tdee + 500;
+            if(in_array($goal, ['lose_weight', 'lose weight'])) {
+                $targetCalories = $tdee - 500;
+            } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+                $targetCalories = $tdee + 500;
+            }
         }
 
+        if ($dayIntensity === 'moderate') {
+            $targetCalories += (int) round($weight * 4.5);
+        } elseif ($dayIntensity === 'heavy') {
+            $targetCalories += (int) round($weight * 7.5);
+        }
         return [
             'calories' => (int) round($targetCalories),
             'macros' => $macros,
@@ -82,13 +89,8 @@ class NutritionService
            
             $intensity = $plan->day_type->value ?? $plan->day_type;
 
-            if ($intensity === 'moderate') {
-                $dailyCals += (int) round($weight * 4.5); 
-            } elseif ($intensity === 'heavy') {
-                $dailyCals += (int) round($weight * 7.5); 
-            }
-
-
+            $dailyNutrition = $this->calculateNutritionalTargets($profile, $intensity);
+            $dailyCals = $dailyNutrition['calories'];
 
             // Convert macro percentages to exact grams based on the adjusted daily calories
             $proteinGrams = (int) round(($dailyCals * ($targets['macros']['protein'] / 100)) / 4);
