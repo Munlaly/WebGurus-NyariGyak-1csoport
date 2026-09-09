@@ -154,8 +154,8 @@ class MealPlanController extends Controller
         $dinners = $pruneBucket($dinners);
         $snacks = $pruneBucket($snacks);
 
-        $minCalories = $targetCalories * 0.93;
-        $maxCalories = $targetCalories * 1.07;
+        $minCalories = $targetCalories * 0.90;
+        $maxCalories = $targetCalories * 1.10;
 
         $userInventory = UserInventory::where('user_id', $user->id)
             ->orderBy('expiration_date', 'asc')
@@ -187,8 +187,8 @@ class MealPlanController extends Controller
             $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayIntensity);
             $dailyTargetCalories = $dailyNutrition['calories'];
 
-            $minCalories = $dailyTargetCalories * 0.93;
-            $maxCalories = $dailyTargetCalories * 1.07;
+            $minCalories = $dailyTargetCalories * 0.90;
+            $maxCalories = $dailyTargetCalories * 1.10;
 
             $dailyMeals = null;
             $bestAttempt = null;
@@ -238,7 +238,7 @@ class MealPlanController extends Controller
                 }
                 return $score;
             };
-            
+
             $fillerMeal = mt_rand(0, 2);
             while($attempts < $maxAttempts) {
                 $b = null;
@@ -355,6 +355,7 @@ class MealPlanController extends Controller
                 'total_calories' => collect($formattedMeals)->sum('calories'),
                 'has_snack' => $includeSnack,
                 'perfect_match' => $perfectMatch,
+                'target_calories' => $dailyTargetCalories,
             ];
         }
 
@@ -540,15 +541,16 @@ class MealPlanController extends Controller
             $totalCalories = $meals->sum('calories');
             $hasSnack = $meals->contains('meal_type', 'snack');
             
-            $minCalories = $dailyPlan->target_calories * 0.85;
-            $maxCalories = $dailyPlan->target_calories * 1.15;
+            $minCalories = $dailyPlan->target_calories * 0.93;
+            $maxCalories = $dailyPlan->target_calories * 1.07;
             $perfectMatch = $totalCalories >= $minCalories && $totalCalories <= $maxCalories;
 
             $weeklyPlan[$dayName] = [
                 'total_calories' => $totalCalories,
                 'has_snack' => $hasSnack,
                 'perfect_match' => $perfectMatch,
-                'meals' => $meals->values()->toArray()
+                'meals' => $meals->values()->toArray(),
+                'target_calories' => $dailyPlan->target_calories,
             ];
         }
 

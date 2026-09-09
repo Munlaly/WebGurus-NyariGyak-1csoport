@@ -70,9 +70,11 @@ function recomputeDayMatch(day: DayPlan) {
     (sum, m) => sum + Number(m.calories || 0),
     0,
   );
-  if (dailyCalorieTarget.value) {
-    const min = dailyCalorieTarget.value * 0.85;
-    const max = dailyCalorieTarget.value * 1.15;
+  const target = day.target_calories || dailyCalorieTarget.value;
+
+  if (target) {
+    const min = target * 0.9;
+    const max = target * 1.1;
     day.perfect_match = day.total_calories >= min && day.total_calories <= max;
   }
 }
