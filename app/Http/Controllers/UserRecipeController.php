@@ -73,7 +73,7 @@ class UserRecipeController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, int $id) {
         $recipe = Recipe::where('user_id', $request->user()->id)->findOrFail($id);
         
         $validated = $request->validate([
