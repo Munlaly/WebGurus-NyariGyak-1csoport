@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import RecipeEditorModal from '../Components/Modals/RecipeEditorModal.vue';
 import type { Recipe, IngredientOption } from '../Types/recipesInterfaces';
@@ -107,12 +107,14 @@ function handleImageError(event: Event) {
             :key="recipe.id"
             class="bg-surface-container-lowest border-outline-variant/50 flex flex-col overflow-hidden rounded-2xl border shadow-sm"
           >
-            <img
-              :src="getImageUrl(recipe.image)"
-              :alt="recipe.name"
-              class="h-48 w-full object-cover"
-              @error="handleImageError"
-            />
+            <Link :href="route('recipe.show', recipe.id)" class="block">
+              <img
+                :src="getImageUrl(recipe.image)"
+                :alt="recipe.name"
+                class="h-48 w-full object-cover"
+                @error="handleImageError"
+              />
+            </Link>
             <div class="flex grow flex-col p-4">
               <h3
                 class="font-label-lg text-on-surface mb-1 line-clamp-1 font-bold capitalize"
@@ -141,12 +143,14 @@ function handleImageError(event: Event) {
             :key="recipe.id"
             class="bg-surface-container-lowest border-outline-variant/50 group flex flex-col overflow-hidden rounded-2xl border shadow-sm"
           >
-            <img
-              :src="getImageUrl(recipe.image)"
-              :alt="recipe.name"
-              class="h-48 w-full object-cover"
-              @error="handleImageError"
-            />
+            <Link :href="route('recipe.show', recipe.id)" class="block">
+              <img
+                :src="getImageUrl(recipe.image)"
+                :alt="recipe.name"
+                class="h-48 w-full object-cover"
+                @error="handleImageError"
+              />
+            </Link>
             <div class="flex grow flex-col p-4">
               <h3
                 class="font-label-lg text-on-surface mb-1 line-clamp-1 font-bold capitalize"
