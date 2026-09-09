@@ -137,6 +137,12 @@ function getMealPlaceholder(mealTypes?: string[]) {
                 @error="handleImageError"
               />
             </Link>
+            =======
+            <img
+              :src="getImageUrl(recipe.image)"
+              :alt="recipe.name"
+              class="h-48 w-full object-cover"
+            />
             <div class="flex grow flex-col p-4">
               <h3
                 class="font-label-lg text-on-surface mb-1 line-clamp-1 font-bold capitalize"
@@ -180,6 +186,12 @@ function getMealPlaceholder(mealTypes?: string[]) {
                 {{ getMealPlaceholder(recipe.meal_types) }}
               </div>
             </Link>
+            =======
+            <img
+              :src="getImageUrl(recipe.image)"
+              :alt="recipe.name"
+              class="h-48 w-full object-cover"
+            />
             <div class="flex grow flex-col p-4">
               <h3
                 class="font-label-lg text-on-surface mb-1 line-clamp-1 font-bold capitalize"
