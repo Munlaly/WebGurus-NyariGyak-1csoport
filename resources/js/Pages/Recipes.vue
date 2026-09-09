@@ -32,7 +32,16 @@ function deleteRecipe(id: number) {
 }
 
 function getImageUrl(path: string | null) {
-  return path ? `/storage/${path}` : '/images/default-recipe.png'; // Fallback image
+  if (!path) return 'https://placehold.co/600x400?text=No+Image';
+  if (path.startsWith('http')) return path;
+  return `/storage/${path}`;
+}
+
+function handleImageError(event: Event) {
+  const target = event.target as HTMLImageElement | null;
+  if (target) {
+    target.src = 'https://placehold.co/600x400?text=No+Image';
+  }
 }
 </script>
 
@@ -102,6 +111,7 @@ function getImageUrl(path: string | null) {
               :src="getImageUrl(recipe.image)"
               :alt="recipe.name"
               class="h-48 w-full object-cover"
+              @error="handleImageError"
             />
             <div class="flex grow flex-col p-4">
               <h3
@@ -135,6 +145,7 @@ function getImageUrl(path: string | null) {
               :src="getImageUrl(recipe.image)"
               :alt="recipe.name"
               class="h-48 w-full object-cover"
+              @error="handleImageError"
             />
             <div class="flex grow flex-col p-4">
               <h3
