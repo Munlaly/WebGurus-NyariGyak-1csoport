@@ -194,6 +194,7 @@ async function handleCookMeal(
 
   try {
     const response = await axios.post(`/recipe/${recipeId}/cook`, {
+      meal_plan_id: mealPlanId,
       confirmed,
       mismatch_overrides: mismatchOverrides,
     });
@@ -213,6 +214,7 @@ async function handleCookMeal(
     if (response.data.success) {
       localPreparedStatus.value[mealPlanId] = true;
       cancelCooking();
+      router.reload({ only: ['topbarData'] });
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -256,7 +258,9 @@ watch(searchQuery, (newVal) => {
   isSearching.value = true;
   searchTimeout = setTimeout(async () => {
     try {
-      const { data } = await axios.get(`/dashboard/search-recipes?q=${newVal}`);
+      const { data } = await axios.get<SearchResult[]>(
+        `/dashboard/search-recipes?q=${newVal}`,
+      );
       searchResults.value = data;
     } catch (error) {
       console.error('Search failed:', error);
@@ -360,16 +364,10 @@ watch(searchQuery, (newVal) => {
       >
         <MealCard
           v-for="meal in currentMeals"
-          :id="meal.id"
           :key="meal.meal_plan_id"
-          :title="meal.title"
-          :calories="meal.calories"
-          :prep-time="meal.prepTime"
-          :image-url="meal.imageUrl"
-          :image-alt="meal.imageAlt"
-          :is-prepared="meal.isPrepared"
-          :is-favorite="meal.isFavorite"
-          @toggle-cooked="handleCookMeal(meal.meal_plan_id, meal.id, false)"
+          v-bind="meal"
+          :is-today="dayOffset <= 0"
+          @toggle-eaten="handleCookMeal(meal.meal_plan_id, meal.id, false)"
           @toggle-favorite="toggleFavoriteStatus(meal.id)"
           @add-to-cart="handleAddToCart(meal.id)"
         />

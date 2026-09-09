@@ -60,6 +60,9 @@ class User extends Authenticatable
         return $this->hasMany(UserInventory::class);
     }
 
+    /**
+     * @return HasMany<\App\Models\DailyPlan, $this>
+     */
     public function dailyPlans(): HasMany
     {
         return $this->hasMany(DailyPlan::class);

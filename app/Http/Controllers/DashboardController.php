@@ -45,7 +45,10 @@ class DashboardController extends Controller
         $tomorrowString = $today->copy()->addDay()->toDateString();
 
         $dailyPlans = DailyPlan::where('user_id', $user->id)
-            ->whereBetween('date', [$yesterdayString, $tomorrowString])
+            ->whereBetween('date', [
+                $today->copy()->subDay()->startOfDay(),
+                $today->copy()->addDay()->endOfDay()
+            ])
             ->with(['mealPlans.recipe.ingredients'])
             ->get();
  
@@ -57,8 +60,8 @@ class DashboardController extends Controller
 
         $hasActivePlan = DailyPlan::where('user_id', $user->id)
             ->whereBetween('date', [
-                $today->copy()->startOfWeek()->toDateString(),
-                $today->copy()->endOfWeek()->toDateString()
+                $today->copy()->startOfWeek()->startOfDay(),
+                $today->copy()->endOfWeek()->endOfDay()
         ])
         ->exists();
 
