@@ -21,52 +21,48 @@ class NutritionService
         }
 
         $weight = (float) ($profile->weight_kg ?? 70);
-        $targetCalories = 0;
+        $height = (float) ($profile->height_cm ?? 170);
+        $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
+        $sex = $profile->sex->value ?? 'male';
+        $activity = $profile->baseline_activity->value ?? 'sedentary';
 
-        if (!empty($profile->weekly_calorie_target)) {
-            $targetCalories = (int) round($profile->weekly_calorie_target / 7);
-        }
-        else {
-            $height = (float) ($profile->height_cm ?? 170);
-            $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
-            $sex = $profile->sex->value ?? 'male';
-            $activity = $profile->baseline_activity->value ?? 'sedentary';
+        // Base BMR Calculation
+        $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
+        $bmr += ($sex === 'female') ? -161 : 5;
 
-            $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
-            $bmr += ($sex === 'female') ? -161 : 5;
+        $multipliers = [
+            'sedentary' => 1.2,
+            'lightly_active' => 1.375,
+            'moderately_active' => 1.55,
+            'very_active' => 1.725,
+        ];
 
-            $multipliers = [
-                'sedentary' => 1.2,
-                'lightly_active' => 1.375,
-                'moderately_active' => 1.55,
-                'very_active' => 1.725,
-            ];
+        // Base TDEE
+        $tdee = $bmr * $multipliers[$activity];
 
-            $tdee = $bmr * $multipliers[$activity];
-            $targetCalories = $tdee;
-
-            if(in_array($goal, ['lose_weight', 'lose weight'])) {
-                $targetCalories = $tdee - 500;
-            } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
-                $targetCalories = $tdee + 500;
-            }
-        }
-
+        // Add Exercise Output FIRST
         if ($dayIntensity === ExerciseIntensity::Moderate) {
-            $targetCalories += (int) round($weight * 4.5);
+            $tdee += (int) round($weight * 4.5);
         } elseif ($dayIntensity === ExerciseIntensity::Heavy) {
-            $targetCalories += (int) round($weight * 7.5);
+            $tdee += (int) round($weight * 7.5);
         }
 
+        // Apply Goal Deficit/Surplus LAST
+        $targetCalories = $tdee;
+        if(in_array($goal, ['lose_weight', 'lose weight'])) {
+            $targetCalories = $tdee - 500;
+        } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
+            $targetCalories = $tdee + 500;
+        }
+        
         return [
             'calories' => (int) round($targetCalories),
             'macros' => $macros,
         ];
+
     }
 
     public function updateProfileWeeklyCalories(UserProfile $profile): void {
-        $profile->weekly_calorie_target = null;
-
         $targets = $this->calculateNutritionalTargets($profile);
         $profile->weekly_calorie_target = $targets['calories'] * 7;
         $profile->save();
@@ -74,7 +70,7 @@ class NutritionService
         $schedules = $profile->user->exerciseSchedules()->pluck('intensity', 'day_of_week')->toArray();
 
 
-        // Apply changes tu future plans as well as to today's plan
+        // Apply changes to future plans as well as to today's plan
         $futurePlans = DailyPlan::where('user_id', $profile->user_id)
             ->whereDate('date', '>=', Carbon::now()->toDateString())
             ->get();
@@ -82,8 +78,6 @@ class NutritionService
         foreach ($futurePlans as $plan) {
             $dayNum = Carbon::parse($plan->date)->dayOfWeekIso;
 
-            $dailyCals = $targets['calories'];
-           
             $intensity = $schedules[$dayNum] ?? ExerciseIntensity::Rest;
 
             $dailyNutrition = $this->calculateNutritionalTargets($profile, $intensity);
