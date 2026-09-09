@@ -9,6 +9,15 @@ import type {
 } from '../../Types/recipesInterfaces';
 import { useUnits } from '../../Composables/useUnits';
 
+interface FormIngredient {
+  id: number;
+  name: string;
+  amount: number;
+  unit: string;
+  raw_amount?: number;
+  raw_unit?: string;
+}
+
 const props = defineProps<{
   show: boolean;
   recipe?: Recipe | null;
@@ -100,7 +109,7 @@ function getFilteredIngredients(query: string) {
   );
 }
 
-function selectIngredient(ing: any, option: IngredientOption) {
+function selectIngredient(ing: FormIngredient, option: IngredientOption) {
   ing.id = option.id;
   ing.name = option.name;
   activeDropdownIndex.value = null;
@@ -135,7 +144,7 @@ function submit() {
   form
     .transform((data) => ({
       ...data,
-      ingredients: data.ingredients.map((ing: any) => ({
+      ingredients: data.ingredients.map((ing: FormIngredient) => ({
         ...ing,
         amount: toStorageAmount(ing.amount, ing.unit),
         raw_amount: ing.amount,

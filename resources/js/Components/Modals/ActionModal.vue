@@ -13,13 +13,13 @@ const props = withDefaults(
   {
     processing: false,
     submitVariant: 'primary',
-    maxWidth: 'sm', // Defaults to sm so your existing smaller modals don't break
+    maxWidth: 'sm',
+    submitText: 'Confirm',
   },
 );
 
 const emit = defineEmits(['close', 'submit']);
 
-// Map the prop to Tailwind max-width classes
 const maxWidthClass = computed(() => {
   return {
     sm: 'sm:max-w-sm',
