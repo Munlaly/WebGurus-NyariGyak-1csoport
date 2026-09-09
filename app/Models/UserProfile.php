@@ -35,6 +35,9 @@ class UserProfile extends Model
         'weekly_calorie_target' => 'integer',
     ];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<\App\Models\User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
