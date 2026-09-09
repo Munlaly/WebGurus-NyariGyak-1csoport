@@ -68,9 +68,8 @@ class DashboardController extends Controller
         foreach ($weeklyPlans as $plan) {
             $eatenMeals = $plan->mealPlans->where('status', 'EATEN');
             foreach ($eatenMeals as $mealPlan) {
-                if ($recipe = $mealPlan->recipe) {
-                    $weeklyConsumedCals += $recipe->calories ?? 0;
-                }
+                $recipe = $mealPlan->recipe;
+                $weeklyConsumedCals += $recipe->calories ?? 0;
             }
         }
 
