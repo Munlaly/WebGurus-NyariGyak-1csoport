@@ -4,12 +4,17 @@ import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
 import axios from 'axios';
-import { Meal, SearchResult } from '../Types/dashboardInterfaces.js';
+import {
+  Meal,
+  SearchResult,
+  WeeklyAnalytics,
+} from '../Types/dashboardInterfaces.js';
 import { useUnits } from '../Composables/useUnits.js';
 
 const props = defineProps<{
   mealsByOffset: Record<string, Meal[]>;
   hasActivePlan: boolean;
+  weeklyAnalytics: WeeklyAnalytics;
 }>();
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -214,7 +219,7 @@ async function handleCookMeal(
     if (response.data.success) {
       localPreparedStatus.value[mealPlanId] = true;
       cancelCooking();
-      router.reload({ only: ['topbarData'] });
+      router.reload({ only: ['topbarData', 'weeklyAnalytics'] });
     }
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
@@ -570,25 +575,88 @@ watch(searchQuery, (newVal) => {
 
       <!-- Weekly Analytics Section -->
       <div
-        class="bg-surface-container-lowest border-surface-container-high mt-auto rounded-xl border p-8 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
+        class="bg-surface-container-lowest border-surface-container-high mt-auto rounded-xl border p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:p-8"
       >
-        <div class="mb-6 flex items-center justify-between">
-          <h3 class="font-headline-lg text-headline-lg text-on-surface">
+        <div class="mb-8 flex items-center justify-between">
+          <h3
+            class="font-headline-lg text-headline-lg text-on-surface font-bold"
+          >
             Weekly Analytics
           </h3>
-          <span class="material-symbols-outlined text-primary">monitoring</span>
+          <UIcon name="i-lucide-activity" class="text-primary size-6" />
         </div>
+
+        <!-- Live Progress Widget -->
         <div
-          class="bg-surface-container-low text-on-surface-variant border-outline-variant font-body-md text-body-md flex h-48 w-full items-center justify-center rounded-lg border border-dashed"
+          v-if="props.hasActivePlan && props.weeklyAnalytics.targetCalories > 0"
+          class="flex flex-col gap-5"
         >
-          <div class="flex flex-col items-center gap-2">
-            <span
-              class="material-symbols-outlined text-tertiary-container text-4xl"
+          <!-- Header & Stats Row -->
+          <div class="flex items-end justify-between">
+            <div class="flex flex-col gap-1">
+              <span class="text-on-surface-variant text-sm font-medium"
+                >Calories Consumed</span
+              >
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-on-surface text-3xl font-bold tracking-tight">
+                  {{ props.weeklyAnalytics.consumedCalories }}
+                </span>
+                <span class="text-on-surface-variant text-sm font-medium">
+                  / {{ props.weeklyAnalytics.targetCalories }} kcal
+                </span>
+              </div>
+            </div>
+
+            <!-- Dynamic Badge: Enlarged for better discovery -->
+            <UBadge
+              :color="
+                props.weeklyAnalytics.percentage >= 100 ? 'error' : 'primary'
+              "
+              variant="subtle"
+              size="lg"
+              class="px-3 py-1 text-sm font-bold"
             >
-              bar_chart
-            </span>
-            <span>Analytics visualization will appear here</span>
+              {{ props.weeklyAnalytics.percentage }}%
+            </UBadge>
           </div>
+
+          <!-- Nuxt UI v4 Native Progress Bar: Fixed indeterminate state -->
+          <div class="flex flex-col gap-2">
+            <UProgress
+              :model-value="props.weeklyAnalytics.consumedCalories"
+              :max="props.weeklyAnalytics.targetCalories"
+              :color="
+                props.weeklyAnalytics.percentage >= 100 ? 'error' : 'primary'
+              "
+              size="md"
+              class="w-full"
+            />
+
+            <!-- Warning text that only appears if the user overeats -->
+            <Transition
+              enter-active-class="transition-opacity duration-300 ease-out"
+              enter-from-class="opacity-0"
+              enter-to-class="opacity-100"
+            >
+              <span
+                v-if="props.weeklyAnalytics.percentage >= 100"
+                class="text-error text-right text-xs font-semibold"
+              >
+                Caloric target exceeded
+              </span>
+            </Transition>
+          </div>
+        </div>
+
+        <!-- Fallback state if no plan exists -->
+        <div
+          v-else
+          class="bg-surface-container-low text-on-surface-variant border-outline-variant flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center"
+        >
+          <UIcon name="i-lucide-bar-chart-3" class="size-10 opacity-40" />
+          <span class="text-sm font-medium"
+            >Generate a weekly plan to see your caloric progress.</span
+          >
         </div>
       </div>
     </div>

@@ -18,3 +18,8 @@ export interface SearchResult {
   meal_types: string[];
   calories: number;
 }
+export interface WeeklyAnalytics {
+  targetCalories: number;
+  consumedCalories: number;
+  percentage: number;
+}

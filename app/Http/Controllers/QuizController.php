@@ -28,7 +28,7 @@ class QuizController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, NutritionService $nutritionService)
     {
         $user = $request->user();
 
@@ -80,7 +80,7 @@ class QuizController extends Controller
         ]);
 
       // Transaction to prevent corrupted db state
-        DB::transaction(function () use ($user, $validated) {
+        DB::transaction(function () use ($user, $validated, $nutritionService) {
             
             // Save Profile Data
             /** @var \App\Models\UserProfile $profile */
@@ -95,10 +95,7 @@ class QuizController extends Controller
                 'fitness_goal' => $validated['fitness_goal'],
             ]);
 
-            $targets = (new NutritionService())->calculateNutritionalTargets($profile);
-            $profile->update([
-                'weekly_calorie_target' => $targets['calories'] * 7,
-            ]);
+            $nutritionService->updateProfileWeeklyCalories($profile);
 
             // Save App Settings
             $user->settings()->updateOrCreate(
