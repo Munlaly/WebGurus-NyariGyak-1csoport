@@ -407,7 +407,7 @@ watch(searchQuery, (newVal) => {
           title="No weekly plan yet"
           description="It looks like you haven't generated a meal plan for this week. Let's get you set up."
           :actions="[{ label: 'Go to Weekly Planner', onClick: goToPlanner }]"
-          class="border-error w-full border-2 border-dashed"
+          class="w-full border-2 border-dashed border-gray-600"
         />
       </div>
 
