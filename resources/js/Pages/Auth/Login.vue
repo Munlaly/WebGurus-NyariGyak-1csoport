@@ -47,27 +47,22 @@ function onSubmit() {
           class="w-full"
           variant="outlined"
           :highlight="true"
+          size="xl"
         />
       </UFormField>
 
-      <div class="flex items-center justify-between">
-        <label class="text-on-surface text-sm font-medium">Password</label>
-        <Link
-          v-if="route().has('password.request')"
-          :href="route('password.request')"
-          class="text-primary hover:text-primary-container text-sm transition-colors hover:underline"
-        >
-          Forgot password?
-        </Link>
-      </div>
-
-      <UFormField name="password" :error="form.errors.password">
+      <UFormField
+        label="Password"
+        name="password"
+        :error="form.errors.password"
+      >
         <UInput
           v-model="form.password"
           :type="showPassword.password ? 'text' : 'password'"
           class="w-full"
           variant="outlined"
           :highlight="true"
+          size="xl"
         >
           <template #trailing>
             <button
@@ -84,14 +79,25 @@ function onSubmit() {
         </UInput>
       </UFormField>
 
+      <div class="mt-2 flex justify-end">
+        <Link
+          v-if="route().has('password.request')"
+          :href="route('password.request')"
+          class="text-primary hover:text-primary-container text-sm font-medium transition-colors hover:underline"
+        >
+          Forgot password?
+        </Link>
+      </div>
+
       <UButton
         type="submit"
         block
+        size="xl"
+        color="primary"
         :loading="form.processing"
-        class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+        class="w-full justify-center"
       >
         Log In
-        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
       </UButton>
     </UForm>
 

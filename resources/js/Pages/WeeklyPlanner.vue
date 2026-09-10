@@ -5,6 +5,7 @@ import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import PlannerDayColumn from '../Components/WeeklyPlanner/PlannerDayColumn.vue';
 import ActionModal from '../Components/Modals/ActionModal.vue';
 import { DayPlan, MealType, PlannerMeal } from '../Types/plannerInterfaces.js';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps<{
   initialPlan?: Record<string, DayPlan>;
@@ -257,7 +258,7 @@ async function acceptAndFinalize() {
     });
 
     if (response.data.success) {
-      isAlreadySaved.value = true;
+      router.reload({ only: ['topbarData'] });
 
       toast.add({
         title: 'Success!',
@@ -267,6 +268,8 @@ async function acceptAndFinalize() {
         color: 'success',
         icon: 'i-heroicons-check-circle',
       });
+
+      isAlreadySaved.value = true;
     }
   } catch (error) {
     console.error('Failed to save plan:', error);

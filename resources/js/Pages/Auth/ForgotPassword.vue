@@ -45,6 +45,7 @@ function onSubmit() {
             autofocus
             variant="outlined"
             :highlight="true"
+            size="xl"
           />
         </UFormField>
       </div>
@@ -52,10 +53,12 @@ function onSubmit() {
       <UButton
         type="submit"
         block
+        size="xl"
+        color="primary"
         :loading="form.processing"
-        class="bg-primary text-on-primary font-headline-md hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[18px] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+        class="w-full justify-center"
       >
-        Email Password Reset Link
+        Email Reset Link
       </UButton>
     </UForm>
 

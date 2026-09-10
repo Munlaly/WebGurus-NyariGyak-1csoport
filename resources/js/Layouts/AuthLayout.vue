@@ -46,7 +46,9 @@ watchEffect(() => {
     <main
       class="bg-surface-container-low z-10 flex w-full shrink-0 grow flex-col items-center shadow-[0px_4px_20px_rgba(0,0,0,0.04)] md:w-1/2"
     >
-      <div class="mx-auto my-auto w-full max-w-6xl px-6 lg:px-8">
+      <div
+        class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 lg:px-8"
+      >
         <header class="mb-8">
           <slot name="logo">
             <h2

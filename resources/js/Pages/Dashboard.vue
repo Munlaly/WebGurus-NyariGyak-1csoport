@@ -61,23 +61,6 @@ const confirmationData = ref<{
   mismatched: [],
 });
 
-const activeDateLabel = computed(() => {
-  if (dayOffset.value === -1) return `Yesterday (${getFormattedDate(-1)})`;
-  if (dayOffset.value === 1) return `Tomorrow (${getFormattedDate(1)})`;
-  return `Today (${getFormattedDate(0)})`;
-});
-
-const prevDateLabel = computed(() => {
-  if (dayOffset.value === 0) return 'Yesterday';
-  if (dayOffset.value === 1) return 'Today';
-  return '';
-});
-
-const nextDateLabel = computed(() => {
-  if (dayOffset.value === 0) return 'Tomorrow';
-  if (dayOffset.value === -1) return 'Today';
-  return '';
-});
 const leftChevronClasses = computed(() =>
   dayOffset.value === -1
     ? 'text-outline-variant cursor-not-allowed opacity-30'
@@ -284,27 +267,35 @@ watch(searchQuery, (newVal) => {
       <!-- Date Picker -->
       <div
         v-if="props.hasActivePlan"
-        class="bg-surface-container-lowest mx-auto flex w-full max-w-md items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
+        class="bg-surface-container-lowest mx-auto flex w-full max-w-2xl items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] sm:justify-center"
       >
-        <button :class="leftChevronClasses" @click="goPrevDay">
+        <button :class="[leftChevronClasses, 'sm:hidden']" @click="goPrevDay">
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
-        <div class="font-headline-md text-headline-md flex items-center gap-6">
-          <span
-            class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
+
+        <div
+          class="font-headline-md text-headline-md flex items-center gap-4 sm:gap-8"
+        >
+          <button
+            v-for="day in [
+              { offset: -1, label: 'Yesterday' },
+              { offset: 0, label: 'Today' },
+              { offset: 1, label: 'Tomorrow' },
+            ]"
+            :key="day.offset"
+            :class="[
+              'pb-1 whitespace-nowrap transition-all',
+              dayOffset === day.offset
+                ? 'text-primary border-primary block border-b-2 font-bold'
+                : 'text-on-surface-variant hover:text-primary hidden opacity-50 hover:opacity-100 sm:block',
+            ]"
+            @click="dayOffset = day.offset"
           >
-            {{ prevDateLabel }}
-          </span>
-          <span class="text-primary border-primary border-b-2 pb-1 font-bold">
-            {{ activeDateLabel }}
-          </span>
-          <span
-            class="text-on-surface-variant font-body-lg text-body-lg hidden opacity-50 sm:inline"
-          >
-            {{ nextDateLabel }}
-          </span>
+            {{ day.label }} ({{ getFormattedDate(day.offset) }})
+          </button>
         </div>
-        <button :class="rightChevronClasses" @click="goNextDay">
+
+        <button :class="[rightChevronClasses, 'sm:hidden']" @click="goNextDay">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
@@ -407,7 +398,7 @@ watch(searchQuery, (newVal) => {
           title="No weekly plan yet"
           description="It looks like you haven't generated a meal plan for this week. Let's get you set up."
           :actions="[{ label: 'Go to Weekly Planner', onClick: goToPlanner }]"
-          class="border-error w-full border-2 border-dashed"
+          class="border-outline-variant w-full border-2 border-dashed"
         />
       </div>
 
