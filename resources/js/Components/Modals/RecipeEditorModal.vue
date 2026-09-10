@@ -22,6 +22,7 @@ const props = defineProps<{
   show: boolean;
   recipe?: Recipe | null;
   ingredientsList: IngredientOption[];
+  dietaryOptions: Array<{ id: number; name: string; description?: string }>;
 }>();
 
 const emit = defineEmits(['close']);
@@ -43,13 +44,15 @@ const form = useForm({
   fat: 15,
   carbs: 50,
   meal_types: [] as string[],
+  diets: [] as number[],
   is_public: false,
   image: null as File | null,
   ingredients: [] as {
     id: number;
-    name: string;
     amount: number;
     unit: string;
+    raw_amount?: number;
+    raw_unit?: string;
   }[],
 });
 
