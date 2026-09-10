@@ -350,7 +350,6 @@ function scrollToItem(id: number) {
       </p>
     </ActionModal>
 
-    <!-- Add Item Modal -->
     <AddItemModal :show="showAddItemModal" @close="showAddItemModal = false" />
   </AuthenticatedLayout>
 </template>
