@@ -17,6 +17,7 @@ export interface SearchResult {
   name: string;
   meal_types: string[];
   calories: number;
+  image?: string | null;
 }
 export interface WeeklyAnalytics {
   targetCalories: number;

@@ -10,6 +10,8 @@ import {
   WeeklyAnalytics,
 } from '../Types/dashboardInterfaces.js';
 import { useUnits } from '../Composables/useUnits.js';
+import { getMealPlaceholder } from '../utils/meal.js';
+import { getImageUrl } from '../utils/image.js';
 
 const props = defineProps<{
   mealsByOffset: Record<string, Meal[]>;
@@ -342,10 +344,30 @@ watch(searchQuery, (newVal) => {
               class="hover:bg-surface-container-low border-outline-variant/50 flex cursor-pointer items-center justify-between border-b px-4 py-3 transition-colors last:border-0"
               @click="handleRecipeSelection(res)"
             >
-              <span class="text-on-surface truncate pr-4 font-medium">{{
-                res.name
-              }}</span>
-              <div class="flex shrink-0 items-center gap-2">
+              <!-- Left Side: Image/Emoji & Title -->
+              <div class="flex items-center gap-4 truncate">
+                <!-- Thumbnail Box -->
+                <div
+                  class="from-surface-container-low to-surface-container border-outline-variant/30 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-linear-to-br shadow-sm"
+                >
+                  <img
+                    v-if="res.image"
+                    :src="getImageUrl(res.image)"
+                    :alt="res.name"
+                    class="h-full w-full object-cover"
+                  />
+                  <span v-else class="text-2xl select-none">{{
+                    getMealPlaceholder(res.meal_types)
+                  }}</span>
+                </div>
+
+                <span class="text-on-surface truncate font-semibold">{{
+                  res.name
+                }}</span>
+              </div>
+
+              <!-- Right Side: Badges -->
+              <div class="flex shrink-0 items-center gap-2 pl-4">
                 <span
                   v-if="res.meal_types && res.meal_types.length === 1"
                   class="bg-primary/10 text-primary rounded-md px-2 py-1 text-[10px] font-bold tracking-wider uppercase"

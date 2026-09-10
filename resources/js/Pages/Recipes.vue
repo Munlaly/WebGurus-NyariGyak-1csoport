@@ -4,6 +4,8 @@ import { Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import RecipeEditorModal from '../Components/Modals/RecipeEditorModal.vue';
 import type { Recipe, IngredientOption } from '../Types/recipesInterfaces';
+import { getMealPlaceholder } from '../utils/meal.js';
+import { getImageUrl } from '../utils/image.js';
 
 defineProps<{
   myRecipes: Recipe[];
@@ -31,37 +33,10 @@ function deleteRecipe(id: number) {
   }
 }
 
-function getImageUrl(path: string | null) {
-  if (!path) return 'https://placehold.co/600x400?text=No+Image';
-  if (path.startsWith('http')) return path;
-  return `/storage/${path}`;
-}
-
 function handleImageError(event: Event) {
   const target = event.target as HTMLImageElement | null;
   if (target) {
     target.src = 'https://placehold.co/600x400?text=No+Image';
-  }
-}
-
-function getMealPlaceholder(mealTypes?: string[]) {
-  // If no types exist, return a generic food plate
-  if (!mealTypes || mealTypes.length === 0) return '🍲';
-
-  // Grab the first type in the array to act as our primary category
-  const primaryType = mealTypes[0].toLowerCase();
-
-  switch (primaryType) {
-    case 'breakfast':
-      return '🍳';
-    case 'lunch':
-      return '🥗';
-    case 'dinner':
-      return '🍝';
-    case 'snack':
-      return '🥨';
-    default:
-      return '🍽️';
   }
 }
 </script>
