@@ -10,6 +10,8 @@ import {
   WeeklyAnalytics,
 } from '../Types/dashboardInterfaces.js';
 import { useUnits } from '../Composables/useUnits.js';
+import { getMealPlaceholder } from '../utils/meal.js';
+import { getImageUrl } from '../utils/image.js';
 
 const props = defineProps<{
   mealsByOffset: Record<string, Meal[]>;
@@ -184,30 +186,6 @@ function cancelCooking() {
   showConfirmationModal.value = false;
   showMismatchResolutionStep.value = false;
   mismatchInputs.value = {};
-}
-
-function getImageUrl(path: string | null): string | undefined {
-  if (!path) return undefined;
-  if (path.startsWith('http')) return path;
-  if (path.startsWith('storage/')) return `/${path}`;
-  return `/storage/${path}`;
-}
-
-function getMealPlaceholder(mealTypes?: string[]) {
-  if (!mealTypes || mealTypes.length === 0) return '🍲';
-  const primaryType = mealTypes[0].toLowerCase();
-  switch (primaryType) {
-    case 'breakfast':
-      return '🍳';
-    case 'lunch':
-      return '🥗';
-    case 'dinner':
-      return '🍝';
-    case 'snack':
-      return '🥨';
-    default:
-      return '🍽️';
-  }
 }
 
 async function handleCookMeal(
