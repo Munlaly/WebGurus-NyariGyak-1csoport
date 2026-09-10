@@ -156,7 +156,7 @@ const goBack = () => {
           >
             <div
               v-if="!recipe.imageUrl || imageFailed"
-              class="from-surface-container-low to-surface-container flex h-full w-full items-center justify-center bg-gradient-to-br text-7xl select-none"
+              class="from-surface-container-low to-surface-container flex h-full w-full items-center justify-center bg-linear-to-br text-7xl select-none"
             >
               {{
                 getMealPlaceholder(
