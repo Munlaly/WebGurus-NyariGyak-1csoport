@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Meal } from '../Types/dashboardInterfaces';
+import { getMealPlaceholder } from '../utils/meal';
 
 const props = withDefaults(defineProps<Meal>(), {
   isFavorite: false,
   isToday: true,
   isAddedToCart: false,
 });
+
+const imageFailed = ref(false);
 
 const emit = defineEmits<{
   (e: 'toggle-eaten'): void;
@@ -75,26 +78,34 @@ const favoriteTooltipText = computed(() =>
         Eaten
       </div>
 
-      <!-- Hero Image -->
+      <!-- Hero Image or Emoji Placeholder -->
       <div
         :class="[
           'bg-surface-container-low relative aspect-video w-full overflow-hidden transition-all duration-500',
           imageStateClass,
         ]"
       >
-        <!-- 1. Ambient Blur Background: Fills the empty space using a heavy blur so pixelation disappears -->
-        <img
-          class="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl"
-          :src="imageUrl"
-          alt=""
-        />
-
-        <!-- 2. Crisp Foreground Image: Stays uncropped (object-contain) with your hover effects -->
-        <img
-          class="relative h-full w-full object-contain drop-shadow-md transition-all duration-500 group-hover:scale-105"
-          :alt="imageAlt"
-          :src="imageUrl"
-        />
+        <div
+          v-if="!imageUrl || imageFailed"
+          class="from-surface-container-low to-surface-container flex h-full w-full items-center justify-center bg-linear-to-br text-5xl select-none"
+        >
+          {{ getMealPlaceholder([meal_type]) }}
+        </div>
+        <template v-else>
+          <!-- Ambient Blur Background -->
+          <img
+            class="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl"
+            :src="imageUrl"
+            alt=""
+          />
+          <!-- Crisp Foreground Image -->
+          <img
+            class="relative h-full w-full object-contain drop-shadow-md transition-all duration-500 group-hover:scale-105"
+            :alt="imageAlt"
+            :src="imageUrl"
+            @error="imageFailed = true"
+          />
+        </template>
       </div>
     </Link>
 

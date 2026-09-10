@@ -31,7 +31,7 @@ class DashboardController extends Controller
                 'title' => $recipe->name,
                 'calories' => $recipe->calories ?? 0,
                 'prepTime' => $recipe->prep_time_minutes ?? 0,
-                'imageUrl' => $this->getRecipeImageUrl($recipe->image),
+                'imageUrl' => $recipe->image ? $this->getRecipeImageUrl($recipe->image) : null,
                 'imageAlt' => $recipe->name,
                 'isPrepared' => $mealPlan->status === 'EATEN',
                 'isFavorite' => in_array($recipe->id, $favoriteRecipeIds),
