@@ -16,16 +16,30 @@ const props = defineProps<{
 }>();
 
 const { formatQuantity } = useUnits();
-const checkedItems = computed(() => props.items.filter((i) => i.is_checked));
 const isAddModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const isFinishModalOpen = ref(false);
 const editingItem = ref<ShoppingListItem | null>(null);
+const checkedItems = computed(() => props.items.filter((i) => i.is_checked));
+const allChecked = computed(
+  () => props.items.length > 0 && props.items.every((i) => i.is_checked),
+);
 
 function toggleCheck(item: ShoppingListItem) {
   router.put(
     route('shopping-list.update', item.id),
     { is_checked: !item.is_checked },
+    { preserveScroll: true },
+  );
+}
+
+function toggleAll() {
+  if (props.items.length === 0) {
+    return;
+  }
+  router.post(
+    route('shopping-list.toggle-all'),
+    { check_all: !allChecked.value },
     { preserveScroll: true },
   );
 }
@@ -67,6 +81,18 @@ function openEditModal(item: ShoppingListItem) {
           >
             <span class="material-symbols-outlined text-[20px]">add</span>
             Add Item
+          </button>
+
+          <!-- Check All / Uncheck All Button -->
+          <button
+            v-if="items.length > 0"
+            class="bg-surface-container-lowest text-on-surface border-outline-variant hover:bg-surface-container-low font-body-md text-body-md relative flex shrink-0 grow items-center justify-center gap-2 rounded-xl border px-6 py-3 font-medium shadow-sm transition-all sm:grow-0"
+            @click="toggleAll"
+          >
+            <span class="material-symbols-outlined text-[20px]">{{
+              allChecked ? 'remove_done' : 'done_all'
+            }}</span>
+            {{ allChecked ? 'Uncheck All' : 'Check All' }}
           </button>
 
           <!-- Finish Shopping Button -->

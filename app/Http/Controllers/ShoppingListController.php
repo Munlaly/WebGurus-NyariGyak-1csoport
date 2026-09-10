@@ -114,4 +114,15 @@ class ShoppingListController extends Controller
         ShoppingListItem::whereIn('id', $shoppingItems->pluck('id'))->delete();
         return back()->with('success', 'Checked items transferred to your inventory!');
     }
+
+    public function toggleAll(Request $request) {
+        $validated = $request->validate([
+            'check_all' => 'required|boolean',
+        ]);
+        ShoppingListItem::where('user_id', $request->user()->id)
+            ->update([
+                'is_checked' => $validated['check_all'],
+            ]);
+        return back();
+    }
 }

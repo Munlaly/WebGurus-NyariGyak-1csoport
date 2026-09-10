@@ -85,6 +85,7 @@ Route::middleware('auth')->group(function(){
         Route::put('/{item}', [ShoppingListController::class, 'update'])->name('update');
         Route::delete('/{item}', [ShoppingListController::class, 'destroy'])->name('destroy');
         Route::post('/finish', [ShoppingListController::class, 'finish'])->name('finish');
+        Route::post('/toggle-all', [ShoppingListController::class, 'toggleAll'])->name('toggle-all');
     });
 
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
