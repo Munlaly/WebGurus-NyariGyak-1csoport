@@ -187,6 +187,13 @@ function closeFlashToast() {
   showFlashToast.value = false;
 }
 
+function isRouteActive(href: string) {
+  if (href === '/') {
+    return page.url === '/';
+  }
+  return page.url.startsWith(href);
+}
+
 watchEffect(() => {
   const userTheme = typedPageProps.value.auth?.theme || 'light';
 
@@ -366,8 +373,13 @@ watch(
             <li v-for="item in navigation" :key="item.name">
               <Link
                 :href="item.href"
-                class="text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low relative flex items-center justify-between rounded-xl transition-all duration-200 active:scale-95"
-                :class="navItemSpacingClass"
+                class="relative flex items-center justify-between rounded-xl transition-all duration-200 active:scale-95"
+                :class="[
+                  navItemSpacingClass,
+                  isRouteActive(item.href)
+                    ? 'dark:bg-primary dark:text-on-primary bg-gray-200/80 font-bold text-gray-900 shadow-sm'
+                    : 'text-on-surface-variant hover:bg-surface-container-low active:bg-surface-container-low',
+                ]"
                 :title="isCollapsed ? item.name : ''"
               >
                 <div class="flex items-center gap-3">
@@ -549,11 +561,21 @@ watch(
             v-for="item in navigation"
             :key="item.name"
             :href="item.href"
-            class="flex items-center gap-4 rounded-2xl bg-gray-50 px-5 py-4 font-semibold text-gray-900 shadow-sm transition-all hover:bg-gray-100 active:scale-[0.98] dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
+            class="flex items-center gap-4 rounded-2xl px-5 py-4 font-semibold shadow-sm transition-all active:scale-[0.98]"
+            :class="
+              isRouteActive(item.href)
+                ? 'dark:bg-primary dark:text-on-primary bg-gray-200/80 text-gray-900'
+                : 'bg-gray-50 text-gray-900 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800'
+            "
             @click="isMobileMenuOpen = false"
           >
             <span
-              class="material-symbols-outlined text-[26px] text-green-600 dark:text-green-500"
+              class="material-symbols-outlined text-[26px]"
+              :class="
+                isRouteActive(item.href)
+                  ? 'dark:text-on-primary text-gray-900'
+                  : 'text-green-600 dark:text-green-500'
+              "
               >{{ item.icon }}</span
             >
             <span class="text-base tracking-wide">{{ item.name }}</span>
