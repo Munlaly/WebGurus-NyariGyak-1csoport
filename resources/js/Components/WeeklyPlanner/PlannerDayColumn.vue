@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PlannerMealCard from './PlannerMealCard.vue';
 import type { PlannerMeal } from '../../Types/plannerInterfaces.js';
+import { getImageUrl } from '../../utils/image';
 
 defineProps<{
   dayName: string;
@@ -66,7 +67,7 @@ function formatTags(meal: PlannerMeal) {
         :meal-type="meal.meal_type"
         :title="meal.name"
         :calories="meal.calories"
-        :image-url="meal.image"
+        :image-url="getImageUrl(meal.image ?? null)"
         :tags="formatTags(meal)"
         :is-pinned="meal.isPinned"
         :is-rolling="meal.isRolling"
@@ -76,3 +77,13 @@ function formatTags(meal: PlannerMeal) {
     </div>
   </div>
 </template>
+
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+PlannerDayColumn .scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>

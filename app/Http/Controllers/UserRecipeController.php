@@ -30,6 +30,12 @@ class UserRecipeController extends Controller
     public function store(Request $request) {
         $validated = $this->validateRecipe($request);
 
+        if (!empty($validated['diets'])) {
+            $validated['diets'] = DietaryOption::whereIn('id', $validated['diets'])->pluck('slug')->toArray();
+        } else {
+            $validated['diets'] = [];
+        }
+
         $imagePath = null;
         if($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('private_recipes', 'public');
@@ -53,6 +59,13 @@ class UserRecipeController extends Controller
         $recipe = Recipe::where('user_id', $request->user()->id)->findOrFail($id);
         
         $validated = $this->validateRecipe($request);
+
+        if (!empty($validated['diets'])) {
+            $validated['diets'] = DietaryOption::whereIn('id', $validated['diets'])->pluck('slug')->toArray();
+        } else {
+            $validated['diets'] = [];
+        }
+
         $updateData = $validated;
 
         if($request->hasFile('image')) {
