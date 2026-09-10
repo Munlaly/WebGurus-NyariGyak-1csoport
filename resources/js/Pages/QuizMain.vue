@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, watchEffect } from 'vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import type { PageProps } from '@inertiajs/core';
 import {
@@ -31,6 +31,7 @@ interface QuizPageProps extends PageProps {
     user: {
       username: string;
     } | null;
+    theme?: string;
   };
   dietaryOptions: { id: number; name: string; description: string | null }[];
   baseDietIds: number[];
@@ -160,6 +161,16 @@ watch(
   { deep: true },
 );
 
+watchEffect(() => {
+  const currentTheme = page.props.auth?.theme || 'light';
+
+  if (currentTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+});
+
 // Load saved state
 onMounted(() => {
   const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -244,7 +255,14 @@ onMounted(() => {
         </header>
 
         <!-- Dynamic Step Components -->
-        <div class="min-h-[40dvh] lg:min-h-[50dvh]">
+        <div
+          class="flex min-h-[40dvh] w-full flex-col lg:min-h-[50dvh]"
+          :class="
+            stepConfig[currentStep].type === 'summary'
+              ? ''
+              : 'items-center justify-center'
+          "
+        >
           <StepIntro v-if="currentStep === 0" :username="username" />
           <StepGoal v-else-if="currentStep === 1" v-model="form.fitness_goal" />
 

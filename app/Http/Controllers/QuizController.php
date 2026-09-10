@@ -95,8 +95,6 @@ class QuizController extends Controller
                 'fitness_goal' => $validated['fitness_goal'],
             ]);
 
-            $nutritionService->updateProfileWeeklyCalories($profile);
-
             // Save App Settings
             $user->settings()->updateOrCreate(
             ['user_id' => $user->id],
@@ -105,8 +103,8 @@ class QuizController extends Controller
                 'prep_time_preference' => $validated['prep_time_preference'],
                 'system_preferences' => [
                     'theme' => 'light',
-                    'inAppAlerts' => 'true',
-                    'emailDigests' => 'false',
+                    'inAppAlerts' => true,
+                    'emailDigests' => false,
                     'unitSystem' =>  'metric',
                 ],
             ]);
@@ -137,6 +135,8 @@ class QuizController extends Controller
             // Sync Many-to-Many Relationships
             $user->dietaryOptions()->sync($validated['meal_plan_preferences']);
             $user->dislikedIngredients()->sync($validated['disliked_ingredients']);
+
+            $nutritionService->updateProfileWeeklyCalories($profile);
 
             // Mark as Onboarded so cannot fill the quiz again
             $user->update(['onboarded_at' => now()]);

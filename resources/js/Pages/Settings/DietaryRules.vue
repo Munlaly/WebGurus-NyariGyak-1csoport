@@ -208,18 +208,16 @@ onBeforeUnmount(() => {
               :loading="loading"
               multiple
               size="lg"
-              class="w-full max-w-md bg-lime-100 hover:bg-lime-400"
+              class="w-full max-w-md"
               :ui="{ content: 'z-[100]' }"
             >
               <UButton
                 color="neutral"
                 variant="outline"
                 icon="i-lucide-search"
-                class="ring-outline-variant w-full shadow-sm ring-1 transition-colors ring-inset"
+                class="w-full bg-transparent ring-0 transition-colors"
               >
-                <span
-                  class="w-fit rounded-md px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
+                <span class="w-fit rounded-md bg-transparent px-2 py-1">
                   {{ searchTerm || 'Search e.g., mushrooms, cilantro...' }}
                 </span>
               </UButton>

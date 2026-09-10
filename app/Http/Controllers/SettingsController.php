@@ -162,12 +162,14 @@ class SettingsController extends Controller
             'unitSystem' => 'required|string|in:metric,imperial',
         ]);
 
-        $request->user()->settings()->updateOrCreate(
-            ['user_id' => $request->user()->id],
-            ['system_preferences' => $validated] 
-        );
+        $validated['inAppAlerts'] = filter_var($validated['inAppAlerts'], FILTER_VALIDATE_BOOLEAN);
+        $validated['emailDigests'] = filter_var($validated['emailDigests'], FILTER_VALIDATE_BOOLEAN);
 
-        return back();
+        $settings = $request->user()->settings()->firstOrCreate([]);
+        $settings->system_preferences = $validated;
+        $settings->save();
+
+        return back()->with('success', 'System preferences updated successfully.');
     }
 
     // --- Biometrics ---
