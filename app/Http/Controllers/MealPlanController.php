@@ -447,8 +447,6 @@ class MealPlanController extends Controller
                 $dp->delete();
             }
 
-            $weight = (float) ($profile->weight_kg ?? 70);
-
             // Insert new plan
             foreach($plan as $dayName => $dayData) {
                 $dayOffset = $dayMapping[$dayName] ?? 0;
@@ -541,8 +539,8 @@ class MealPlanController extends Controller
             $totalCalories = $meals->sum('calories');
             $hasSnack = $meals->contains('meal_type', 'snack');
             
-            $minCalories = $dailyPlan->target_calories * 0.93;
-            $maxCalories = $dailyPlan->target_calories * 1.07;
+            $minCalories = $dailyPlan->target_calories * 0.90;
+            $maxCalories = $dailyPlan->target_calories * 1.10;
             $perfectMatch = $totalCalories >= $minCalories && $totalCalories <= $maxCalories;
 
             $weeklyPlan[$dayName] = [

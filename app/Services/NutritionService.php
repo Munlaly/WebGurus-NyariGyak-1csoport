@@ -9,7 +9,7 @@ use App\Enums\ExerciseIntensity;
 
 class NutritionService
 {
-    public function calculateNutritionalTargets(UserProfile $profile, ExerciseIntensity $dayIntensity = ExerciseIntensity::Moderate) {
+    public function calculateNutritionalTargets(UserProfile $profile, ExerciseIntensity $dayIntensity = ExerciseIntensity::Rest) {
         $goal = $profile->fitness_goal->value ?? 'maintain';
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30];
 
@@ -63,7 +63,7 @@ class NutritionService
     }
 
     public function updateProfileWeeklyCalories(UserProfile $profile): void {
-        $targets = $this->calculateNutritionalTargets($profile);
+        $targets = $this->calculateNutritionalTargets($profile, ExerciseIntensity::Rest);
         $profile->weekly_calorie_target = $targets['calories'] * 7;
         $profile->save();
 
