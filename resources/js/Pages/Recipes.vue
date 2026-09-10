@@ -113,13 +113,6 @@ function handleImageError(event: Event) {
                 @error="handleImageError"
               />
             </Link>
-            <img
-              :src="getImageUrl(recipe.image)"
-              :alt="recipe.name"
-              class="h-48 w-full object-cover"
-            />
-            >>>>>>> f8ff238 (implemented recipes tab, fixed bad utf8
-            ingredients)
             <div class="flex grow flex-col p-4">
               <h3
                 class="font-label-lg text-on-surface mb-1 line-clamp-1 font-bold capitalize"
@@ -163,13 +156,6 @@ function handleImageError(event: Event) {
                 {{ getMealPlaceholder(recipe.meal_types) }}
               </div>
             </Link>
-            <img
-              :src="getImageUrl(recipe.image)"
-              :alt="recipe.name"
-              class="h-48 w-full object-cover"
-            />
-            >>>>>>> f8ff238 (implemented recipes tab, fixed bad utf8
-            ingredients)
             <div class="flex grow flex-col p-4">
               <h3
                 class="font-label-lg text-on-surface mb-1 line-clamp-1 font-bold capitalize"
