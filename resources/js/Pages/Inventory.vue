@@ -399,6 +399,5 @@ function scrollToItem(id: number) {
     </ActionModal>
 
     <AddInventoryModal ref="addInventoryModalRef" />
-    >>>>>>> 718ca3d (fixing imperial measurments)
   </AuthenticatedLayout>
 </template>
