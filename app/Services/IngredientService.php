@@ -15,11 +15,11 @@ class IngredientService
 
         if (!in_array($lastWord, $uncountable)) {
             if (preg_match('/[^aeiou]ies$/', $lastWord)) {
-                $lastWord = substr($lastWord, 0, -3) . 'y';       // berries -> berry
+                $lastWord = mb_substr($lastWord, 0, -3) . 'y';       // berries -> berry
             } elseif (preg_match('/(tomat|potat|avocad)oes$/', $lastWord)) {
-                $lastWord = substr($lastWord, 0, -2);              // avocadoes -> avocado
-            } elseif (preg_match('/[^s]s$/', $lastWord) && strlen($lastWord) > 3) {
-                $lastWord = substr($lastWord, 0, -1);              // avocados -> avocado
+                $lastWord = mb_substr($lastWord, 0, -2);              // avocadoes -> avocado
+            } elseif (preg_match('/[^s]s$/', $lastWord) && mb_strlen($lastWord) > 3) {
+                $lastWord = mb_substr($lastWord, 0, -1);              // avocados -> avocado
             }
         }
 
@@ -35,13 +35,16 @@ class IngredientService
         }
 
         $name = preg_replace('/(?:\*\*|\(|\s-\s).*/', '', $name);
-
         $name = str_replace('/', ' ', $name);
-
         $name = preg_replace("/^[a-z .]+'s\s+/", '', $name);
-        $name = preg_replace('/(?:\*\*|\(|\s-\s).*/', '', $name);
-        $name = preg_replace('/^[-*•]+\s*/', '', $name);
+        $name = preg_replace('/^\[.*?\]\s*/', '', $name);
 
+        $units = 'cup|tablespoon|teaspoon|tbsp|tsp|oz|ounce|lb|pound|gram|g|ml|dash|pinch|clove|slice|piece|can|bunch|whole|package|stick';
+        $name = preg_replace('/^[\d\.\/½¼¾⅓⅔⅛⅜⅝⅞]+\s*(?:(?:' . $units . ')s?\.?\s+)?/i', '', $name);
+
+        $name = preg_replace('/^(?:a|an|add|additional|some)\s+/i', '', $name);
+        $name = preg_replace('/^[-*•▢☐"&)[\]]+\s*/u', '', $name);
+        
         $noiseWords = [
             'fresh(?:ly)?', 'chopped', 'diced', 'sliced', 'optional', 'garnish',
             'large', 'medium', 'small', 'the following', 'dry', 'raw',

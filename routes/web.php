@@ -11,6 +11,7 @@ use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\UserInventoryController;
 use App\Http\Controllers\MealPlanController;
 use App\Http\Controllers\ShoppingListController;
+use App\Http\Controllers\UserRecipeController;
 
 Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
@@ -30,6 +31,13 @@ Route::middleware('auth')->group(function(){
             Route::post('/{recipe}/cook', [CookMealController::class, 'cook'])->name('cook');
             Route::post('/{recipe}/favorite', [CookMealController::class, 'toggleFavorite'])->name('favorite');
             Route::post('/{recipe}/shopping-list', [CookMealController::class, 'addMissingToShoppingList'])->name('shopping-list');
+        });
+
+        Route::prefix('recipes')->name('recipes.')->group(function () {
+            Route::get('/', [UserRecipeController::class, 'index'])->name('index');
+            Route::post('/', [UserRecipeController::class, 'store'])->name('store');
+            Route::put('/{id}', [UserRecipeController::class, 'update'])->name('update');
+            Route::delete('/{id}', [UserRecipeController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('settings')->name('settings.')->group(function () {

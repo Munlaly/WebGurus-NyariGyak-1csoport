@@ -61,7 +61,7 @@ const navigation = [
   { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
   { name: 'My Inventory', icon: 'inventory_2', href: '/inventory' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '/shopping-list' },
-  { name: 'Recipes', icon: 'restaurant_menu', href: '#' },
+  { name: 'Recipes', icon: 'restaurant_menu', href: '/recipes' },
   { name: 'Alerts', icon: 'notifications', href: '/alerts' },
   { name: 'Settings/Goals', icon: 'settings', href: '/settings/targets' },
 ];
@@ -571,6 +571,19 @@ watch(
         >
           <span class="material-symbols-outlined text-[26px]">event_note</span>
           <span class="text-[11px] font-bold">Weekly</span>
+        </Link>
+
+        <Link
+          :href="route('recipes.index')"
+          :class="[
+            'flex items-center gap-3 rounded-xl px-4 py-3 font-semibold transition-colors',
+            route().current('recipes.*')
+              ? 'bg-primary/10 text-primary'
+              : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface',
+          ]"
+        >
+          <span class="material-symbols-outlined">menu_book</span>
+          Recipes
         </Link>
 
         <!-- More / Burger Menu Trigger -->

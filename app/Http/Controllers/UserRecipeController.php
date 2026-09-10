@@ -4,130 +4,107 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Recipe;
+use App\Models\Ingredient;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class UserRecipeController extends Controller
 {
-
     public function index(Request $request) {
         $user = $request->user();
-        $recipes = Recipe::where('user_id', $user->id)->with('ingredients')->get();
-        return response()->json($recipes);
+        
+        $myRecipes = Recipe::where('user_id', $user->id)->with('ingredients')->get();
+        $favoriteRecipes = $user->favoriteRecipes()->with('ingredients')->get();
+        $allIngredients = Ingredient::select('id', 'name', 'base_unit', 'emoji')->orderBy('name')->get();
+
+        return Inertia::render('Recipes', [
+            'myRecipes' => $myRecipes,
+            'favoriteRecipes' => $favoriteRecipes,
+            'ingredients' => $allIngredients,
+        ]);
     }
 
     public function store(Request $request) {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'instructions' => 'required|string',
-            'prep_time_minutes' => 'required|integer|min:1',
-            'is_public' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // 2MB max
-            'calories' => 'required|integer|min:0',
-            'protein' => 'required|numeric|min:0',
-            'fat' => 'required|numeric|min:0',
-            'carbs' => 'required|numeric|min:0',
-            'meal_types' => 'required|array',
-
-            'ingredients' => 'required|array|min:1',
-            'ingredients.*.id' => 'required|integer|exists:ingredients,id',
-            'ingredients.*.amount' => 'required|numeric|min:0',
-            'ingredients.*.unit'=> 'nullable|string|max:50',
-        ]);
+        $validated = $this->validateRecipe($request);
 
         $imagePath = null;
         if($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('private_recipes', 'public');
         }
 
-        $recipe = Recipe::create([
+        $recipe = Recipe::create(array_merge($validated, [
             'user_id' => $request->user()->id,
-            'name' => $validated['name'],
-            'instructions' => $validated['instructions'],
-            'prep_time_minutes' => $validated['prep_time_minutes'],
-            'is_public' => $validated['is_public'] ?? false,
             'image' => $imagePath,
-            'calories' => $validated['calories'],
-            'protein' => $validated['protein'],
-            'fat' => $validated['fat'],
-            'carbs' => $validated['carbs'],
-            'meal_types' => $validated['meal_types'],
-        ]);
+            'is_public' => $request->boolean('is_public', false),
+        ]));
 
-        if(!empty($validated['ingredients'])) {
-            $ingredientData = [];
-            foreach($validated['ingredients'] as $ingredient) {
-                $ingredientData[$ingredient['id']] = [
-                    'amount' => $ingredient['amount'],
-                    'unit' => $ingredient['unit'] ?? null,
-                ];
-            }
-            $recipe->ingredients()->sync($ingredientData);
-        }
+        $this->syncIngredients($recipe, $request->input('ingredients', []));
 
-        $recipe->load('ingredients');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Recipe created successfully.',
-            'data' => $recipe
-        ], 201);
+        return back()->with('success', 'Recipe created successfully!');
     }
 
     public function update(Request $request, int $id) {
         $recipe = Recipe::where('user_id', $request->user()->id)->findOrFail($id);
         
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'instructions' => 'sometimes|required|string',
-            'prep_time_minutes' => 'sometimes|required|integer|min:1',
-            'is_public' => 'boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'calories' => 'sometimes|required|integer|min:0',
-            'protein' => 'sometimes|required|numeric|min:0',
-            'fat' => 'sometimes|required|numeric|min:0',
-            'carbs' => 'sometimes|required|numeric|min:0',
-            'meal_types' => 'sometimes|required|array',
-
-            'ingredients' => 'sometimes|required|array|min:1',
-            'ingredients.*.id' => 'required|exists:ingredients,id',
-            'ingredients.*.amount' => 'required|numeric|min:0',
-            'ingredients.*.unit'=> 'nullable|string|max:50',
-        ]);
+        $validated = $this->validateRecipe($request);
+        $updateData = $validated;
 
         if($request->hasFile('image')) {
-            if($recipe->image) {
-                Storage::delete($recipe->image);
-            }
-            $recipe->image = $request->file('image')->store('private_recipes', 'public');
+            if($recipe->image) Storage::disk('public')->delete($recipe->image);
+            $updateData['image'] = $request->file('image')->store('private_recipes', 'public');
+        } else {
+            unset($updateData['image']);
         }
-
-        $updateData = collect($validated)->except([
-            'id',
-            'user_id',
-            'created_at',
-            'image',
-            'ingredients',
-        ])->toArray();
 
         $recipe->update($updateData);
+        $this->syncIngredients($recipe, $request->input('ingredients', []));
 
-        if($request->has('ingredients')) {
-            $ingredientData = [];
-            foreach($validated['ingredients'] as $ingredient) {
-                $ingredientData[$ingredient['id']] = [
-                    'amount' => $ingredient['amount'],
-                    'unit' => $ingredient['unit'] ?? null,
-                ];
-            }
-            $recipe->ingredients()->sync($ingredientData);
-        }
+        return back()->with('success', 'Recipe updated successfully!');
+    }
 
-        $recipe->load('ingredients');
+    public function destroy(Request $request, int $id) {
+        $recipe = Recipe::where('user_id', $request->user()->id)->findOrFail($id);
+        
+        if($recipe->image) Storage::disk('public')->delete($recipe->image);
+        $recipe->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Recipe updated successfully.',
-            'data' => $recipe,
+        return back()->with('success', 'Recipe deleted successfully.');
+    }
+
+    private function validateRecipe(Request $request) {
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'instructions' => 'required|string',
+            'prep_time_minutes' => 'required|integer|min:1',
+            'calories' => 'required|integer|min:0',
+            'protein' => 'required|numeric|min:0',
+            'fat' => 'required|numeric|min:0',
+            'carbs' => 'required|numeric|min:0',
+            'meal_types' => 'required|array|min:1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'ingredients' => 'required|array|min:1',
+            'ingredients.*.id' => 'required|exists:ingredients,id',
+            'ingredients.*.amount' => 'required|numeric|min:0.1',
+            'ingredients.*.unit'=> 'required|string|max:10',
+            'ingredients.*.raw_amount' => 'nullable|numeric|min:0.1',
+            'ingredients.*.raw_unit' => 'nullable|string|max:10',
         ]);
+    }
+
+    private function syncIngredients(Recipe $recipe, array $ingredients) {
+        $ingredientData = [];
+        foreach($ingredients as $ingredient) {
+            $amount = $ingredient['amount'] ?? 1;
+            $unit = $ingredient['unit'] ?? 'pcs';
+            $rawAmount = !empty($ingredient['raw_amount']) ? $ingredient['raw_amount'] : $amount;
+            $rawUnit = !empty($ingredient['raw_unit']) ? $ingredient['raw_unit'] : $unit;
+            $ingredientData[$ingredient['id']] = [
+                'amount' => $amount,
+                'unit' => $unit,
+                'raw_amount' => $rawAmount,
+                'raw_unit' => $rawUnit,
+            ];
+        }
+        $recipe->ingredients()->sync($ingredientData);
     }
 }

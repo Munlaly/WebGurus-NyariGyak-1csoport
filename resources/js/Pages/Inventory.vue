@@ -12,6 +12,7 @@ import {
 } from '../utils/inventory';
 import { useUnits } from '../Composables/useUnits.js';
 import { useQuantityAction } from '../Composables/useQuantityAction.js';
+import QuantityUpdateModal from '../Components/Modals/QuantityUpdateModal.vue';
 
 const props = defineProps<{
   attentionNeeded: InventoryItem[];
@@ -136,7 +137,6 @@ function scrollToItem(id: number) {
         </div>
       </section>
 
-      <!-- Attention Needed & Category Tabs Sections stay the same... -->
       <section v-if="attentionNeeded.length > 0" class="flex flex-col gap-4">
         <h2
           class="font-headline-md text-headline-md text-error flex items-center gap-2"
@@ -285,8 +285,6 @@ function scrollToItem(id: number) {
       </section>
     </div>
 
-    <!-- REFACTORED MODALS -->
-
     <!-- Decrease Quantity Modal -->
     <QuantityUpdateModal
       v-model:display-amount="decreaseDisplayAmount"
@@ -353,6 +351,5 @@ function scrollToItem(id: number) {
     </ActionModal>
 
     <AddItemModal :show="showAddItemModal" @close="showAddItemModal = false" />
-    <AddInventoryModal ref="addInventoryModalRef" />
   </AuthenticatedLayout>
 </template>
