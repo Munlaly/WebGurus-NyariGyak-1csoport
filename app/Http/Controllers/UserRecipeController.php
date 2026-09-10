@@ -88,7 +88,7 @@ class UserRecipeController extends Controller
                 'present',
                 'array',
                 function($attribute, $value, $fail) {
-                    $selectedSlugs = \App\Models\DietaryOption::whereIn('id', $value)->pluck('name')->map(fn($n) => strtolower($n))->toArray();
+                    $selectedSlugs = \App\Models\DietaryOption::whereIn('id', $value)->pluck('slug')->map(fn($n) => strtolower($n))->toArray();
                     $baseDiets = ['vegan', 'vegetarian', 'pescatarian', 'omnivore'];
                     $selectedBaseDiets = array_intersect($baseDiets, $selectedSlugs);
 
