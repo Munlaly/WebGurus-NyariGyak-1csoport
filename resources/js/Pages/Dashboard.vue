@@ -267,9 +267,9 @@ watch(searchQuery, (newVal) => {
       <!-- Date Picker -->
       <div
         v-if="props.hasActivePlan"
-        class="bg-surface-container-lowest mx-auto flex w-full max-w-2xl items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)]"
+        class="bg-surface-container-lowest mx-auto flex w-full max-w-2xl items-center justify-between rounded-xl p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.04)] sm:justify-center"
       >
-        <button :class="leftChevronClasses" @click="goPrevDay">
+        <button :class="[leftChevronClasses, 'sm:hidden']" @click="goPrevDay">
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
 
@@ -295,7 +295,7 @@ watch(searchQuery, (newVal) => {
           </button>
         </div>
 
-        <button :class="rightChevronClasses" @click="goNextDay">
+        <button :class="[rightChevronClasses, 'sm:hidden']" @click="goNextDay">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
