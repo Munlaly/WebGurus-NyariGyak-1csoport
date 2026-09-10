@@ -6,6 +6,18 @@ use function Symfony\Component\String\b;
 
 class IngredientService
 {
+    public function isEffectivelyEmpty(float $amount, string $unit): bool {
+        $threshold = match(strtolower($unit)) {
+            'g', 'ml' => 0.99,   
+            'kg', 'l' => 0.001,  
+            'oz' => 0.05,        
+            'lb' => 0.01,        
+            'pcs' => 0.05,       
+            default => 0.05,
+        };
+        return $amount <= $threshold;
+    }
+
     private function singularize(string $name): string
     {
         $words = explode(' ', $name);
