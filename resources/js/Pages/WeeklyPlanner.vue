@@ -361,14 +361,6 @@ onMounted(() => {
           class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap md:w-auto md:gap-3"
         >
           <button
-            disabled
-            class="bg-surface-container-low text-on-surface-variant flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold opacity-60 sm:flex-1 md:w-auto"
-          >
-            <span class="material-symbols-outlined text-[18px]">lock</span>
-            Shopping List
-          </button>
-
-          <button
             class="text-error hover:bg-error-50 border-error/50 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
             @click="isDeletePlanModalOpen = true"
           >
