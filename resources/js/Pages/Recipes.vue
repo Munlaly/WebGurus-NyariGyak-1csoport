@@ -175,7 +175,7 @@ function getMealPlaceholder(mealTypes?: string[]) {
               />
               <div
                 v-else
-                class="from-surface-container-low to-surface-container flex h-48 w-full items-center justify-center bg-gradient-to-br text-[80px] select-none"
+                class="from-surface-container-low to-surface-container flex h-48 w-full items-center justify-center bg-linear-to-br text-[80px] select-none"
               >
                 {{ getMealPlaceholder(recipe.meal_types) }}
               </div>
