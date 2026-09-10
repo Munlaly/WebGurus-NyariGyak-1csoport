@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DietaryOption;
 use Illuminate\Http\Request;
 use App\Models\Recipe;
 use App\Models\Ingredient;
@@ -16,11 +17,13 @@ class UserRecipeController extends Controller
         $myRecipes = Recipe::where('user_id', $user->id)->with('ingredients')->get();
         $favoriteRecipes = $user->favoriteRecipes()->with('ingredients')->get();
         $allIngredients = Ingredient::select('id', 'name', 'base_unit', 'emoji')->orderBy('name')->get();
+        $dietaryOptions = DietaryOption::select('id', 'name', 'description')->get();
 
         return Inertia::render('Recipes', [
             'myRecipes' => $myRecipes,
             'favoriteRecipes' => $favoriteRecipes,
             'ingredients' => $allIngredients,
+            'dietaryOptions' => $dietaryOptions,
         ]);
     }
 
@@ -37,7 +40,7 @@ class UserRecipeController extends Controller
             'image' => $imagePath,
             'is_public' => $request->boolean('is_public', false),
         ]));
-
+        
         $this->syncIngredients($recipe, $request->input('ingredients', []));
 
         return back()->with('success', 'Recipe created successfully!');
@@ -81,6 +84,20 @@ class UserRecipeController extends Controller
             'fat' => 'required|numeric|min:0',
             'carbs' => 'required|numeric|min:0',
             'meal_types' => 'required|array|min:1',
+            'diets' => [
+                'present',
+                'array',
+                function($attribute, $value, $fail) {
+                    $selectedSlugs = \App\Models\DietaryOption::whereIn('id', $value)->pluck('name')->map(fn($n) => strtolower($n))->toArray();
+                    $baseDiets = ['vegan', 'vegetarian', 'pescatarian', 'omnivore'];
+                    $selectedBaseDiets = array_intersect($baseDiets, $selectedSlugs);
+
+                    if (count($selectedBaseDiets) > 1) {
+                        $fail('You cannot select conflicting baseline diets.');
+                    }
+                }
+            ],
+            'diets.*' => 'integer|exists:dietary_options,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'ingredients' => 'required|array|min:1',
             'ingredients.*.id' => 'required|exists:ingredients,id',

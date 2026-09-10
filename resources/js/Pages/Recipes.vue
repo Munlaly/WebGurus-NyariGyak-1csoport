@@ -11,6 +11,7 @@ defineProps<{
   myRecipes: Recipe[];
   favoriteRecipes: Recipe[];
   ingredients: IngredientOption[];
+  dietaryOptions: Array<{ id: number; name: string; description?: string }>;
 }>();
 
 const recipeToEdit = ref<Recipe | null>(null);
@@ -202,6 +203,7 @@ function handleImageError(event: Event) {
       :show="isEditorOpen"
       :recipe="recipeToEdit"
       :ingredients-list="ingredients"
+      :dietary-options="dietaryOptions"
       @close="isEditorOpen = false"
     />
   </AuthenticatedLayout>
