@@ -10,6 +10,7 @@ export interface Meal {
   isPrepared: boolean;
   isFavorite?: boolean;
   isToday?: boolean;
+  isAddedToCart?: boolean;
 }
 
 export interface SearchResult {

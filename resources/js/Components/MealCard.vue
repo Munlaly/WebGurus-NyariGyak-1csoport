@@ -6,6 +6,7 @@ import { Meal } from '../Types/dashboardInterfaces';
 const props = withDefaults(defineProps<Meal>(), {
   isFavorite: false,
   isToday: true,
+  isAddedToCart: false,
 });
 
 const emit = defineEmits<{
@@ -24,6 +25,16 @@ const buttonClass = computed(() => {
     return 'bg-surface-container-low text-on-surface-variant/40 border border-outline-variant/30 cursor-not-allowed opacity-60';
   }
   return 'bg-primary text-on-primary hover:bg-primary/90 dark:hover:bg-[#b080ea] shadow-sm';
+});
+
+const cartButtonClass = computed(() => {
+  if (props.isAddedToCart) {
+    return 'bg-surface-container text-on-surface-variant/60 border border-outline-variant cursor-not-allowed opacity-60';
+  }
+  if (props.isPrepared) {
+    return 'cursor-not-allowed opacity-30';
+  }
+  return 'hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:scale-105 active:scale-95';
 });
 
 const imageStateClass = computed(() =>
@@ -121,27 +132,31 @@ const favoriteTooltipText = computed(() =>
           <div class="relative flex items-center">
             <button
               type="button"
-              :disabled="isPrepared"
+              :disabled="isPrepared || isAddedToCart"
               :class="[
                 'group/cart border-outline-variant/40 bg-surface-container-low text-on-surface-variant relative flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200',
-                isPrepared
-                  ? 'cursor-not-allowed opacity-30'
-                  : 'hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:scale-105 active:scale-95',
+                cartButtonClass,
               ]"
-              aria-label="Add missing to cart"
+              :aria-label="
+                isAddedToCart ? 'Added to cart' : 'Add missing to cart'
+              "
               @click.stop="emit('add-to-cart')"
             >
               <span
                 class="material-symbols-outlined text-[20px] transition-transform duration-200"
-                :class="{ 'group-hover/cart:scale-110': !isPrepared }"
+                :class="{
+                  'group-hover/cart:scale-110': !isPrepared && !isAddedToCart,
+                }"
               >
-                add_shopping_cart
+                {{
+                  isAddedToCart ? 'shopping_cart_checkout' : 'add_shopping_cart'
+                }}
               </span>
               <span
                 v-if="!isPrepared"
                 class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-0.5 text-xs whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover/cart:opacity-100 dark:bg-gray-700"
               >
-                Add missing to cart
+                {{ isAddedToCart ? 'Added to cart' : 'Add missing to cart' }}
               </span>
             </button>
           </div>
