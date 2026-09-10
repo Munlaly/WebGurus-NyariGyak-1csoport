@@ -258,8 +258,6 @@ async function acceptAndFinalize() {
     });
 
     if (response.data.success) {
-      isAlreadySaved.value = true;
-
       router.reload({ only: ['topbarData'] });
 
       toast.add({
@@ -270,6 +268,8 @@ async function acceptAndFinalize() {
         color: 'success',
         icon: 'i-heroicons-check-circle',
       });
+
+      isAlreadySaved.value = true;
     }
   } catch (error) {
     console.error('Failed to save plan:', error);
