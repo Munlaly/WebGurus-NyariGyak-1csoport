@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { router } from '@inertiajs/vue3';
+
 interface RecipeProps {
   id: number;
   title: string;
@@ -13,14 +15,19 @@ interface RecipeProps {
   };
   ingredients: Array<{ name: string; amount: number; unit: string | null }>;
   instructions: Array<string>;
+  is_custom?: boolean;
 }
 
-defineProps<{
+const props = defineProps<{
   recipe: RecipeProps;
 }>();
 
 const goBack = () => {
-  window.history.back();
+  if (props.recipe.is_custom) {
+    router.get(route('recipes.index'), { tab: 'mine' });
+  } else {
+    router.get(route('recipes.index'));
+  }
 };
 
 const handleImageError = (event: Event) => {

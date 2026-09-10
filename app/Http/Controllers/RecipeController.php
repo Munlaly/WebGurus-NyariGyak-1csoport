@@ -53,6 +53,7 @@ class RecipeController extends Controller
                 ],
                 'ingredients' => $formattedIngredients,
                 'instructions' => $instructionsArray,
+                'is_custom' => $isAuthor,
             ]
         ]);
     }
