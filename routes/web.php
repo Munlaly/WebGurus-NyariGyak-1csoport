@@ -12,7 +12,6 @@ use App\Http\Controllers\UserInventoryController;
 use App\Http\Controllers\MealPlanController;
 use App\Http\Controllers\ShoppingListController;
 use App\Http\Controllers\UserRecipeController;
-use App\Models\User;
 
 Route::middleware('auth')->group(function(){
     Route::middleware(EnsureUserIsOnboarded::class)->group(function(){
