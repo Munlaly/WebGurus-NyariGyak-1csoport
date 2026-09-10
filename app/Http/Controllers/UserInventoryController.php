@@ -113,11 +113,6 @@ class UserInventoryController extends Controller
         $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
         $itemName = $inventory->ingredient->name ?? 'item';
 
-         if($newAmount <= 0) {
-            $inventory->delete();
-            return back()->with('success', "You've completely used up {$itemName}.");
-        }
-
         $inventory->update([
             'amount_left' => $newAmount,
         ]);

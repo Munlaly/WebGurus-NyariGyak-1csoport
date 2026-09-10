@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import ActionModal from '../Components/Modals/ActionModal.vue';
-import AddInventoryModal from '../Components/Modals/AddInventoryModal.vue';
 import { InventoryItem } from '../Types/inventoryInterfaces';
 import AddItemModal from '../Components/Modals/AddItemModal.vue';
 import {
@@ -48,9 +47,6 @@ const categories = [
 
 const searchQuery = ref('');
 const selectedCategory = ref('All');
-const addInventoryModalRef = ref<InstanceType<typeof AddInventoryModal> | null>(
-  null,
-);
 const isDeleteModalOpen = ref(false);
 const itemToDelete = ref<InventoryItem | null>(null);
 

@@ -47,7 +47,7 @@ class DashboardController extends Controller
         $endOfWeek = $today->copy()->endOfWeek()->toDateString();
 
         $dailyPlans = DailyPlan::where('user_id', $user->id)
-            ->where('date', '>=', $yesterday->toDateString())
+            ->where('date', '>=', $yesterday->copy()->startOfDay()->toDateTimeString())
             ->where('date', '<=', $tomorrow->copy()->endOfDay()->toDateTimeString())
             ->with(['mealPlans.recipe.ingredients'])
             ->get();
