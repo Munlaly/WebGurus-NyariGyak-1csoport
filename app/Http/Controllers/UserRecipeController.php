@@ -43,7 +43,10 @@ class UserRecipeController extends Controller
         
         $this->syncIngredients($recipe, $request->input('ingredients', []));
 
-        return back()->with('success', 'Recipe created successfully!');
+        return back()->with('success', [
+            'title' => 'Recipes Updated',
+            'template' => 'Recipe created successfully!',
+        ]);
     }
 
     public function update(Request $request, int $id) {
@@ -62,7 +65,10 @@ class UserRecipeController extends Controller
         $recipe->update($updateData);
         $this->syncIngredients($recipe, $request->input('ingredients', []));
 
-        return back()->with('success', 'Recipe updated successfully!');
+        return back()->with('success', [
+            'title' => 'Recipes Updated',
+            'template' => 'Recipe updated successfully!',
+        ]);
     }
 
     public function destroy(Request $request, int $id) {
@@ -71,7 +77,10 @@ class UserRecipeController extends Controller
         if($recipe->image) Storage::disk('public')->delete($recipe->image);
         $recipe->delete();
 
-        return back()->with('success', 'Recipe deleted successfully.');
+        return back()->with('success', [
+            'title' => 'Recipes Updated',
+            'template' => 'Recipe deleted successfully.',
+        ]);
     }
 
     private function validateRecipe(Request $request) {

@@ -20,6 +20,7 @@ interface InventoryFlashQuantity {
 }
 
 interface InventoryFlashPayload {
+  title?: string;
   template: string;
   itemName?: string;
   amount?: number;
@@ -201,7 +202,18 @@ watch(
   flashMessage,
   (newMessage) => {
     if (newMessage) {
-      toastTitle.value = 'Inventory Updated';
+      const flash = typedPageProps.value.flash?.success;
+      if (
+        typeof flash === 'object' &&
+        flash !== null &&
+        'title' in flash &&
+        flash.title
+      ) {
+        toastTitle.value = flash.title;
+      } else {
+        toastTitle.value = 'Inventory Updated';
+      }
+
       toastDescription.value = newMessage;
       toastType.value = 'success';
       showFlashToast.value = true;
