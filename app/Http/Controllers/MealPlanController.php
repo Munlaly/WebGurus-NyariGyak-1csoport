@@ -174,11 +174,13 @@ class MealPlanController extends Controller
         $weeklyActiveIngredients = [];
         $weeklyIngredientQuantities = [];
 
-        $includeSnack = false;
-        $snack = null;
-        $snackCalories = 0;
+        
 
         foreach($days as $offset => $day) {
+            $includeSnack = false;
+            $snack = null;
+            $snackCalories = 0;
+
             $dayDate = $now->copy()->addDays($offset)->startOfDay();
 
             $dayNum = $dayDate->dayOfWeekIso; 
