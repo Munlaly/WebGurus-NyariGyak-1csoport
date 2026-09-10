@@ -186,8 +186,8 @@ function cancelCooking() {
   mismatchInputs.value = {};
 }
 
-function getImageUrl(path: string | null) {
-  if (!path) return null;
+function getImageUrl(path: string | null): string | undefined {
+  if (!path) return undefined;
   if (path.startsWith('http')) return path;
   if (path.startsWith('storage/')) return `/${path}`;
   return `/storage/${path}`;
@@ -370,7 +370,7 @@ watch(searchQuery, (newVal) => {
               <div class="flex items-center gap-4 truncate">
                 <!-- Thumbnail Box -->
                 <div
-                  class="from-surface-container-low to-surface-container border-outline-variant/30 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-gradient-to-br shadow-sm"
+                  class="from-surface-container-low to-surface-container border-outline-variant/30 flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-linear-to-br shadow-sm"
                 >
                   <img
                     v-if="res.image"
