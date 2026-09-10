@@ -44,9 +44,7 @@ class MealPlanController extends Controller
             return $option->excludedCategories->pluck('id');
         })->unique()->toArray();
 
-        $requiredDietKeys = $dietaryOptions->pluck('slug')->filter(function ($slug) {
-            return !empty($slug) && $slug !== 'omnivore';
-        })->unique()->values()->toArray();
+        $requiredDietKeys = $dietaryOptions->pluck('slug')->filter(fn($slug) => $slug !== 'omnivore')->unique()->values()->toArray();
 
         $validRecipes = Recipe::with('ingredients');
 
@@ -90,6 +88,8 @@ class MealPlanController extends Controller
 
         $settings = UserSetting::where('user_id', $user->id)->first();
         $profile = UserProfile::where('user_id', $user->id)->first();
+
+        $exerciseSchedules = $user->exerciseSchedules()->pluck('intensity', 'day_of_week')->toArray();
 
         $nutritionService = app(NutritionService::class);
         $nutritionTargets = $profile ? $nutritionService->calculateNutritionalTargets($profile) : ['calories' => 2000, 'macros' => ['protein' => 30, 'carbs' => 40, 'fat' => 30]];
@@ -154,8 +154,8 @@ class MealPlanController extends Controller
         $dinners = $pruneBucket($dinners);
         $snacks = $pruneBucket($snacks);
 
-        $minCalories = $targetCalories * 0.85;
-        $maxCalories = $targetCalories * 1.15;
+        $minCalories = $targetCalories * 0.90;
+        $maxCalories = $targetCalories * 1.10;
 
         $userInventory = UserInventory::where('user_id', $user->id)
             ->orderBy('expiration_date', 'asc')
@@ -174,10 +174,23 @@ class MealPlanController extends Controller
         $weeklyActiveIngredients = [];
         $weeklyIngredientQuantities = [];
 
-        $snackChancePercentage = 40;
+        
 
         foreach($days as $offset => $day) {
+            $includeSnack = false;
+            $snack = null;
+            $snackCalories = 0;
+
             $dayDate = $now->copy()->addDays($offset)->startOfDay();
+
+            $dayNum = $dayDate->dayOfWeekIso; 
+            $dayIntensity = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate;
+
+            $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayIntensity);
+            $dailyTargetCalories = $dailyNutrition['calories'];
+
+            $minCalories = $dailyTargetCalories * 0.90;
+            $maxCalories = $dailyTargetCalories * 1.10;
 
             $dailyMeals = null;
             $bestAttempt = null;
@@ -227,11 +240,6 @@ class MealPlanController extends Controller
                 }
                 return $score;
             };
-
-
-            $includeSnack = $snacks->isNotEmpty() && (mt_rand(1, 100) <= $snackChancePercentage);
-            $snack = $includeSnack ? $snacks->sortByDesc($zeroWasteScorer)->first() : null;
-            $snackCalories = $snack ? (int) $snack->calories : 0;
 
             $fillerMeal = mt_rand(0, 2);
             while($attempts < $maxAttempts) {
@@ -294,7 +302,7 @@ class MealPlanController extends Controller
                 }
 
                 $testTotal = $b->calories + $l->calories + $d->calories + $snackCalories;
-                $difference = abs($testTotal - $targetCalories);
+                $difference = abs($testTotal - $dailyTargetCalories);
 
                 if($difference < $closestDifference) {
                     $closestDifference = $difference;
@@ -305,6 +313,18 @@ class MealPlanController extends Controller
 
             $finalMeals = $dailyMeals ?? $bestAttempt;
             $finalMeals = array_filter($finalMeals);
+
+            $currentTotal = collect($finalMeals)->sum('calories');
+            $missingCalories = $dailyTargetCalories - $currentTotal;
+
+            if ($snacks->isNotEmpty() && $missingCalories >= 150) {
+                $bestSnack = $snacks->sortBy(fn($s) => abs($s->calories - $missingCalories))->first();
+                
+                if ($bestSnack) {
+                    $finalMeals['snack'] = $bestSnack;
+                    $includeSnack = true;
+                }
+            }
 
             foreach($finalMeals as $meal) {
                 /** @var \App\Models\Ingredient $ingredient */
@@ -337,6 +357,7 @@ class MealPlanController extends Controller
                 'total_calories' => collect($formattedMeals)->sum('calories'),
                 'has_snack' => $includeSnack,
                 'perfect_match' => $perfectMatch,
+                'target_calories' => $dailyTargetCalories,
             ];
         }
 
@@ -417,7 +438,7 @@ class MealPlanController extends Controller
 
         $mealTypesArray = ['breakfast', 'lunch', 'dinner', 'snack'];
     
-        DB::transaction(function () use ($user, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets) {
+        DB::transaction(function () use ($user, $profile, $plan, $startOfWeek, $dayMapping, $exerciseSchedules, $mealTypesArray, $nutritionTargets, $nutritionService) {
             // Delete old drafts
             $oldDailyPlans = DailyPlan::where('user_id', $user->id)
                 ->where('status', EntityStatus::Draft->value)
@@ -434,7 +455,14 @@ class MealPlanController extends Controller
                 $scheduledDate = $startOfWeek->copy()->addDays($dayOffset)->toDateString();
 
                 $dayNum = ($dayMapping[$dayName] ?? 0) +1 ;
-                $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate->value;
+                $dayType = $exerciseSchedules[$dayNum] ?? ExerciseIntensity::Moderate;
+
+                $dailyNutrition = $nutritionService->calculateNutritionalTargets($profile, $dayType);
+                $dailyCals = $dailyNutrition['calories'];
+
+                $proteinGrams = (int) round(($dailyCals * ($nutritionTargets['macros']['protein'] / 100)) / 4);
+                $carbsGrams   = (int) round(($dailyCals * ($nutritionTargets['macros']['carbs'] / 100)) / 4);
+                $fatGrams     = (int) round(($dailyCals * ($nutritionTargets['macros']['fat'] / 100)) / 9);
 
                 $dailyPlan = DailyPlan::updateOrCreate(
                 [   
@@ -443,10 +471,10 @@ class MealPlanController extends Controller
                 ],
                 [
                     'day_type' => $dayType,
-                    'target_calories' => $nutritionTargets['calories'],
-                    'target_protein_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['protein'] / 100)) / 4),
-                    'target_carbs_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['carbs'] / 100)) / 4),
-                    'target_fat_g' => (int) (($nutritionTargets['calories'] * ($nutritionTargets['macros']['fat'] / 100)) / 9),
+                    'target_calories' => $dailyCals,
+                    'target_protein_g' => $proteinGrams,
+                    'target_carbs_g' => $carbsGrams,
+                    'target_fat_g' => $fatGrams,
                     'status' => EntityStatus::Draft->value,
                 ]);
 
@@ -513,15 +541,16 @@ class MealPlanController extends Controller
             $totalCalories = $meals->sum('calories');
             $hasSnack = $meals->contains('meal_type', 'snack');
             
-            $minCalories = $dailyPlan->target_calories * 0.85;
-            $maxCalories = $dailyPlan->target_calories * 1.15;
+            $minCalories = $dailyPlan->target_calories * 0.90;
+            $maxCalories = $dailyPlan->target_calories * 1.10;
             $perfectMatch = $totalCalories >= $minCalories && $totalCalories <= $maxCalories;
 
             $weeklyPlan[$dayName] = [
                 'total_calories' => $totalCalories,
                 'has_snack' => $hasSnack,
                 'perfect_match' => $perfectMatch,
-                'meals' => $meals->values()->toArray()
+                'meals' => $meals->values()->toArray(),
+                'target_calories' => $dailyPlan->target_calories,
             ];
         }
 

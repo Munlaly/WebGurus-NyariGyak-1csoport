@@ -22,4 +22,5 @@ export interface DayPlan {
   has_snack: boolean;
   perfect_match: boolean;
   meals: PlannerMeal[];
+  target_calories: number;
 }

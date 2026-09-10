@@ -5,10 +5,11 @@ namespace App\Services;
 use App\Models\UserProfile;
 use Illuminate\Support\Carbon;
 use App\Models\DailyPlan;
+use App\Enums\ExerciseIntensity;
 
 class NutritionService
 {
-    public function calculateNutritionalTargets(UserProfile $profile) {
+    public function calculateNutritionalTargets(UserProfile $profile, ExerciseIntensity $dayIntensity = ExerciseIntensity::Rest) {
         $goal = $profile->fitness_goal->value ?? 'maintain';
         $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30];
 
@@ -19,25 +20,16 @@ class NutritionService
             $macros = ['protein' => 30, 'carbs' => 50, 'fat' => 20];
         }
 
-        if (!empty($profile->weekly_calorie_target)) {
-            return [
-                'calories' => (int) round($profile->weekly_calorie_target / 7),
-                'macros' => $macros,
-            ];
-        }
-    
         $weight = (float) ($profile->weight_kg ?? 70);
         $height = (float) ($profile->height_cm ?? 170);
         $age = $profile->birthdate ? Carbon::parse($profile->birthdate)->age : 30;
-
         $sex = $profile->sex->value ?? 'male';
         $activity = $profile->baseline_activity->value ?? 'sedentary';
 
-        // calculate Basal Metabolic Rate (Mifflin-St Jeor)
+        // Base BMR Calculation
         $bmr = (10 * $weight) + (6.25 * $height) - (5 * $age);
         $bmr += ($sex === 'female') ? -161 : 5;
 
-        // apply activity multiplier
         $multipliers = [
             'sedentary' => 1.2,
             'lightly_active' => 1.375,
@@ -45,50 +37,51 @@ class NutritionService
             'very_active' => 1.725,
         ];
 
+        // Base TDEE
         $tdee = $bmr * $multipliers[$activity];
-        
-        $targetCalories = $tdee;
-        $macros = ['protein' => 30, 'carbs' => 40, 'fat' => 30]; // maintain
 
+        // Add Exercise Output FIRST
+        if ($dayIntensity === ExerciseIntensity::Moderate) {
+            $tdee += (int) round($weight * 4.5);
+        } elseif ($dayIntensity === ExerciseIntensity::Heavy) {
+            $tdee += (int) round($weight * 7.5);
+        }
+
+        // Apply Goal Deficit/Surplus LAST
+        $targetCalories = $tdee;
         if(in_array($goal, ['lose_weight', 'lose weight'])) {
             $targetCalories = $tdee - 500;
         } elseif(in_array($goal, ['gain_muscle', 'gain muscle'])) {
             $targetCalories = $tdee + 500;
         }
-
+        
         return [
             'calories' => (int) round($targetCalories),
             'macros' => $macros,
         ];
+
     }
 
     public function updateProfileWeeklyCalories(UserProfile $profile): void {
-        $profile->weekly_calorie_target = null;
-
-        $targets = $this->calculateNutritionalTargets($profile);
+        $targets = $this->calculateNutritionalTargets($profile, ExerciseIntensity::Rest);
         $profile->weekly_calorie_target = $targets['calories'] * 7;
         $profile->save();
 
-        $weight = (float) ($profile->weight_kg ?? 70);
+        $schedules = $profile->user->exerciseSchedules()->pluck('intensity', 'day_of_week')->toArray();
 
 
-        // Apply changes tu future plans as well as to today's plan
+        // Apply changes to future plans as well as to today's plan
         $futurePlans = DailyPlan::where('user_id', $profile->user_id)
             ->whereDate('date', '>=', Carbon::now()->toDateString())
             ->get();
 
         foreach ($futurePlans as $plan) {
-            $dailyCals = $targets['calories'];
-           
-            $intensity = $plan->day_type->value ?? $plan->day_type;
+            $dayNum = Carbon::parse($plan->date)->dayOfWeekIso;
 
-            if ($intensity === 'moderate') {
-                $dailyCals += (int) round($weight * 4.5); 
-            } elseif ($intensity === 'heavy') {
-                $dailyCals += (int) round($weight * 7.5); 
-            }
+            $intensity = $schedules[$dayNum] ?? ExerciseIntensity::Rest;
 
-
+            $dailyNutrition = $this->calculateNutritionalTargets($profile, $intensity);
+            $dailyCals = $dailyNutrition['calories'];
 
             // Convert macro percentages to exact grams based on the adjusted daily calories
             $proteinGrams = (int) round(($dailyCals * ($targets['macros']['protein'] / 100)) / 4);
@@ -96,6 +89,7 @@ class NutritionService
             $fatGrams     = (int) round(($dailyCals * ($targets['macros']['fat'] / 100)) / 9);
 
             $plan->update([
+                'day_type' => $intensity,
                 'target_calories'  => $dailyCals,
                 'target_protein_g' => $proteinGrams,
                 'target_carbs_g'   => $carbsGrams,
