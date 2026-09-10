@@ -20,6 +20,7 @@ interface InventoryFlashQuantity {
 }
 
 interface InventoryFlashPayload {
+  title?: string;
   template: string;
   itemName?: string;
   amount?: number;
@@ -31,7 +32,6 @@ interface CustomPageProps {
   auth: {
     theme?: string;
     inAppAlerts?: boolean;
-    expiringCount?: number;
   };
   expiringAlerts?: {
     expired?: InventoryItem[];
@@ -115,7 +115,10 @@ const flashMessage = computed(() => {
       );
     }
     if (flash.quantities) {
-      for (const [key, q] of Object.entries(flash.quantities)) {
+      for (const [key, q] of Object.entries(flash.quantities) as [
+        string,
+        InventoryFlashQuantity,
+      ][]) {
         text = text.replaceAll(`{${key}}`, formatQuantity(q.amount, q.unit));
       }
     }
@@ -204,7 +207,18 @@ watch(
   flashMessage,
   (newMessage) => {
     if (newMessage) {
-      toastTitle.value = 'Inventory Updated';
+      const flash = typedPageProps.value.flash?.success;
+      if (
+        typeof flash === 'object' &&
+        flash !== null &&
+        'title' in flash &&
+        flash.title
+      ) {
+        toastTitle.value = flash.title;
+      } else {
+        toastTitle.value = 'Inventory Updated';
+      }
+
       toastDescription.value = newMessage;
       toastType.value = 'success';
       showFlashToast.value = true;

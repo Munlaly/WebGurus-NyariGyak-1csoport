@@ -85,7 +85,10 @@ class SettingsController extends Controller
 
         });
 
-         return back()->with('success', 'Targets and schedule updated successfully.');
+         return back()->with('success', [
+             'title' => 'Targets Updated',
+             'template' => 'Targets and schedule updated successfully.',
+         ]);
     }
 
     // --- RULES ---
@@ -134,7 +137,10 @@ class SettingsController extends Controller
             $user->dislikedIngredients()->sync($validated['dislikedIngredients']);
         });
 
-        return back()->with('success', 'Dietary rules updated.');
+        return back()->with('success', [
+            'title' => 'Dietary Rules Updated',
+            'template' => 'Dietary rules updated.',
+        ]);
     }
 
     // --- SYSTEM ---
@@ -169,7 +175,10 @@ class SettingsController extends Controller
         $settings->system_preferences = $validated;
         $settings->save();
 
-        return back()->with('success', 'System preferences updated successfully.');
+        return back()->with('success', [
+            'title' => 'System Preferences Updated',
+            'template' => 'System preferences updated successfully.',
+        ]);
     }
 
     // --- Biometrics ---
@@ -212,7 +221,10 @@ class SettingsController extends Controller
             $nutritionService->updateProfileWeeklyCalories($profile);
         });
 
-        return back()->with('success', 'Biometrics updated. Caloric targets recalculated.');
+        return back()->with('success', [
+            'title' => 'Biometrics Updated',
+            'template' => 'Biometrics updated. Caloric targets recalculated.',
+        ]);
     }
 
     // --- Logistics ---
@@ -247,7 +259,10 @@ class SettingsController extends Controller
             ]
         );
 
-        return back()->with('success', 'Kitchen logistics updated successfully.');
+        return back()->with('success', [
+            'title' => 'Logistics Updated',
+            'template' => 'Kitchen logistics updated successfully.',
+        ]);
     }
 
     // --- Security ---
@@ -281,7 +296,10 @@ class SettingsController extends Controller
 
         $user->save();
 
-        return back()->with('success', 'Profile details updated.');
+        return back()->with('success', [
+            'title' => 'Profile Updated',
+            'template' => 'Profile details updated.',
+        ]);
     }
 
     public function sendPasswordResetLink(Request $request): RedirectResponse

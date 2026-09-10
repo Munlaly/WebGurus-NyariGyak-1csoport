@@ -42,6 +42,7 @@ class ShoppingListController extends Controller
         $shoppingItem->load('ingredient');
 
         return back()->with('success', [
+            'title' => 'Shopping List Updated',
             'template' => 'Added {quantity} of {itemName} to your shopping list successfully.',
             'itemName' => $shoppingItem->ingredient->name ?? 'item',
             'amount' => $validated['quantity'],
@@ -63,7 +64,10 @@ class ShoppingListController extends Controller
 
         $item->update($validated);
 
-        return back()->with('success', 'Shopping list updated successfully.');
+        return back()->with('success', [
+            'title' => 'Shopping List Updated',
+            'template' => 'Shopping list updated successfully.',
+        ]);
     }
 
     public function destroy(Request $request, ShoppingListItem $item) {
@@ -74,7 +78,10 @@ class ShoppingListController extends Controller
 
         $item->delete();
 
-        return back()->with('success', 'Shopping list item removed successfully.');
+        return back()->with('success', [
+            'title' => 'Shopping List Updated',
+            'template' => 'Shopping list item removed successfully.',
+        ]);
     }
 
     public function finish(Request $request) {
@@ -112,7 +119,10 @@ class ShoppingListController extends Controller
             }
         }
         ShoppingListItem::whereIn('id', $shoppingItems->pluck('id'))->delete();
-        return back()->with('success', 'Checked items transferred to your inventory!');
+        return back()->with('success', [
+            'title' => 'Inventory Updated',
+            'template' => 'Checked items transferred to your inventory!',
+        ]);
     }
 
     public function toggleAll(Request $request) {

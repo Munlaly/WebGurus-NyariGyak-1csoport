@@ -522,7 +522,7 @@ class MealPlanController extends Controller
             // Convert 'YYYY-MM-DD' back to 'Monday', 'Tuesday' for frontend
             $dayName = Carbon::parse($dailyPlan->date)->format('l');
 
-            $meals = $dailyPlan->mealPlans->map(function ( \App\Models\MealPlan $mealPlan) {
+            $meals = $dailyPlan->mealPlans->map(function (MealPlan $mealPlan) {
                 $recipe = $mealPlan->recipe;
                 return [
                     'id' => $recipe->id,
@@ -532,7 +532,7 @@ class MealPlanController extends Controller
                     'image' => $recipe->image,
                     'prep_time_minutes' => $recipe->prep_time_minutes,
                     'diets' => $recipe->diets ?? [],
-                    'isPinned' => true, // Treat saved DB meals as pinned by default 
+                    'isPinned' => true,
                     'isRolling' => false,
                     'isPrepared' => $mealPlan->status === 'EATEN',
                 ];

@@ -62,7 +62,7 @@ class IngredientService
             'large', 'medium', 'small', 'the following', 'dry', 'raw',
             'pieces', 'strips', 'cubed', 'cubes', 'roughly', 'finely',
             'boneless', 'skinless', 'brewed', 'unrefined', 'unsalted', 'salted',
-            'organic', 'low.fat', 'reduced.fat', 'extra', 'the',
+            'organic', 'low.fat', 'reduced.fat', 'extra', 'the', 'from', 'above',
         ];
         $pattern = '/\b(' . implode('|', $noiseWords) . ')\b\s*-?\s*/i';
         $name = preg_replace($pattern, '', $name);
