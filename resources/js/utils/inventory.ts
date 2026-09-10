@@ -33,7 +33,8 @@ export const getItemState = (item: InventoryItem) => {
   const unit = item.unit || item.ingredient?.base_unit || 'pcs';
   const qtyText = `${item.amount_left ?? 0} ${unit}`;
 
-  const baseCardClass = 'border-surface-variant/40 bg-surface-container-lowest';
+  const baseCardClass =
+    'border-surface-variant/40 bg-surface-container-lowest dark:border-white/10';
 
   if (diffDays !== null && diffDays < 0) {
     return {

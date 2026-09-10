@@ -90,9 +90,16 @@ function scrollToItem(id: number) {
   const element = document.getElementById(`inventory-item-${id}`);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    element.classList.add('ring-2', 'ring-primary', 'transition-all');
+
+    element.classList.add(
+      'ring-2',
+      'ring-primary',
+      'dark:ring-white/30',
+      'transition-all',
+    );
+
     setTimeout(() => {
-      element.classList.remove('ring-2', 'ring-primary');
+      element.classList.remove('ring-2', 'ring-primary', 'dark:ring-white/30');
     }, 2000);
   }
 }
