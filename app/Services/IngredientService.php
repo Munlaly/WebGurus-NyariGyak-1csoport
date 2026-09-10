@@ -6,6 +6,18 @@ use function Symfony\Component\String\b;
 
 class IngredientService
 {
+    public function isEffectivelyEmpty(float $amount, string $unit): bool {
+        $threshold = match(strtolower($unit)) {
+            'g', 'ml' => 0.99,   
+            'kg', 'l' => 0.001,  
+            'oz' => 0.05,        
+            'lb' => 0.01,        
+            'pcs' => 0.05,       
+            default => 0.05,
+        };
+        return $amount <= $threshold;
+    }
+
     private function singularize(string $name): string
     {
         $words = explode(' ', $name);
@@ -29,9 +41,9 @@ class IngredientService
 
     public function sanitizeName(string $rawName): string 
     {
-        $name = strtolower($rawName);
+        $name = trim(strtolower($rawName));
         if (str_contains($name, ':')) {
-            $name = explode(':', $name)[1];
+            $name = trim(explode(':', $name)[1]);
         }
 
         $name = preg_replace('/(?:\*\*|\(|\s-\s).*/', '', $name);
@@ -40,10 +52,10 @@ class IngredientService
         $name = preg_replace('/^\[.*?\]\s*/', '', $name);
 
         $units = 'cup|tablespoon|teaspoon|tbsp|tsp|oz|ounce|lb|pound|gram|g|ml|dash|pinch|clove|slice|piece|can|bunch|whole|package|stick';
-        $name = preg_replace('/^[\d\.\/½¼¾⅓⅔⅛⅜⅝⅞]+\s*(?:(?:' . $units . ')s?\.?\s+)?/i', '', $name);
+        $name = preg_replace('/^\s*[\d\.\/½¼¾⅓⅔⅛⅜⅝⅞]+\s*(?:(?:' . $units . ')s?\.?\s+)?/i', '', $name);
 
-        $name = preg_replace('/^(?:a|an|add|additional|some)\s+/i', '', $name);
-        $name = preg_replace('/^[-*•▢☐"&)[\]]+\s*/u', '', $name);
+        $name = preg_replace('/^\s*(?:a|an|add|additional|some)\s+/i', '', $name);
+        $name = preg_replace('/^\s*[-–—*•▢☐"&)[\]]+\s*/u', '', $name);
         
         $noiseWords = [
             'fresh(?:ly)?', 'chopped', 'diced', 'sliced', 'optional', 'garnish',
@@ -52,8 +64,7 @@ class IngredientService
             'boneless', 'skinless', 'brewed', 'unrefined', 'unsalted', 'salted',
             'organic', 'low.fat', 'reduced.fat', 'extra', 'the',
         ];
-        
-        $pattern = '/\b(' . implode('|', $noiseWords) . ')\b/i';
+        $pattern = '/\b(' . implode('|', $noiseWords) . ')\b\s*-?\s*/i';
         $name = preg_replace($pattern, '', $name);
 
         $name = trim(preg_replace('/\s+/', ' ', $name));

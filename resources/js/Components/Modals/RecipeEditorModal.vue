@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ActionModal from './ActionModal.vue';
 import type {
@@ -22,6 +22,7 @@ const props = defineProps<{
   show: boolean;
   recipe?: Recipe | null;
   ingredientsList: IngredientOption[];
+  dietaryOptions: Array<{ id: number; name: string; description?: string }>;
 }>();
 
 const emit = defineEmits(['close']);
@@ -43,14 +44,51 @@ const form = useForm({
   fat: 15,
   carbs: 50,
   meal_types: [] as string[],
+  diets: [] as number[],
   is_public: false,
   image: null as File | null,
-  ingredients: [] as {
-    id: number;
-    name: string;
-    amount: number;
-    unit: string;
-  }[],
+  ingredients: [] as FormIngredient[],
+});
+
+const baseDietIds = computed(() => {
+  return props.dietaryOptions
+    .filter((d) =>
+      ['vegan', 'vegetarian', 'pescatarian', 'omnivore'].includes(
+        d.name.toLowerCase(),
+      ),
+    )
+    .map((d) => d.id);
+});
+
+const hasConflict = computed(() => {
+  const selectedBase = form.diets.filter((id) =>
+    baseDietIds.value.includes(id),
+  );
+  return selectedBase.length > 1;
+});
+
+const dietItems = computed(() => {
+  return props.dietaryOptions.map((diet) => {
+    const isBase = baseDietIds.value.includes(diet.id);
+    const isSelected = form.diets.includes(diet.id);
+    const isConflicting = hasConflict.value && isBase && isSelected;
+
+    return {
+      value: String(diet.id),
+      label: diet.name,
+      description: diet.description,
+      class: isConflicting
+        ? '!ring-0 !border-2 !border-red-500 bg-red-50 dark:bg-error-container dark:border-error dark:text-on-error-container'
+        : '',
+    };
+  });
+});
+
+const dietsStringModel = computed({
+  get: () => form.diets.map(String),
+  set: (val: string[]) => {
+    form.diets = val.map(Number);
+  },
 });
 
 // Helper to format the saved DB path correctly
@@ -313,6 +351,28 @@ function submit() {
         </div>
         <p v-if="form.errors.meal_types" class="text-error mt-1 text-xs">
           {{ form.errors.meal_types }}
+        </p>
+      </div>
+
+      <!-- Diets Section -->
+      <div>
+        <label class="font-label-md text-on-surface mb-2 block font-bold"
+          >Diets</label
+        >
+        <UCheckboxGroup
+          v-model="dietsStringModel"
+          :items="dietItems"
+          size="md"
+          variant="card"
+          :ui="{
+            label: 'text-on-surface font-semibold',
+            description: 'text-on-surface-variant text-xs',
+            item: 'mt-2 ring-1 ring-outline-variant',
+          }"
+        />
+        <p v-if="hasConflict" class="mt-1 text-xs text-red-500">
+          You cannot select conflicting baseline diets (e.g., Vegan and
+          Omnivore).
         </p>
       </div>
 

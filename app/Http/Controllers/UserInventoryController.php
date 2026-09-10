@@ -7,6 +7,7 @@ use App\Models\UserInventory;
 use Illuminate\Support\Carbon;
 use App\Models\UserSetting;
 use Inertia\Inertia;
+use App\Services\IngredientService;
 
 class UserInventoryController extends Controller
 {
@@ -67,7 +68,7 @@ class UserInventoryController extends Controller
         return back()->with('success', 'Item added to inventory.');
     }
 
-    public function update(Request $request, UserInventory $inventory) {
+    public function update(Request $request, UserInventory $inventory, IngredientService $ingredientService) {
         if($inventory->user_id !== $request->user()->id) {
             abort(403);
         }
@@ -82,6 +83,22 @@ class UserInventoryController extends Controller
         if(!empty($validated['expiration_date'])) {
             $validated['expiration_date'] = Carbon::parse($validated['expiration_date'])->format('Y-m-d');
         }
+
+        if(isset($validated['amount_left']) && $ingredientService->isEffectivelyEmpty((float)$validated['amount_left'], $validated['unit'])) {
+            $inventory->load('ingredient');
+            $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
+            $itemName = $inventory->ingredient->name ?? 'item';
+            
+            $inventory->delete();
+
+            return back()->with('success', [
+                'template' => '{itemName} was completely used up and removed.',
+                'itemName' => $itemName,
+                'amount' => 0,
+                'unit' => $unit,
+            ]);
+        }
+
         $inventory->update($validated);
         $inventory->load('ingredient');
 
@@ -127,7 +144,7 @@ class UserInventoryController extends Controller
         ]);
     }
 
-    public function decrease(Request $request, UserInventory $inventory) {
+    public function decrease(Request $request, UserInventory $inventory, IngredientService $ingredientService) {
         if($inventory->user_id !== $request->user()->id) {
             abort(403);
         }
@@ -143,7 +160,7 @@ class UserInventoryController extends Controller
         $unit = $inventory->unit ?? $inventory->ingredient->base_unit ?? '';
         $itemName = $inventory->ingredient->name ?? 'item';
 
-         if($newAmount <= 0) {
+        if($ingredientService->isEffectivelyEmpty($newAmount, $unit)) {
             $inventory->delete();
             return back()->with('success', "You've completely used up {$itemName}.");
         }

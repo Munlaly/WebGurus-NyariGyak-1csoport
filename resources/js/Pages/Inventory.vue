@@ -90,9 +90,16 @@ function scrollToItem(id: number) {
   const element = document.getElementById(`inventory-item-${id}`);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    element.classList.add('ring-2', 'ring-primary', 'transition-all');
+
+    element.classList.add(
+      'ring-2',
+      'ring-primary',
+      'dark:ring-white/30',
+      'transition-all',
+    );
+
     setTimeout(() => {
-      element.classList.remove('ring-2', 'ring-primary');
+      element.classList.remove('ring-2', 'ring-primary', 'dark:ring-white/30');
     }, 2000);
   }
 }
@@ -113,7 +120,7 @@ function scrollToItem(id: number) {
           </p>
         </div>
         <div class="flex flex-col items-center gap-4 sm:flex-row">
-          <div class="relative w-full grow">
+          <div class="relative w-full sm:max-w-md">
             <span
               class="material-symbols-outlined text-on-surface-variant pointer-events-none absolute top-1/2 left-4 -translate-y-1/2"
               >search</span

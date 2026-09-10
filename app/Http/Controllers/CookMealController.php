@@ -9,16 +9,16 @@ use App\Models\UserInventory;
 use App\Models\DailyPlan;
 use App\Models\ShoppingListItem;
 use App\Models\MealPlan;
+use App\Services\IngredientService;
 
 class CookMealController extends Controller
 {
-    public function cook(Request $request, int $recipeId) {
+    public function cook(Request $request, int $recipeId, IngredientService $ingredientService) {
         $request->validate([
             'meal_plan_id' => 'required|integer|exists:meal_plans,id',
             'confirmed' => 'boolean',
             'mismatch_overrides' => 'array'
         ]);
-
         $recipe = Recipe::with('ingredients')->findOrFail($recipeId);
         $user = $request->user();
 
@@ -27,7 +27,7 @@ class CookMealController extends Controller
         $scale = $userSettings ? (int) $userSettings->household_size : 1;
         $mealPlanId = $request->input('meal_plan_id');
 
-        return DB::transaction(function() use ($recipe, $user, $scale, $isConfirmed, $request, $mealPlanId) {
+        return DB::transaction(function() use ($recipe, $user, $scale, $isConfirmed, $request, $mealPlanId, $ingredientService) {
             $missingIngredients = [];
             $mismatchedUnits = [];
             $availableIngredients = [];
@@ -65,7 +65,7 @@ class CookMealController extends Controller
                                 $remainingAmount = max(0, (float) $mismatchedOverrides[$recipeIngredient->id]);
                                 $firstItem = $inventoryItems->first();
 
-                                if($remainingAmount == 0) {
+                                if($ingredientService->isEffectivelyEmpty($remainingAmount, $firstItem->unit)) {
                                     foreach($inventoryItems as $item) {
                                         $item->delete();
                                     }
@@ -133,13 +133,15 @@ class CookMealController extends Controller
                         break; 
                     }
 
-                    if ($item->amount_left <= $remainingToDeduct) {
+                    $newAmount = $item->amount_left - $remainingToDeduct;
+
+                    if ($ingredientService->isEffectivelyEmpty($newAmount, $item->unit)) {
                         $remainingToDeduct -= $item->amount_left;
                         $item->delete();
                         $usedIngredients[] = $item->ingredient_id . ' (Finished batch)';
                     } else {
                         $item->update([
-                            'amount_left' => $item->amount_left - $remainingToDeduct,
+                            'amount_left' => $newAmount,
                             'status' => 'OPENED'
                         ]);
                         $remainingToDeduct = 0; 
