@@ -59,7 +59,7 @@ const { formatQuantity } = useUnits();
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/' },
   { name: 'Weekly Planner', icon: 'event_note', href: '/meal-plan' },
-  { name: 'My Inventory', icon: 'inventory_2', href: '/inventory' },
+  { name: 'My Fridge', icon: 'inventory_2', href: '/inventory' },
   { name: 'Shopping List', icon: 'shopping_cart', href: '/shopping-list' },
   { name: 'Recipes', icon: 'restaurant_menu', href: '/recipes' },
   { name: 'Alerts', icon: 'notifications', href: '/alerts' },
@@ -223,7 +223,7 @@ watch(
       ) {
         toastTitle.value = flash.title;
       } else {
-        toastTitle.value = 'Inventory Updated';
+        toastTitle.value = 'Fridge Updated';
       }
 
       toastDescription.value = newMessage;

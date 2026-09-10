@@ -27,7 +27,7 @@ function onSubmit() {
 <template>
   <AuthLayout
     heading="Welcome back, Planner"
-    subheading="Log in to manage your inventory and weekly meals."
+    subheading="Log in to manage your fridge and weekly meals."
     image-src="https://lh3.googleusercontent.com/aida-public/AB6AXuBx4UiNtwUiNfR_h2KXIdhLca3Sr74uhM9fnM4ZOSu1fTG7VgWzTxWZBVkh6pEK8C0cecI4_YWswWEGO8pAsdqn8QvJ-xyjUNIoB3cMU59dKHNsr0Oc9-g47F3ZfbCqniI8vrBLBqsboiHL_GaR-j8vBzqWz80_6jAmEptVKgbdpO5a83yt-xMH1EEDz-ATh68On08xOqiv4i-7xgrdjEUvEKpA0itfFM5xlKg6ooBzzoa4XY6SY5l5"
     image-alt="Fresh vegetables and meal prep containers"
   >

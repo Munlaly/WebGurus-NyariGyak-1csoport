@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPlan;
-use App\Models\UserInventory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;

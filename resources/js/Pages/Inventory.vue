@@ -112,7 +112,7 @@ function scrollToItem(id: number) {
       <section class="flex flex-col gap-6">
         <div>
           <h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">
-            My Inventory
+            My Fridge
           </h1>
           <p class="font-body-md text-body-md text-on-surface-variant">
             Manage your pantry and reduce waste.
@@ -353,7 +353,7 @@ function scrollToItem(id: number) {
         </div>
       </div>
       <p class="font-body-md text-on-surface-variant">
-        Are you sure you want to remove this item from your inventory?
+        Are you sure you want to remove this item from your fridge?
       </p>
     </ActionModal>
 

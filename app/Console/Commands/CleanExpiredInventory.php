@@ -2,8 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Attributes\Description;
-use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use App\Models\UserInventory;
 use App\Models\UserSetting;
@@ -12,7 +10,7 @@ use Illuminate\Support\Carbon;
 class CleanExpiredInventory extends Command
 {
     protected $signature = 'inventory:clean-expired';
-    protected $description = 'Clean up expired inventory items and deduct zero waste scores daily';
+    protected $description = 'Clean up expired fridge items and deduct zero waste scores daily';
     public function handle()
     {
         $now = Carbon::now();

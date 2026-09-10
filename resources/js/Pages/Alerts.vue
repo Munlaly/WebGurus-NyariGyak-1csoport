@@ -107,7 +107,7 @@ onMounted(() => {
       <header class="flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-            Inventory Alerts
+            Fridge Alerts
           </h1>
           <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Review your expiring ingredients below.
@@ -224,7 +224,7 @@ onMounted(() => {
           "
           class="flex h-32 items-center justify-center rounded-xl border border-dashed border-gray-300 text-gray-500 dark:border-gray-700 dark:text-gray-400"
         >
-          No active alerts right now! Your inventory is looking great.
+          No active alerts right now! Your fridge is looking great.
         </div>
       </div>
     </div>
@@ -242,7 +242,7 @@ onMounted(() => {
         </h3>
         <p class="mb-5 text-sm text-gray-600 dark:text-gray-400">
           Are you sure you want to dismiss this notification? This will hide it
-          from this list, but the item will remain in your inventory.
+          from this list, but the item will remain in your fridge.
         </p>
 
         <!-- Checkbox -->

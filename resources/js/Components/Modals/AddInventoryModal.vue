@@ -76,7 +76,7 @@ defineExpose({
 <template>
   <ActionModal
     :show="addModal.isOpen"
-    title="Add to Inventory"
+    title="Add to Fridge"
     :processing="addModal.form.processing"
     submit-text="Add Item"
     submit-variant="primary"

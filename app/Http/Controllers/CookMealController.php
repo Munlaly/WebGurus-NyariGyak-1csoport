@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Recipe;
 use App\Models\UserInventory;
-use App\Models\DailyPlan;
 use App\Models\ShoppingListItem;
 use App\Models\MealPlan;
 use App\Services\IngredientService;
@@ -168,7 +167,7 @@ class CookMealController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Meal is cooked! Inventory automatically updated!',
+                'message' => 'Meal is cooked! Fridge automatically updated!',
                 'details' => $usedIngredients,
             ]);
         });

@@ -65,7 +65,7 @@ class UserInventoryController extends Controller
             'is_frozen' => $validated['is_frozen'] ?? false,
         ]);
 
-        return back()->with('success', 'Item added to inventory.');
+        return back()->with('success', 'Item added to fridge.');
     }
 
     public function update(Request $request, UserInventory $inventory, IngredientService $ingredientService) {
@@ -193,7 +193,7 @@ class UserInventoryController extends Controller
         $inventory->delete();
 
         return back()->with('success', [
-            'template' => '{quantity} of {itemName} has been removed from your inventory successfully.',
+            'template' => '{quantity} of {itemName} has been removed from your fridge successfully.',
             'itemName' => $itemName,
             'amount' => $amount,
             'unit' => $unit,

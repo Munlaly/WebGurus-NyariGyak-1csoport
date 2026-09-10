@@ -68,7 +68,7 @@ function submitFinish() {
     <p class="font-body-sm text-on-surface-variant mb-4">
       We've estimated how long these items will stay fresh based on their
       category. Please adjust any dates if necessary before adding them to your
-      inventory.
+      fridge.
     </p>
 
     <div class="flex max-h-[60vh] flex-col gap-3 overflow-y-auto pr-2">

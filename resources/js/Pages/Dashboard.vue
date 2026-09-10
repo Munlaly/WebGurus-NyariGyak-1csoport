@@ -413,7 +413,7 @@ watch(searchQuery, (newVal) => {
           <!-- STEP 1: The Warnings -->
           <div v-if="!showMismatchResolutionStep">
             <h3 class="text-headline-md text-on-surface mb-2 font-bold">
-              Inventory Warning
+              Fridge Warning
             </h3>
             <p class="text-body-md text-on-surface-variant mb-4">
               {{ confirmationData.message }}
@@ -456,7 +456,7 @@ watch(searchQuery, (newVal) => {
                   {{
                     formatInputAmount(item.recipe_amount, item.recipe_unit)
                       .unit
-                  }}, but inventory has
+                  }}, but fridge has
                   {{
                     formatInputAmount(item.user_amount, item.user_unit).amount
                   }}
