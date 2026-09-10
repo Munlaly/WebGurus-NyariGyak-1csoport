@@ -3,6 +3,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import axios from 'axios';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import PlannerDayColumn from '../Components/WeeklyPlanner/PlannerDayColumn.vue';
+import ActionModal from '../Components/Modals/ActionModal.vue';
 import { DayPlan, MealType, PlannerMeal } from '../Types/plannerInterfaces.js';
 
 const props = defineProps<{
@@ -29,6 +30,7 @@ const activeDay = ref<string>('');
 const isSaving = ref(false);
 const isAlreadySaved = ref(false);
 const dailyCalorieTarget = ref<number | null>(null);
+const isDeletePlanModalOpen = ref(false);
 
 const saveButtonText = computed(() =>
   isAlreadySaved.value ? 'Update Plan' : 'Accept & Finalize',
@@ -42,7 +44,6 @@ function setActiveDay(day: string) {
   activeDay.value = day;
 }
 
-// Extracted dynamic class logic
 function getTabClass(dayName: string) {
   const baseClass =
     'border-b-2 px-3 py-3 text-sm font-bold whitespace-nowrap transition-colors sm:px-4 md:px-6';
@@ -53,10 +54,12 @@ function getTabClass(dayName: string) {
   return `${baseClass} ${activeDay.value === dayName ? activeClass : inactiveClass}`;
 }
 
-function togglePin(dayName: string, mealId: number) {
+function togglePin(dayName: string, mealId: number, mealType: string) {
   const day = weeklyPlan.value[dayName];
   if (!day) return;
-  const meal = day.meals.find((m) => m.id === mealId);
+  const meal = day.meals.find(
+    (m) => m.id === mealId && m.meal_type === mealType,
+  );
   if (meal) {
     meal.isPinned = !meal.isPinned;
   }
@@ -136,19 +139,35 @@ async function regenerateUnpinned() {
     const freshPlan = response.data.plan;
     dailyCalorieTarget.value = response.data.target_calories;
 
-    // if there are pinned meals, preserve them
     for (const dayName in freshPlan) {
       if (weeklyPlan.value[dayName]) {
         const existingMeals = weeklyPlan.value[dayName].meals;
+        const newDayMeals: PlannerMeal[] = [];
+        let hasSnack = false;
 
-        freshPlan[dayName].meals = freshPlan[dayName].meals.map(
-          (newMeal: PlannerMeal) => {
-            const oldMeal = existingMeals.find(
-              (m) => m.meal_type === newMeal.meal_type,
+        const mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+        mealTypes.forEach((type) => {
+          const pinnedOld = existingMeals.find(
+            (m) => m.meal_type === type && m.isPinned,
+          );
+
+          if (pinnedOld) {
+            newDayMeals.push(pinnedOld);
+            if (type === 'snack') hasSnack = true;
+          } else {
+            const freshNew = freshPlan[dayName].meals.find(
+              (m: PlannerMeal) => m.meal_type === type,
             );
-            return oldMeal?.isPinned ? oldMeal : newMeal;
-          },
-        );
+
+            if (freshNew) {
+              newDayMeals.push(freshNew);
+              if (type === 'snack') hasSnack = true;
+            }
+          }
+        });
+        freshPlan[dayName].meals = newDayMeals;
+        freshPlan[dayName].has_snack = hasSnack;
       }
     }
 
@@ -186,20 +205,13 @@ async function regenerateUnpinned() {
   }
 }
 
-async function deleteWeeklyPlan() {
-  if (
-    !confirm(
-      'Are you sure you want to delete your entire weekly plan and start over?',
-    )
-  ) {
-    return;
-  }
-
+async function executeDeletePlan() {
   try {
     const response = await axios.delete(route('meal-plan.destroy'));
     if (response.data.success) {
       weeklyPlan.value = {};
       isAlreadySaved.value = false;
+      isDeletePlanModalOpen.value = false;
       sessionStorage.removeItem(STORAGE_KEY);
 
       toast.add({
@@ -213,6 +225,7 @@ async function deleteWeeklyPlan() {
     }
   } catch (error) {
     console.error('Failed to delete plan:', error);
+    isDeletePlanModalOpen.value = false;
     toast.add({
       title: 'Error',
       description: 'Failed to delete the plan. Please try again.',
@@ -244,7 +257,6 @@ async function acceptAndFinalize() {
     if (response.data.success) {
       isAlreadySaved.value = true;
 
-      // Fire a success toast
       toast.add({
         title: 'Success!',
         description: isAlreadySaved.value
@@ -257,7 +269,6 @@ async function acceptAndFinalize() {
   } catch (error) {
     console.error('Failed to save plan:', error);
 
-    // Fire an error toast
     toast.add({
       title: 'Error',
       description: 'Failed to save the meal plan. Please try again.',
@@ -269,7 +280,6 @@ async function acceptAndFinalize() {
   }
 }
 
-// Watch for changes to the plan or the active tab and save them
 watch(
   () => ({
     weeklyPlan: weeklyPlan.value,
@@ -284,7 +294,6 @@ watch(
 );
 
 onMounted(() => {
-  //Attempt to load saved state from session storage
   const savedState = sessionStorage.getItem(STORAGE_KEY);
   if (savedState) {
     try {
@@ -300,14 +309,12 @@ onMounted(() => {
     }
   }
 
-  // If no active day was loaded, default to today
   if (!activeDay.value) {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     const isValidDay = allDays.find((d) => d.full === today);
     activeDay.value = isValidDay ? today : 'Monday';
   }
 
-  //If no plan was loaded, generate a new one
   if (Object.keys(weeklyPlan.value).length === 0 && !props.hasSavedPlan) {
     fetchInitialPlan();
   } else if (Object.keys(weeklyPlan.value).length === 0 && props.hasSavedPlan) {
@@ -358,7 +365,7 @@ onMounted(() => {
 
           <button
             class="text-error hover:bg-error-50 border-error/50 flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors sm:flex-1 md:w-auto"
-            @click="deleteWeeklyPlan"
+            @click="isDeletePlanModalOpen = true"
           >
             <span class="material-symbols-outlined text-[18px]"
               >delete_sweep</span
@@ -392,7 +399,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 2. Full Week Navigation (Tabs) - Horizontal Scrolling -->
+      <!-- 2. Full Week Navigation (Tabs) -->
       <div
         class="scrollbar-hide border-outline-variant/30 mb-6 flex w-full overflow-x-auto border-b"
       >
@@ -440,6 +447,20 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Delete Weekly Plan Confirmation Modal -->
+    <ActionModal
+      :show="isDeletePlanModalOpen"
+      title="Delete Weekly Plan"
+      submit-text="Delete Plan"
+      submit-variant="error"
+      @close="isDeletePlanModalOpen = false"
+      @submit="executeDeletePlan"
+    >
+      <p class="font-body-md text-on-surface-variant">
+        Are you sure you want to delete your entire weekly plan and start over?
+      </p>
+    </ActionModal>
   </AuthenticatedLayout>
 </template>
 

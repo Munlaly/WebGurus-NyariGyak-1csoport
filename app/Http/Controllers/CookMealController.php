@@ -214,6 +214,7 @@ class CookMealController extends Controller
 
                 $shoppingListItem = ShoppingListItem::where('user_id', $user->id)
                     ->where('ingredient_id', $recipeIngredient->id)
+                    ->where('unit', $requiredUnit)
                     ->where('is_checked', false)
                     ->first();
 
@@ -221,7 +222,6 @@ class CookMealController extends Controller
                     if ($shoppingListItem->quantity < $roundedQuantity) {
                         $shoppingListItem->update([
                             'quantity' => $roundedQuantity,
-                            'unit' => $requiredUnit
                         ]);
                     }
                 } else {
@@ -238,15 +238,9 @@ class CookMealController extends Controller
         }
 
         if ($addedCount === 0) {
-            return response()->json([
-                'success' => true,
-                'message' => 'You already have all the ingredients for this recipe!'
-            ]);
+            return back()->with('success', 'You already have all the ingredients for this recipe!');
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => "Added $addedCount missing ingredients to your shopping list!"
-        ]);
+        return back()->with('success', "Added $addedCount missing ingredients to your shopping list!");
     }
 }

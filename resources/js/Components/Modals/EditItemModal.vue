@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ActionModal from '../../Components/Modals/ActionModal.vue';
 import { ShoppingListItem } from '../../Types/shoppingListInterfaces.js';
+import { useUnits } from '../../Composables/useUnits.js';
 
 const props = defineProps<{
   show: boolean;
@@ -11,20 +12,31 @@ const props = defineProps<{
 
 const emit = defineEmits(['close']);
 
+const { unitOptions, fromStorageAmount, toStorageAmount } = useUnits();
+
 const editForm = useForm({
   quantity: 1,
   unit: 'pcs',
 });
 
+const displayQuantity = ref(1);
+
 watch(
   () => props.item,
   (newItem) => {
     if (newItem) {
-      editForm.quantity = newItem.quantity;
       editForm.unit = newItem.unit;
+      displayQuantity.value = fromStorageAmount(newItem.quantity, newItem.unit);
     }
   },
   { immediate: true },
+);
+
+watch(
+  [displayQuantity, () => editForm.unit],
+  ([newDisplayQuantity, newUnit]) => {
+    editForm.quantity = toStorageAmount(newDisplayQuantity, newUnit);
+  },
 );
 
 function submitEdit() {
@@ -57,7 +69,7 @@ function submitEdit() {
           >Quantity</label
         >
         <input
-          v-model="editForm.quantity"
+          v-model="displayQuantity"
           type="number"
           min="0.1"
           step="0.1"
@@ -74,11 +86,13 @@ function submitEdit() {
           v-model="editForm.unit"
           class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
         >
-          <option value="pcs">Pieces (pcs)</option>
-          <option value="g">Grams (g)</option>
-          <option value="kg">Kilos (kg)</option>
-          <option value="ml">Milliliters (ml)</option>
-          <option value="l">Liters (l)</option>
+          <option
+            v-for="opt in unitOptions"
+            :key="opt.value"
+            :value="opt.value"
+          >
+            {{ opt.label }}
+          </option>
         </select>
       </div>
     </div>

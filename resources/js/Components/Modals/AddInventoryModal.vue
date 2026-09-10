@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue';
 import { useActionModal } from '../../Composables/useActionModal';
 import ActionModal from './ActionModal.vue';
 import { useIngredientSearch } from '../../Composables/useIngredientSearch';
+import { useUnits } from '../../Composables/useUnits.js';
 
 const { searchTerm, searchResults, isSearchLoading, isDropdownOpen } =
   useIngredientSearch();
+
+const { unitOptions, toStorageAmount } = useUnits();
 
 const addModal = useActionModal<
   null,
@@ -29,6 +33,16 @@ const addModal = useActionModal<
   'post',
 );
 
+const displayAmount = ref(1);
+
+watch(
+  [displayAmount, () => addModal.form.unit],
+  ([newDisplayAmount, newUnit]) => {
+    addModal.form.amount_left = toStorageAmount(newDisplayAmount, newUnit);
+  },
+  { immediate: true },
+);
+
 function selectIngredient(ingredient: { id: number; name: string }) {
   addModal.form.ingredient_id = ingredient.id;
   searchTerm.value = ingredient.name;
@@ -36,7 +50,26 @@ function selectIngredient(ingredient: { id: number; name: string }) {
 }
 
 defineExpose({
-  open: () => addModal.open(null),
+  open: (ingredient?: { id: number; name: string }) => {
+    displayAmount.value = 1;
+
+    if (ingredient) {
+      searchTerm.value = ingredient.name;
+      isDropdownOpen.value = false;
+
+      addModal.open(null, {
+        ingredient_id: ingredient.id,
+        amount_left: 1,
+        unit: 'pcs',
+        status: 'FULL',
+        expiration_date: '',
+        is_frozen: false,
+      });
+    } else {
+      searchTerm.value = '';
+      addModal.open(null);
+    }
+  },
 });
 </script>
 
@@ -105,7 +138,7 @@ defineExpose({
           >Initial Amount</label
         >
         <input
-          v-model="addModal.form.amount_left"
+          v-model="displayAmount"
           type="number"
           min="0"
           step="0.1"
@@ -121,11 +154,13 @@ defineExpose({
           v-model="addModal.form.unit"
           class="bg-surface-container-lowest border-outline-variant text-on-surface focus:ring-primary w-full rounded-xl border p-3 font-bold transition-all focus:ring-2"
         >
-          <option value="pcs">Pieces (pcs)</option>
-          <option value="g">Grams (g)</option>
-          <option value="kg">Kilos (kg)</option>
-          <option value="ml">Milliliters (ml)</option>
-          <option value="l">Liters (l)</option>
+          <option
+            v-for="opt in unitOptions"
+            :key="opt.value"
+            :value="opt.value"
+          >
+            {{ opt.label }}
+          </option>
         </select>
       </div>
     </div>

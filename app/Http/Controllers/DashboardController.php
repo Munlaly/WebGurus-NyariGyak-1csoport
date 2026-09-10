@@ -40,18 +40,15 @@ class DashboardController extends Controller
         };
 
         $today = Carbon::now();
-        $todayString = $today->toDateString();
-        $yesterdayString = $today->copy()->subDay()->toDateString();
-        $tomorrowString = $today->copy()->addDay()->toDateString();
+        $yesterday = $today->copy()->subDay();
+        $tomorrow = $today->copy()->addDay();
 
         $startOfWeek = $today->copy()->startOfWeek()->toDateString();
         $endOfWeek = $today->copy()->endOfWeek()->toDateString();
 
         $dailyPlans = DailyPlan::where('user_id', $user->id)
-            ->whereBetween('date', [
-                $today->copy()->subDay()->startOfDay(),
-                $today->copy()->addDay()->endOfDay()
-            ])
+            ->where('date', '>=', $yesterday->copy()->startOfDay()->toDateTimeString())
+            ->where('date', '<=', $tomorrow->copy()->endOfDay()->toDateTimeString())
             ->with(['mealPlans.recipe.ingredients'])
             ->get();
 
@@ -95,6 +92,10 @@ class DashboardController extends Controller
                 $today->copy()->endOfWeek()->endOfDay()
         ])
         ->exists();
+
+        $yesterdayString = $yesterday->toDateString();
+        $todayString = $today->toDateString();
+        $tomorrowString = $tomorrow->toDateString();
 
         foreach($dailyPlans as $dailyPlan) {
             $planDate = Carbon::parse($dailyPlan->date)->toDateString();

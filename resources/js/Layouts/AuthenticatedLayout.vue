@@ -1,11 +1,60 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted, watchEffect } from 'vue';
+import { ref, computed, watch, watchEffect } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { useDismissedAlerts } from '../Composables/useDismissedAlerts';
-import { CustomPageProps } from '../Types/topbarInterfaces.js';
+import { useUnits } from '../Composables/useUnits.js';
+
+interface MacroTarget {
+  current: number;
+  target: number;
+}
+
+interface InventoryItem {
+  id: number;
+  expiration_date: string;
+}
+
+interface InventoryFlashQuantity {
+  amount: number;
+  unit: string;
+}
+
+interface InventoryFlashPayload {
+  template: string;
+  itemName?: string;
+  amount?: number;
+  unit?: string;
+  quantities?: Record<string, InventoryFlashQuantity>;
+}
+
+interface CustomPageProps {
+  auth: {
+    theme?: string;
+    inAppAlerts?: boolean;
+    expiringCount?: number;
+  };
+  expiringAlerts?: {
+    expired?: InventoryItem[];
+    critical?: InventoryItem[];
+    urgent?: InventoryItem[];
+  };
+  flash?: {
+    success?: string | InventoryFlashPayload;
+  };
+  topbarData?: {
+    mealsCooked?: { current: number; total: number };
+    macros?: {
+      calories?: MacroTarget;
+      protein?: MacroTarget;
+      carbs?: MacroTarget;
+      fat?: MacroTarget;
+    } | null;
+  };
+}
 
 const page = usePage();
 const { dismissedIds } = useDismissedAlerts();
+const { formatQuantity } = useUnits();
 
 const navigation = [
   { name: "Today's Plans", icon: 'calendar_today', href: '/' },
@@ -20,6 +69,9 @@ const navigation = [
 const isCollapsed = ref(false);
 const isMobileMenuOpen = ref(false);
 const showFlashToast = ref(false);
+const toastTitle = ref('');
+const toastDescription = ref('');
+const toastType = ref<'success' | 'warning'>('success');
 
 const typedPageProps = computed(() => page.props as unknown as CustomPageProps);
 const sidebarWidthClass = computed(() => (isCollapsed.value ? 'w-20' : 'w-72'));
@@ -43,7 +95,36 @@ const headerPositionClass = computed(() =>
 const mobileMenuTransformClass = computed(() =>
   isMobileMenuOpen.value ? 'translate-x-0' : 'translate-x-full',
 );
-const flashMessage = computed(() => typedPageProps.value.flash?.success);
+const flashMessage = computed(() => {
+  const flash = typedPageProps.value.flash?.success;
+
+  if (!flash) return undefined;
+  if (typeof flash === 'string') {
+    return flash;
+  }
+  try {
+    let text = flash.template;
+
+    if (flash.itemName !== undefined) {
+      text = text.replaceAll('{itemName}', String(flash.itemName));
+    }
+    if (flash.amount !== undefined && flash.unit !== undefined) {
+      text = text.replaceAll(
+        '{quantity}',
+        formatQuantity(flash.amount, flash.unit),
+      );
+    }
+    if (flash.quantities) {
+      for (const [key, q] of Object.entries(flash.quantities)) {
+        text = text.replaceAll(`{${key}}`, formatQuantity(q.amount, q.unit));
+      }
+    }
+    return text;
+  } catch (error) {
+    console.error('Flash parsing error:', error);
+    return 'Action completed successfully.';
+  }
+});
 
 const availableAlertsCount = computed(() => {
   const alerts = typedPageProps.value.expiringAlerts || {
@@ -65,23 +146,25 @@ const availableAlertsCount = computed(() => {
 const topbarData = computed(
   () =>
     typedPageProps.value.topbarData || {
-      mealsCooked: { current: 0, total: 0 },
+      mealsCooked: { current: 0, total: 3 },
       macros: null,
     },
 );
 
-const mealsCooked = computed(() => topbarData.value.mealsCooked);
+const mealsCooked = computed(
+  () => topbarData.value.mealsCooked || { current: 0, total: 3 },
+);
 const calories = computed(
-  () => topbarData.value.macros?.calories || { current: 0, target: 0 },
+  () => topbarData.value.macros?.calories || { current: 0, target: 2000 },
 );
 const protein = computed(
-  () => topbarData.value.macros?.protein || { current: 0, target: 0 },
+  () => topbarData.value.macros?.protein || { current: 0, target: 140 },
 );
 const carbs = computed(
-  () => topbarData.value.macros?.carbs || { current: 0, target: 0 },
+  () => topbarData.value.macros?.carbs || { current: 0, target: 220 },
 );
 const fat = computed(
-  () => topbarData.value.macros?.fat || { current: 0, target: 0 },
+  () => topbarData.value.macros?.fat || { current: 0, target: 65 },
 );
 
 function toggleSidebar() {
@@ -117,20 +200,46 @@ watch(isMobileMenuOpen, (isOpen) => {
   }
 });
 
-watch(flashMessage, (newMessage) => {
-  if (newMessage) {
-    showFlashToast.value = true;
-    setTimeout(() => {
-      showFlashToast.value = false;
-    }, 4500);
-  }
-});
+watch(
+  flashMessage,
+  (newMessage) => {
+    if (newMessage) {
+      toastTitle.value = 'Inventory Updated';
+      toastDescription.value = newMessage;
+      toastType.value = 'success';
+      showFlashToast.value = true;
+      setTimeout(() => {
+        showFlashToast.value = false;
+      }, 4500);
+    }
+  },
+  { immediate: true },
+);
 
-onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = '';
-  }
-});
+watch(
+  availableAlertsCount,
+  (count) => {
+    if (count > 0) {
+      const hasShownThisSession = sessionStorage.getItem('expiringAlertShown');
+
+      if (!hasShownThisSession) {
+        sessionStorage.setItem('expiringAlertShown', 'true');
+
+        setTimeout(() => {
+          toastTitle.value = 'Expiring Foods Alert';
+          toastDescription.value = `You have ${count} expiring food${count > 1 ? 's' : ''}.`;
+          toastType.value = 'warning';
+          showFlashToast.value = true;
+
+          setTimeout(() => {
+            showFlashToast.value = false;
+          }, 5000);
+        }, 800);
+      }
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -152,23 +261,39 @@ onUnmounted(() => {
           class="fixed top-6 left-1/2 z-100 w-11/12 max-w-md -translate-x-1/2 sm:w-full"
         >
           <div
-            class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border border-emerald-200 bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:border-emerald-900/50 dark:bg-gray-900"
+            class="pointer-events-auto flex items-center justify-between gap-4 rounded-2xl border bg-white p-4 shadow-2xl ring-1 ring-black/5 dark:bg-gray-900"
+            :class="
+              toastType === 'warning'
+                ? 'border-amber-200 dark:border-amber-900/50'
+                : 'border-emerald-200 dark:border-emerald-900/50'
+            "
           >
             <div class="flex items-center gap-4">
               <div
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+                :class="
+                  toastType === 'warning'
+                    ? 'bg-amber-100 dark:bg-amber-900/30'
+                    : 'bg-emerald-100 dark:bg-emerald-900/30'
+                "
               >
                 <span
-                  class="material-symbols-outlined text-emerald-600 dark:text-emerald-400"
-                  >check_circle</span
+                  class="material-symbols-outlined"
+                  :class="
+                    toastType === 'warning'
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-emerald-600 dark:text-emerald-400'
+                  "
                 >
+                  {{ toastType === 'warning' ? 'warning' : 'check_circle' }}
+                </span>
               </div>
               <div>
                 <p class="text-sm font-bold text-gray-900 dark:text-white">
-                  Inventory Updated
+                  {{ toastTitle }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ flashMessage }}
+                  {{ toastDescription }}
                 </p>
               </div>
             </div>

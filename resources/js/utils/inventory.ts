@@ -89,3 +89,57 @@ export const getItemState = (item: InventoryItem) => {
       'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
   };
 };
+
+export function getCategoryEmoji(categoryName?: string) {
+  switch (categoryName?.toLowerCase()) {
+    case 'produce':
+      return '🥦';
+    case 'meat':
+      return '🥩';
+    case 'seafood':
+      return '🐟';
+    case 'milk, eggs, other dairy':
+      return '🥛';
+    case 'spices and seasonings':
+      return '🧂';
+    case 'bakery/bread':
+      return '🍞';
+    case 'pasta and rice':
+      return '🌾';
+    case 'baking':
+      return '🍪';
+    case 'cereal':
+      return '🥣';
+    case 'nut butters':
+      return '🥜';
+    case 'jams and honey':
+      return '🍯';
+    case 'canned and jarred':
+      return '🥫';
+    case 'frozen':
+      return '❄️';
+    case 'oil, vinegar, salad dressing':
+      return '🫒';
+    case 'condiments':
+      return '🍾';
+    case 'savory snacks':
+      return '🥨';
+    case 'sweet snacks':
+      return '🍫';
+    case 'beverages':
+      return '🧃';
+    case 'tea and coffee':
+      return '☕';
+    case 'alcoholic beverages':
+      return '🍷';
+    case 'health foods':
+      return '🌱';
+    case 'cheese':
+      return '🧀';
+    case 'ethnic foods':
+      return '🍛';
+    case 'uncategorized':
+    default:
+      return '📦';
+  }
+}
