@@ -25,12 +25,14 @@ interface InventoryFlashPayload {
   itemName?: string;
   amount?: number;
   unit?: string;
+  quantities?: Record<string, InventoryFlashQuantity>;
 }
 
 interface CustomPageProps {
   auth: {
     theme?: string;
     inAppAlerts?: boolean;
+  };
   expiringAlerts?: {
     expired?: InventoryItem[];
     critical?: InventoryItem[];
@@ -113,7 +115,10 @@ const flashMessage = computed(() => {
       );
     }
     if (flash.quantities) {
-      for (const [key, q] of Object.entries(flash.quantities)) {
+      for (const [key, q] of Object.entries(flash.quantities) as [
+        string,
+        InventoryFlashQuantity,
+      ][]) {
         text = text.replaceAll(`{${key}}`, formatQuantity(q.amount, q.unit));
       }
     }
