@@ -220,11 +220,9 @@ class CookMealController extends Controller
                     ->first();
 
                 if ($shoppingListItem) {
-                    if ($shoppingListItem->quantity < $roundedQuantity) {
-                        $shoppingListItem->update([
-                            'quantity' => $roundedQuantity,
-                        ]);
-                    }
+                    $shoppingListItem->update([
+                        'quantity' => $shoppingListItem->quantity + $roundedQuantity,
+                    ]);
                 } else {
                     ShoppingListItem::create([
                         'user_id' => $user->id,

@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '../Layouts/AuthenticatedLayout.vue';
 import MealCard from '../Components/MealCard.vue';
+import ActionModal from '../Components/Modals/ActionModal.vue';
 import axios from 'axios';
 import {
   Meal,
@@ -30,6 +31,19 @@ const showMealTypeModal = ref(false);
 const selectedSearchResult = ref<SearchResult | null>(null);
 const localPreparedStatus = ref<Record<number, boolean>>({});
 const localFavoriteStatus = ref<Record<number, boolean>>({});
+
+// Shopping Cart State Tracking - Now with Session Storage!
+const savedCart =
+  typeof window !== 'undefined'
+    ? sessionStorage.getItem('addedToCartRecipes')
+    : null;
+const initialSet = savedCart
+  ? new Set<number>(JSON.parse(savedCart))
+  : new Set<number>();
+const addedToCartRecipes = ref<Set<number>>(initialSet);
+
+const showDuplicateCartModal = ref(false);
+const pendingCartRecipeId = ref<number | null>(null);
 
 const showConfirmationModal = ref(false);
 const showMismatchResolutionStep = ref(false);
@@ -81,6 +95,12 @@ const currentMeals = computed(() => {
     isFavorite:
       localFavoriteStatus.value[meal.id] ?? (meal.isFavorite || false),
   }));
+});
+
+// Find the specific meal data for the cart modal based on the clicked ID
+const pendingMealForCart = computed(() => {
+  if (!pendingCartRecipeId.value) return null;
+  return currentMeals.value.find((m) => m.id === pendingCartRecipeId.value);
 });
 
 function handleRecipeSelection(recipe: SearchResult) {
@@ -224,11 +244,34 @@ async function handleCookMeal(
 }
 
 function handleAddToCart(recipeId: number) {
+  if (addedToCartRecipes.value.has(recipeId)) {
+    // Already added once this session, trigger confirmation
+    pendingCartRecipeId.value = recipeId;
+    showDuplicateCartModal.value = true;
+  } else {
+    // First time, add directly
+    executeAddToCart(recipeId);
+  }
+}
+
+function executeAddToCart(recipeId: number) {
   router.post(
     `/recipe/${recipeId}/shopping-list`,
     {},
     {
       preserveScroll: true,
+      onSuccess: () => {
+        addedToCartRecipes.value.add(recipeId);
+
+        // Save the updated list to browser memory
+        sessionStorage.setItem(
+          'addedToCartRecipes',
+          JSON.stringify(Array.from(addedToCartRecipes.value)),
+        );
+
+        showDuplicateCartModal.value = false;
+        pendingCartRecipeId.value = null;
+      },
     },
   );
 }
@@ -385,6 +428,7 @@ watch(searchQuery, (newVal) => {
           :key="meal.meal_plan_id"
           v-bind="meal"
           :is-today="dayOffset <= 0"
+          :is-added-to-cart="addedToCartRecipes.has(meal.id)"
           @toggle-eaten="handleCookMeal(meal.meal_plan_id, meal.id, false)"
           @toggle-favorite="toggleFavoriteStatus(meal.id)"
           @add-to-cart="handleAddToCart(meal.id)"
@@ -401,6 +445,38 @@ watch(searchQuery, (newVal) => {
           class="border-outline-variant w-full border-2 border-dashed"
         />
       </div>
+
+      <!-- Duplicate Cart Serving Modal -->
+      <ActionModal
+        :show="showDuplicateCartModal"
+        title="Add Ingredients Again?"
+        submit-text="Add Extra Serving"
+        submit-variant="primary"
+        @close="showDuplicateCartModal = false"
+        @submit="executeAddToCart(pendingCartRecipeId!)"
+      >
+        <div
+          class="bg-surface-container-lowest border-outline-variant/30 mb-4 flex items-center gap-4 rounded-xl border p-4 shadow-inner"
+        >
+          <span class="material-symbols-outlined text-primary text-4xl"
+            >restaurant</span
+          >
+          <div>
+            <span
+              class="font-label-lg text-on-surface block font-bold capitalize"
+            >
+              {{ pendingMealForCart?.title || 'This recipe' }}
+            </span>
+            <span class="font-body-sm text-on-surface-variant">
+              You already added missing ingredients for this meal to your cart.
+            </span>
+          </div>
+        </div>
+        <p class="font-body-md text-on-surface-variant">
+          Do you want to add these ingredients again? This is useful if you are
+          cooking multiple servings.
+        </p>
+      </ActionModal>
 
       <!-- Confirmation / Warning Modal -->
       <div
