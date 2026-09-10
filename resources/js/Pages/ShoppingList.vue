@@ -67,7 +67,7 @@ function openEditModal(item: ShoppingListItem) {
           </h1>
           <p class="font-body-md text-body-md text-on-surface-variant">
             Plan your groceries and transfer them straight to your zero-waste
-            inventory.
+            fridge.
           </p>
         </div>
 

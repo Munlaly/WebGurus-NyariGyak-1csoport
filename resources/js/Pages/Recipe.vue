@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { getMealPlaceholder } from '../utils/meal';
 
 interface RecipeProps {
   id: number;
@@ -16,25 +18,21 @@ interface RecipeProps {
   ingredients: Array<{ name: string; amount: number; unit: string | null }>;
   instructions: Array<string>;
   is_custom?: boolean;
+  meal_type?: string;
+  meal_types?: string[];
 }
 
 const props = defineProps<{
   recipe: RecipeProps;
 }>();
 
+const imageFailed = ref(false);
+
 const goBack = () => {
   if (props.recipe.is_custom) {
     router.get(route('recipes.index'), { tab: 'mine' });
   } else {
     router.get(route('recipes.index'));
-  }
-};
-
-const handleImageError = (event: Event) => {
-  const target = event.target as HTMLImageElement | null;
-
-  if (target) {
-    target.src = 'https://placehold.co/600x400?text=No+Image';
   }
 };
 </script>
@@ -154,13 +152,25 @@ const handleImageError = (event: Event) => {
         <div class="lg:col-span-2">
           <!-- Hero Image Container -->
           <div
-            class="relative mb-8 aspect-video w-full overflow-hidden rounded-xl shadow-sm"
+            class="bg-surface-container relative mb-8 flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl shadow-sm"
           >
+            <div
+              v-if="!recipe.imageUrl || imageFailed"
+              class="from-surface-container-low to-surface-container flex h-full w-full items-center justify-center bg-linear-to-br text-7xl select-none"
+            >
+              {{
+                getMealPlaceholder(
+                  recipe.meal_types ||
+                    (recipe.meal_type ? [recipe.meal_type] : undefined),
+                )
+              }}
+            </div>
             <img
+              v-else
               class="h-full w-full object-cover"
               :src="recipe.imageUrl"
               :alt="recipe.imageAlt"
-              @error="handleImageError"
+              @error="imageFailed = true"
             />
 
             <!-- Prep Time Overlay -->

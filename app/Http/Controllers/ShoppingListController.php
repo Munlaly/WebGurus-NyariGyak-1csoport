@@ -120,8 +120,8 @@ class ShoppingListController extends Controller
         }
         ShoppingListItem::whereIn('id', $shoppingItems->pluck('id'))->delete();
         return back()->with('success', [
-            'title' => 'Inventory Updated',
-            'template' => 'Checked items transferred to your inventory!',
+            'title' => 'Fridge Updated',
+            'template' => 'Checked items transferred to your fridge!',
         ]);
     }
 

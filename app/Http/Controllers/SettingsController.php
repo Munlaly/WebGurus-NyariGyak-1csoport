@@ -87,7 +87,7 @@ class SettingsController extends Controller
 
          return back()->with('success', [
              'title' => 'Targets Updated',
-             'template' => 'Targets and schedule updated successfully.',
+             'template' => 'Targets and schedule updated successfully. Please regenerate your weekly menu and save it for the changes to apply.',
          ]);
     }
 
@@ -138,7 +138,7 @@ class SettingsController extends Controller
         });
 
         return back()->with('success', [
-            'title' => 'Dietary Rules Updated',
+            'title' => 'Dietary Rules Updated. Please regenerate your weekly menu and save it for the changes to apply.',
             'template' => 'Dietary rules updated.',
         ]);
     }
@@ -222,7 +222,7 @@ class SettingsController extends Controller
         });
 
         return back()->with('success', [
-            'title' => 'Biometrics Updated',
+            'title' => 'Biometrics Updated. Please regenerate your weekly menu and save it for the changes to apply.',
             'template' => 'Biometrics updated. Caloric targets recalculated.',
         ]);
     }
@@ -260,7 +260,7 @@ class SettingsController extends Controller
         );
 
         return back()->with('success', [
-            'title' => 'Logistics Updated',
+            'title' => 'Logistics Updated. Please regenerate your weekly menu and save it for the changes to apply.',
             'template' => 'Kitchen logistics updated successfully.',
         ]);
     }
@@ -297,7 +297,7 @@ class SettingsController extends Controller
         $user->save();
 
         return back()->with('success', [
-            'title' => 'Profile Updated',
+            'title' => 'Profile Updated.',
             'template' => 'Profile details updated.',
         ]);
     }

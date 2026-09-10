@@ -44,7 +44,7 @@ class RecipeController extends Controller
                 'title' => $recipe->name,
                 'prepTime' => $recipe->prep_time_minutes,
                 'calories' => $recipe->calories,
-                'imageUrl' => $this->getRecipeImageUrl($recipe->image),
+                'imageUrl' => $recipe->image ? $this->getRecipeImageUrl($recipe->image) : null,
                 'imageAlt' => $recipe->name,
                 'macros' => [
                     'protein' => (float) $recipe->protein,
@@ -54,6 +54,7 @@ class RecipeController extends Controller
                 'ingredients' => $formattedIngredients,
                 'instructions' => $instructionsArray,
                 'is_custom' => $isAuthor,
+                'meal_types' =>$recipe->meal_types, 
             ]
         ]);
     }

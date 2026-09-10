@@ -30,6 +30,7 @@ const showMealTypeModal = ref(false);
 const selectedSearchResult = ref<SearchResult | null>(null);
 const localPreparedStatus = ref<Record<number, boolean>>({});
 const localFavoriteStatus = ref<Record<number, boolean>>({});
+const addedToCartRecipes = ref<Set<number>>(new Set());
 
 const showConfirmationModal = ref(false);
 const showMismatchResolutionStep = ref(false);
@@ -224,11 +225,16 @@ async function handleCookMeal(
 }
 
 function handleAddToCart(recipeId: number) {
+  if (addedToCartRecipes.value.has(recipeId)) return;
+
   router.post(
     `/recipe/${recipeId}/shopping-list`,
     {},
     {
       preserveScroll: true,
+      onSuccess: () => {
+        addedToCartRecipes.value.add(recipeId);
+      },
     },
   );
 }
@@ -385,6 +391,7 @@ watch(searchQuery, (newVal) => {
           :key="meal.meal_plan_id"
           v-bind="meal"
           :is-today="dayOffset <= 0"
+          :is-added-to-cart="addedToCartRecipes.has(meal.id)"
           @toggle-eaten="handleCookMeal(meal.meal_plan_id, meal.id, false)"
           @toggle-favorite="toggleFavoriteStatus(meal.id)"
           @add-to-cart="handleAddToCart(meal.id)"
@@ -413,7 +420,7 @@ watch(searchQuery, (newVal) => {
           <!-- STEP 1: The Warnings -->
           <div v-if="!showMismatchResolutionStep">
             <h3 class="text-headline-md text-on-surface mb-2 font-bold">
-              Inventory Warning
+              Fridge Warning
             </h3>
             <p class="text-body-md text-on-surface-variant mb-4">
               {{ confirmationData.message }}
@@ -456,7 +463,7 @@ watch(searchQuery, (newVal) => {
                   {{
                     formatInputAmount(item.recipe_amount, item.recipe_unit)
                       .unit
-                  }}, but inventory has
+                  }}, but fridge has
                   {{
                     formatInputAmount(item.user_amount, item.user_unit).amount
                   }}

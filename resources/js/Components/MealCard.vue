@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Meal } from '../Types/dashboardInterfaces';
+import { getMealPlaceholder } from '../utils/meal';
 
 const props = withDefaults(defineProps<Meal>(), {
   isFavorite: false,
   isToday: true,
+  isAddedToCart: false,
 });
+
+const imageFailed = ref(false);
 
 const emit = defineEmits<{
   (e: 'toggle-eaten'): void;
@@ -24,6 +28,16 @@ const buttonClass = computed(() => {
     return 'bg-surface-container-low text-on-surface-variant/40 border border-outline-variant/30 cursor-not-allowed opacity-60';
   }
   return 'bg-primary text-on-primary hover:bg-primary/90 dark:hover:bg-[#b080ea] shadow-sm';
+});
+
+const cartButtonClass = computed(() => {
+  if (props.isAddedToCart) {
+    return 'bg-surface-container text-on-surface-variant/60 border border-outline-variant cursor-not-allowed opacity-60';
+  }
+  if (props.isPrepared) {
+    return 'cursor-not-allowed opacity-30';
+  }
+  return 'hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:scale-105 active:scale-95';
 });
 
 const imageStateClass = computed(() =>
@@ -64,26 +78,34 @@ const favoriteTooltipText = computed(() =>
         Eaten
       </div>
 
-      <!-- Hero Image -->
+      <!-- Hero Image or Emoji Placeholder -->
       <div
         :class="[
           'bg-surface-container-low relative aspect-video w-full overflow-hidden transition-all duration-500',
           imageStateClass,
         ]"
       >
-        <!-- 1. Ambient Blur Background: Fills the empty space using a heavy blur so pixelation disappears -->
-        <img
-          class="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl"
-          :src="imageUrl"
-          alt=""
-        />
-
-        <!-- 2. Crisp Foreground Image: Stays uncropped (object-contain) with your hover effects -->
-        <img
-          class="relative h-full w-full object-contain drop-shadow-md transition-all duration-500 group-hover:scale-105"
-          :alt="imageAlt"
-          :src="imageUrl"
-        />
+        <div
+          v-if="!imageUrl || imageFailed"
+          class="from-surface-container-low to-surface-container flex h-full w-full items-center justify-center bg-linear-to-br text-5xl select-none"
+        >
+          {{ getMealPlaceholder([meal_type]) }}
+        </div>
+        <template v-else>
+          <!-- Ambient Blur Background -->
+          <img
+            class="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-50 blur-xl"
+            :src="imageUrl"
+            alt=""
+          />
+          <!-- Crisp Foreground Image -->
+          <img
+            class="relative h-full w-full object-contain drop-shadow-md transition-all duration-500 group-hover:scale-105"
+            :alt="imageAlt"
+            :src="imageUrl"
+            @error="imageFailed = true"
+          />
+        </template>
       </div>
     </Link>
 
@@ -121,27 +143,31 @@ const favoriteTooltipText = computed(() =>
           <div class="relative flex items-center">
             <button
               type="button"
-              :disabled="isPrepared"
+              :disabled="isPrepared || isAddedToCart"
               :class="[
                 'group/cart border-outline-variant/40 bg-surface-container-low text-on-surface-variant relative flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-200',
-                isPrepared
-                  ? 'cursor-not-allowed opacity-30'
-                  : 'hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:scale-105 active:scale-95',
+                cartButtonClass,
               ]"
-              aria-label="Add missing to cart"
+              :aria-label="
+                isAddedToCart ? 'Added to cart' : 'Add missing to cart'
+              "
               @click.stop="emit('add-to-cart')"
             >
               <span
                 class="material-symbols-outlined text-[20px] transition-transform duration-200"
-                :class="{ 'group-hover/cart:scale-110': !isPrepared }"
+                :class="{
+                  'group-hover/cart:scale-110': !isPrepared && !isAddedToCart,
+                }"
               >
-                add_shopping_cart
+                {{
+                  isAddedToCart ? 'shopping_cart_checkout' : 'add_shopping_cart'
+                }}
               </span>
               <span
                 v-if="!isPrepared"
                 class="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-gray-900 px-2 py-0.5 text-xs whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity duration-150 group-hover/cart:opacity-100 dark:bg-gray-700"
               >
-                Add missing to cart
+                {{ isAddedToCart ? 'Added to cart' : 'Add missing to cart' }}
               </span>
             </button>
           </div>
